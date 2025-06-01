@@ -1,0 +1,59 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Book Recommendation Website - Testing Standards
+
+## Test Organization
+
+1. **File Structure**
+   - Place tests next to implementation files
+   - Use `.test.ts` or `.test.tsx` extensions
+   - Group related tests in describe blocks
+
+2. **Naming Conventions**
+   - Test files: `ComponentName.test.tsx`
+   - Test suites: describe('ComponentName', ...)
+   - Test cases: it('should do something specific', ...)
+
+## Testing Approaches
+
+1. **Component Testing**
+   ```tsx
+   // Example component test structure
+   describe('BookCard', () => {
+     it('should render book details correctly', () => {
+       // Arrange
+       // Act
+       // Assert
+     })
+   })
+   ```
+
+2. **Integration Testing**
+   - Test main user flows
+   - Verify data persistence
+   - Check component interactions
+
+3. **API Testing**
+   - Test all API endpoints
+   - Verify error handling
+   - Mock external services
+
+## Best Practices
+
+1. **Test Coverage**
+   - Aim for 80% coverage
+   - Focus on business logic
+   - Test edge cases thoroughly
+
+2. **Mocking**
+   - Mock external dependencies
+   - Use MSW for API mocking
+   - Keep mocks simple and maintainable
+
+3. **Performance**
+   - Keep tests focused and fast
+   - Use setup/teardown effectively
+   - Avoid unnecessary assertions

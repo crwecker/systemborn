@@ -1,0 +1,60 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Book Recommendation Website - Coding Standards
+
+## TypeScript Guidelines
+
+1. **Type Safety**
+   - Use explicit types over `any`
+   - Leverage TypeScript's inference when obvious
+   - Define interfaces for all data structures
+   - Use discriminated unions for complex state
+
+2. **Component Props**
+   - Define prop interfaces with `Props` suffix
+   - Use optional props sparingly
+   - Document complex prop requirements
+
+## React/Remix Patterns
+
+1. **Component Organization**
+   ```tsx
+   // Standard component structure
+   import { type whatever } from 'wherever'
+   
+   interface ComponentProps {
+     // props here
+   }
+   
+   export function Component({ prop1, prop2 }: ComponentProps) {
+     // hooks at the top
+     // business logic in the middle
+     // render at the bottom
+     return (...)
+   }
+   ```
+
+2. **State Management**
+   - Use React Query for remote state
+   - Prefer local state when possible
+   - Keep global state minimal
+
+3. **Performance**
+   - Implement proper memoization
+   - Use lazy loading for routes
+   - Optimize images and assets
+
+## CSS/Styling
+
+1. **CSS Modules**
+   - Use CSS Modules for component styling
+   - Follow BEM-like naming in modules
+   - Keep selectors simple and flat
+
+2. **Theme Guidelines**
+   - Use CSS variables for theming
+   - Maintain consistent spacing units
+   - Follow accessibility guidelines

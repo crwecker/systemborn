@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50;
+  }
+}
+
+@layer components {
+  .book-card {
+    @apply bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200;
+  }
+  
+  .tag-pill {
+    @apply inline-block px-2 py-1 rounded-full text-sm bg-blue-100 text-blue-800 mr-2 mb-2;
+  }
+} 

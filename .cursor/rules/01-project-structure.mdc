@@ -1,0 +1,38 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Book Recommendation Website - Project Structure
+
+## Directory Organization
+
+- `app/` - Main application code
+  - `routes/` - All Remix routes
+  - `components/` - Reusable React components
+  - `models/` - Data models and database interactions
+  - `styles/` - CSS and styling
+  - `utils/` - Helper functions and utilities
+  - `services/` - External service integrations (book APIs, etc.)
+
+## Key Files
+- `app/root.tsx` - Root layout and global configurations
+- `app/entry.client.tsx` - Client entry point
+- `app/entry.server.tsx` - Server entry point
+
+## Architectural Decisions
+
+1. **Route Organization**
+   - Use nested routes for logical grouping
+   - Keep route files focused on single responsibility
+   - Place route-specific components in adjacent directories
+
+2. **Data Flow**
+   - Use Remix loaders for data fetching
+   - Keep data transformations close to their usage
+   - Implement proper error boundaries
+
+3. **Component Structure**
+   - Maintain flat component hierarchy
+   - Group related components by feature
+   - Keep components small and focused
