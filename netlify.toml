@@ -7,17 +7,6 @@
   node_bundler = "esbuild"
   external_node_modules = ["@prisma/client", "prisma"]
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
-
-# Ensure Prisma generates during build
-[build.environment]
-  PRISMA_GENERATE_DURING_BUILD = "true"
-
-# Copy Prisma engine files
-[[plugins]]
-  package = "netlify-plugin-prisma-fix"
-
 # Handle redirects for SPA
 [[redirects]]
   from = "/*"
