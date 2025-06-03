@@ -25,3 +25,4 @@ dist-ssr
 *.sw?
 
 server/generated/prisma
+netlify/functions/generated/prisma

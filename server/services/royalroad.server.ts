@@ -1,7 +1,11 @@
 import { parse } from 'node-html-parser';
 import type { Book } from "../../src/types/book";
 import { PrismaClient } from "@prisma/client";
-import { Source } from "../generated/prisma";
+
+// Define Source enum to match Prisma schema
+export enum Source {
+  ROYAL_ROAD = 'ROYAL_ROAD'
+}
 
 // We'll get the Prisma instance from the API handler
 let prisma: PrismaClient;
