@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "BookStats" ADD COLUMN     "average_views" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "favorites" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN     "ratings_count" INTEGER NOT NULL DEFAULT 0;

@@ -10,28 +10,37 @@ datasource db {
 }
 
 model Book {
-  id          String      @id
-  title       String
-  authorName  String
-  description String
-  tags        String[]
-  coverUrl    String?
-  sourceUrl   String
-  source      Source
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  stats       BookStats[]
+  id              String      @id
+  title           String
+  authorName      String
+  description     String
+  tags            String[]
+  coverUrl        String?
+  sourceUrl       String
+  source          Source
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  contentWarnings String[]
+  stats           BookStats[]
 }
 
 model BookStats {
-  id        String   @id @default(cuid())
-  bookId    String
-  rating    Float    @default(0)
-  followers Int      @default(0)
-  views     Int      @default(0)
-  pages     Int      @default(0)
-  createdAt DateTime @default(now())
-  book      Book     @relation(fields: [bookId], references: [id])
+  id              String   @id @default(cuid())
+  bookId          String
+  rating          Float    @default(0)
+  followers       Int      @default(0)
+  views           Int      @default(0)
+  pages           Int      @default(0)
+  createdAt       DateTime @default(now())
+  average_views   Int      @default(0)
+  favorites       Int      @default(0)
+  ratings_count   Int      @default(0)
+  character_score Float    @default(0)
+  grammar_score   Float    @default(0)
+  overall_score   Float    @default(0)
+  story_score     Float    @default(0)
+  style_score     Float    @default(0)
+  book            Book     @relation(fields: [bookId], references: [id])
 
   @@unique([bookId, createdAt])
 }
