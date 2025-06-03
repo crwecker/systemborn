@@ -9,7 +9,7 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["react-router", "jsdom", "react", "react-dom", "netlify/functions/react-router-server.js"]
+  external_node_modules = ["react-router", "jsdom", "react", "react-dom", "react-router-server.js"]
         
 
 
