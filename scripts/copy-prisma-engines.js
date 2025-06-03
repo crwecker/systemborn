@@ -1,17 +1,22 @@
-const fs = require('fs');
-const path = require('path');
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { existsSync, mkdirSync, readdirSync, copyFileSync } from 'fs';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 function copyPrismaEngines() {
   try {
     // Possible Prisma engine locations
     const possiblePrismaDirs = [
-      path.join(__dirname, '../node_modules/.prisma/client'),
-      path.join(__dirname, '../node_modules/@prisma/client'),
-      path.join(__dirname, '../.prisma/client')
+      join(__dirname, '../node_modules/.prisma/client'),
+      join(__dirname, '../node_modules/@prisma/client'),
+      join(__dirname, '../.prisma/client')
     ];
 
     // Find the first directory that exists
-    const PRISMA_DIR = possiblePrismaDirs.find(dir => fs.existsSync(dir));
+    const PRISMA_DIR = possiblePrismaDirs.find(dir => existsSync(dir));
     
     if (!PRISMA_DIR) {
       throw new Error('Could not find Prisma engine directory. Tried:\n' + possiblePrismaDirs.join('\n'));
@@ -21,20 +26,20 @@ function copyPrismaEngines() {
 
     // Target directories
     const TARGET_DIRS = [
-      path.join(__dirname, '../netlify/functions'),
-      path.join(__dirname, '../server/generated/prisma')
+      join(__dirname, '../netlify/functions'),
+      join(__dirname, '../server/generated/prisma')
     ];
 
     // Copy to each target directory
     TARGET_DIRS.forEach(targetDir => {
       // Ensure target directory exists
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
+      if (!existsSync(targetDir)) {
+        mkdirSync(targetDir, { recursive: true });
         console.log('Created directory:', targetDir);
       }
 
       // Copy engine files
-      const engineFiles = fs.readdirSync(PRISMA_DIR)
+      const engineFiles = readdirSync(PRISMA_DIR)
         .filter(file => file.includes('libquery_engine'));
 
       if (engineFiles.length === 0) {
@@ -43,9 +48,9 @@ function copyPrismaEngines() {
       }
 
       engineFiles.forEach(file => {
-        const sourcePath = path.join(PRISMA_DIR, file);
-        const targetPath = path.join(targetDir, file);
-        fs.copyFileSync(sourcePath, targetPath);
+        const sourcePath = join(PRISMA_DIR, file);
+        const targetPath = join(targetDir, file);
+        copyFileSync(sourcePath, targetPath);
         console.log(`Copied ${file} to ${targetDir}`);
       });
     });
