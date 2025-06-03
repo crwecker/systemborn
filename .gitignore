@@ -24,4 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 
-/src/generated/prisma
+sever/generated/prisma

@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom";
 import type { Book } from "../../src/types/book";
 import { prisma } from "../lib/prisma";
-import { Source, Prisma } from "../../src/generated/prisma";
+import { Source } from "../generated/prisma";
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
 
@@ -32,7 +32,7 @@ function convertToDbStats(scrapedBook: Book) {
 function extractAuthorName(element: Element): string {
   // Try to find author name using multiple selectors in order of preference
   let authorName = "Unknown Author";
-  
+
   // 1. Try fiction-info container with author heading
   const authorContainer = element.querySelector(".fiction-info");
   if (authorContainer) {
@@ -41,18 +41,20 @@ function extractAuthorName(element: Element): string {
       authorName = authorElement.textContent?.trim() || "Unknown Author";
     }
   }
-  
+
   // 2. Try fiction-list-item__author (used in popular books list)
   if (authorName === "Unknown Author") {
-    const listAuthorElement = element.querySelector(".fiction-list-item__author");
+    const listAuthorElement = element.querySelector(
+      ".fiction-list-item__author"
+    );
     if (listAuthorElement) {
       authorName = listAuthorElement.textContent?.trim() || "Unknown Author";
     }
   }
-  
+
   // 3. Try alternative author selectors
   if (authorName === "Unknown Author") {
-    const altAuthorElement = 
+    const altAuthorElement =
       element.querySelector(".fiction-author a") ||
       element.querySelector(".author a") ||
       element.querySelector("a[href^='/profile/']") ||
@@ -61,7 +63,7 @@ function extractAuthorName(element: Element): string {
       authorName = altAuthorElement.textContent?.trim() || "Unknown Author";
     }
   }
-  
+
   return authorName;
 }
 
@@ -85,7 +87,9 @@ export async function getPopularBooks(): Promise<Book[]> {
       const statsElements = element.querySelectorAll(".stats .col-sm-6");
       const id = element.getAttribute("data-id") || "";
       const url = `${ROYALROAD_BASE_URL}/fiction/${id}`;
-      const rating = parseFloat(element.querySelector(".rating")?.textContent?.trim() || "0");
+      const rating = parseFloat(
+        element.querySelector(".rating")?.textContent?.trim() || "0"
+      );
       const coverUrl = imageElement?.getAttribute("src") || "";
 
       const stats: any = {};
@@ -165,9 +169,7 @@ interface BookListResponse {
   currentPage: number;
 }
 
-export async function fetchBooks(
-  page: number = 1
-): Promise<BookListResponse> {
+export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
   try {
     const response = await fetch(
       `${ROYALROAD_BASE_URL}/fictions/best-rated?page=${page}`
@@ -194,10 +196,10 @@ export async function fetchBooks(
       // Get the full URL path from the title link
       const urlPath = titleElement?.getAttribute("href") || "";
       const url = urlPath ? `${ROYALROAD_BASE_URL}${urlPath}` : "";
-      
+
       // Extract ID from URL path
       const id = urlPath.split("/")[2] || "";
-      
+
       const rating = parseFloat(ratingElement?.textContent?.trim() || "0");
 
       // Parse stats
@@ -269,7 +271,7 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
       where: { id: bookId },
       include: {
         stats: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
           take: 1,
         },
       },
@@ -381,7 +383,7 @@ export async function updateBookStats(bookId: string): Promise<void> {
   try {
     const book = await fetchBookDetails(bookId);
     const dbStats = convertToDbStats(book);
-    
+
     await prisma.bookStats.create({
       data: {
         ...dbStats,
@@ -404,13 +406,13 @@ export async function getBooksByTags(tags: string[]): Promise<Book[]> {
     },
     include: {
       stats: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
   });
 
-  return books.map(book => ({
+  return books.map((book) => ({
     id: book.id,
     title: book.title,
     author: {
@@ -439,26 +441,26 @@ export async function getBooksByTags(tags: string[]): Promise<Book[]> {
 
 // Constants for our target genres
 export const LITRPG_RELATED_TAGS = [
-  'litrpg',
-  'gamelit',
-  'progression',
-  'xianxia',
-  'cultivation',
-  'portal fantasy',
-  'isekai',
-  'dungeon',
-  'system',
-  'apocalypse',
+  "litrpg",
+  "gamelit",
+  "progression",
+  "xianxia",
+  "cultivation",
+  "portal fantasy",
+  "isekai",
+  "dungeon",
+  "system",
+  "apocalypse",
 ] as const;
 
-type LitRPGTag = typeof LITRPG_RELATED_TAGS[number];
+type LitRPGTag = (typeof LITRPG_RELATED_TAGS)[number];
 
 export interface BookSearchParams {
   tags?: string[];
   minRating?: number;
   minPages?: number;
   onlyCompleted?: boolean;
-  sortBy?: 'rating' | 'followers' | 'views' | 'pages' | 'latest';
+  sortBy?: "rating" | "followers" | "views" | "pages" | "latest";
   limit?: number;
   offset?: number;
 }
@@ -467,15 +469,20 @@ export interface BookSearchParams {
 export async function getLitRPGBooks(): Promise<Book[]> {
   const books = await prisma.book.findMany({
     where: {
-      OR: LITRPG_RELATED_TAGS.map(tag => ({
+      OR: LITRPG_RELATED_TAGS.map((tag) => ({
         tags: {
-          hasSome: [tag, tag.toLowerCase(), tag.toUpperCase(), tag.charAt(0).toUpperCase() + tag.slice(1)],
+          hasSome: [
+            tag,
+            tag.toLowerCase(),
+            tag.toUpperCase(),
+            tag.charAt(0).toUpperCase() + tag.slice(1),
+          ],
         },
       })),
     },
     include: {
       stats: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
@@ -485,24 +492,31 @@ export async function getLitRPGBooks(): Promise<Book[]> {
 }
 
 // Get trending books in our target genres
-export async function getTrendingLitRPGBooks(limit: number = 10): Promise<Book[]> {
+export async function getTrendingLitRPGBooks(
+  limit: number = 10
+): Promise<Book[]> {
   const books = await prisma.book.findMany({
     where: {
-      OR: LITRPG_RELATED_TAGS.map(tag => ({
+      OR: LITRPG_RELATED_TAGS.map((tag) => ({
         tags: {
-          hasSome: [tag, tag.toLowerCase(), tag.toUpperCase(), tag.charAt(0).toUpperCase() + tag.slice(1)],
+          hasSome: [
+            tag,
+            tag.toLowerCase(),
+            tag.toUpperCase(),
+            tag.charAt(0).toUpperCase() + tag.slice(1),
+          ],
         },
       })),
     },
     include: {
       stats: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
     orderBy: {
       stats: {
-        _count: 'desc',
+        _count: "desc",
       },
     },
     take: limit,
@@ -513,7 +527,7 @@ export async function getTrendingLitRPGBooks(limit: number = 10): Promise<Book[]
 
 // Helper function to convert database books to API format
 function convertBooksToApiFormat(books: any[]): Book[] {
-  return books.map(book => ({
+  return books.map((book) => ({
     id: book.id,
     title: book.title,
     author: {
@@ -542,18 +556,23 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     minRating = 0,
     minPages = 0,
     onlyCompleted = false,
-    sortBy = 'rating',
+    sortBy = "rating",
     limit = 50,
     offset = 0,
   } = params;
 
   // Build the where clause
   const where: any = {};
-  
+
   if (tags.length > 0) {
-    where.OR = tags.map(tag => ({
+    where.OR = tags.map((tag) => ({
       tags: {
-        hasSome: [tag, tag.toLowerCase(), tag.toUpperCase(), tag.charAt(0).toUpperCase() + tag.slice(1)],
+        hasSome: [
+          tag,
+          tag.toLowerCase(),
+          tag.toUpperCase(),
+          tag.charAt(0).toUpperCase() + tag.slice(1),
+        ],
       },
     }));
   }
@@ -563,7 +582,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     where,
     include: {
       stats: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
@@ -572,13 +591,13 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   });
 
   // Post-process to apply filters and sort
-  const filteredBooks = books.filter(book => {
+  const filteredBooks = books.filter((book) => {
     const latestStats = book.stats?.[0];
     if (!latestStats) return false;
-    
+
     if (minRating && latestStats.rating < minRating) return false;
     if (minPages && latestStats.pages < minPages) return false;
-    
+
     return true;
   });
 
@@ -590,16 +609,18 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     if (!statsA || !statsB) return 0;
 
     switch (sortBy) {
-      case 'rating':
+      case "rating":
         return statsB.rating - statsA.rating;
-      case 'followers':
+      case "followers":
         return statsB.followers - statsA.followers;
-      case 'views':
+      case "views":
         return statsB.views - statsA.views;
-      case 'pages':
+      case "pages":
         return statsB.pages - statsA.pages;
-      case 'latest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case "latest":
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       default:
         return 0;
     }
@@ -609,7 +630,10 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
 }
 
 // Get similar books based on tags
-export async function getSimilarBooks(bookId: string, limit: number = 5): Promise<Book[]> {
+export async function getSimilarBooks(
+  bookId: string,
+  limit: number = 5
+): Promise<Book[]> {
   // First get the book's tags
   const book = await prisma.book.findUnique({
     where: { id: bookId },
@@ -617,38 +641,38 @@ export async function getSimilarBooks(bookId: string, limit: number = 5): Promis
   });
 
   if (!book) {
-    throw new Error('Book not found');
+    throw new Error("Book not found");
   }
 
   // Find books with similar tags
   return searchBooks({
     tags: book.tags,
     limit,
-    sortBy: 'rating',
+    sortBy: "rating",
   });
 }
 
 // Get books by a specific author
 export async function getAuthorBooks(authorName: string): Promise<Book[]> {
   if (!authorName) {
-    throw new Error('Author name is required');
+    throw new Error("Author name is required");
   }
 
   const books = await prisma.book.findMany({
     where: {
       authorName: {
         equals: authorName,
-        mode: 'insensitive', // Case insensitive search
+        mode: "insensitive", // Case insensitive search
       },
     },
     include: {
       stats: {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: 1,
       },
     },
     orderBy: {
-      title: 'asc',
+      title: "asc",
     },
   });
 
