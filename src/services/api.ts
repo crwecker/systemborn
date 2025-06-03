@@ -2,8 +2,8 @@ import type { Book } from '../types/book';
 
 // Use Netlify Functions in production, local server in development
 const API_BASE_URL = import.meta.env.PROD 
-  ? '/.netlify/functions/books'
-  : 'http://localhost:3005/api/books';
+  ? '/.netlify/functions/api'
+  : 'http://localhost:3005/api';
 
 interface BookListResponse {
   books: Book[];
@@ -13,7 +13,7 @@ interface BookListResponse {
 
 export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}?page=${page}`);
+    const response = await fetch(`${API_BASE_URL}/books?page=${page}`);
     if (!response.ok) {
       throw new Error('Failed to fetch books');
     }
@@ -26,7 +26,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
 
 export async function fetchBookDetails(bookId: string): Promise<Book> {
   try {
-    const response = await fetch(`${API_BASE_URL}/${bookId}`);
+    const response = await fetch(`${API_BASE_URL}/books/${bookId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch book details');
     }
@@ -52,7 +52,7 @@ export async function fetchTags(): Promise<string[]> {
 
 export async function fetchTrendingBooks(limit: number = 10): Promise<Book[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/trending?limit=${limit}`);
+    const response = await fetch(`${API_BASE_URL}/books/trending?limit=${limit}`);
     if (!response.ok) {
       throw new Error('Failed to fetch trending books');
     }
@@ -76,7 +76,7 @@ export async function searchBooks(params: SearchParams): Promise<Book[]> {
   try {
     const searchParams = new URLSearchParams();
     if (params.tags?.length) {
-      searchParams.append('tags', params.tags.join(','));
+      params.tags.forEach(tag => searchParams.append('tags', tag));
     }
     if (params.minRating) {
       searchParams.append('minRating', params.minRating.toString());
@@ -94,7 +94,7 @@ export async function searchBooks(params: SearchParams): Promise<Book[]> {
       searchParams.append('offset', params.offset.toString());
     }
 
-    const response = await fetch(`${API_BASE_URL}/search?${searchParams}`);
+    const response = await fetch(`${API_BASE_URL}/books/search?${searchParams}`);
     if (!response.ok) {
       throw new Error('Failed to search books');
     }
@@ -107,7 +107,7 @@ export async function searchBooks(params: SearchParams): Promise<Book[]> {
 
 export async function fetchSimilarBooks(bookId: string, limit: number = 5): Promise<Book[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/${bookId}/similar?limit=${limit}`);
+    const response = await fetch(`${API_BASE_URL}/books/${bookId}/similar?limit=${limit}`);
     if (!response.ok) {
       throw new Error('Failed to fetch similar books');
     }
@@ -120,7 +120,7 @@ export async function fetchSimilarBooks(bookId: string, limit: number = 5): Prom
 
 export async function fetchAuthorBooks(authorName: string): Promise<Book[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/author/${encodeURIComponent(authorName)}`);
+    const response = await fetch(`${API_BASE_URL}/books/author/${encodeURIComponent(authorName)}`);
     if (!response.ok) {
       throw new Error('Failed to fetch author books');
     }
