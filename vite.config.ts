@@ -9,6 +9,9 @@ export default defineConfig({
     tsconfigPaths(),
     netlifyPlugin(),
   ],
+  ssr: {
+    noExternal: ['@react-router/dev']
+  },
   build: {
     commonjsOptions: {
       include: [/@fsoc\/royalroadl-api/, /node_modules/],
