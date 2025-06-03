@@ -1,4 +1,3 @@
-import React from 'react';
 import styled from 'styled-components';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBooks } from '../services/api';
@@ -96,7 +95,7 @@ export function BookList() {
           </a>
           <BookInfo>
             <BookTitle>{book.title}</BookTitle>
-            <BookAuthor>by {book.author}</BookAuthor>
+            <BookAuthor>by {book.author.name}</BookAuthor>
             <Rating>★ {book.rating.toFixed(1)}</Rating>
             <BookTags>
               {book.tags.map((tag) => (

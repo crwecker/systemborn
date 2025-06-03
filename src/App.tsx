@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from 'styled-components';
 import { theme } from './styles/theme';
-import { BookList } from './components/BookList';
+import { BooksPage } from './pages/Books';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +22,7 @@ function App() {
             <h1 className="text-3xl font-bold text-[#aa8c65]">LitRPG Academy</h1>
           </header>
           <main>
-            <BookList />
+            <BooksPage />
           </main>
         </div>
       </ThemeProvider>

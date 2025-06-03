@@ -1,20 +1,23 @@
 export interface Book {
   id: string;
   title: string;
-  author: string;
+  author: {
+    name: string;
+  };
   description: string;
   tags: string[];
+  image: string;
+  url: string;
   rating: number;
   coverUrl: string;
-  url: string;
   stats?: {
     followers: number;
-    pages: number;
     views: {
       total: number;
-      average: number;
+      average?: number;
     };
-    score: {
+    pages: number;
+    score?: {
       total: number;
       average: number;
     };

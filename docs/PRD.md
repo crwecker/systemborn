@@ -16,4 +16,5 @@ Things that would help find a LitRPG book to read
 
 ## Feature Overview
 * Using the color scheme #04070e, #afaaaa, #4f4b4b, #3c4464, #aa8c65
-* For the first step, we want to display a list of books along with their tags and ratings from Royal Road using src/services/royalroad.server.ts file. After that is working we will add more requirements.
+* For the first step, we want to display a list of books along with their tags and ratings from Royal Road using src/services/royalroad.server.ts file.
+  * The server is going to need to scrape all of the books on royal road to get all the ones with the tags `litrpg`, `gamelit`, `progression`, `xianxia`, or `portal fantasy/isekai`.
