@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "react-router build",
-    "build:netlify": "npm run build && npm run build:netlify-function",
-    "build:netlify-function": "esbuild netlify/functions/server.ts --bundle --platform=node --format=cjs --outfile=netlify/functions/server.js --external:@react-router/node",
+    "build:netlify-function": "esbuild netlify/functions/react-router-server.js --bundle --platform=node --format=esm --outfile=netlify/functions/react-router-server.mjs --external:react-router --external:jsdom --external:react --external:react-dom --external:react-dom/server",
     "dev": "react-router dev",
     "start": "react-router-serve build/server/index.js",
     "typecheck": "tsc",
@@ -27,7 +26,7 @@
     "react-router": "^7.0.2"
   },
   "devDependencies": {
-    "@netlify/functions": "^4.1.0",
+    "@netlify/vite-plugin-react-router": "^1.0.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^6.7.4",
