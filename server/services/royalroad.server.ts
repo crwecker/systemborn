@@ -1,16 +1,9 @@
-import { JSDOM, ConstructorOptions as JSDOMOptions } from "jsdom";
+import { parse } from 'node-html-parser';
 import type { Book } from "../../src/types/book";
 import { prisma } from "../lib/prisma";
 import { Source } from "../generated/prisma";
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
-
-// JSDOM configuration for serverless environment
-const JSDOM_OPTIONS: JSDOMOptions = {
-  pretendToBeVisual: true,
-  runScripts: "outside-only",
-  resources: "usable"
-};
 
 // Helper function to convert scraped data to database format
 function convertToDbBook(scrapedBook: Book) {
@@ -36,38 +29,36 @@ function convertToDbStats(scrapedBook: Book) {
 }
 
 // Helper function to extract author name from HTML element
-function extractAuthorName(element: Element): string {
+function extractAuthorName(root: any): string {
   // Try to find author name using multiple selectors in order of preference
   let authorName = "Unknown Author";
 
   // 1. Try fiction-info container with author heading
-  const authorContainer = element.querySelector(".fiction-info");
+  const authorContainer = root.querySelector(".fiction-info");
   if (authorContainer) {
     const authorElement = authorContainer.querySelector("h4.author a");
     if (authorElement) {
-      authorName = authorElement.textContent?.trim() || "Unknown Author";
+      authorName = authorElement.text.trim() || "Unknown Author";
     }
   }
 
   // 2. Try fiction-list-item__author (used in popular books list)
   if (authorName === "Unknown Author") {
-    const listAuthorElement = element.querySelector(
-      ".fiction-list-item__author"
-    );
+    const listAuthorElement = root.querySelector(".fiction-list-item__author");
     if (listAuthorElement) {
-      authorName = listAuthorElement.textContent?.trim() || "Unknown Author";
+      authorName = listAuthorElement.text.trim() || "Unknown Author";
     }
   }
 
   // 3. Try alternative author selectors
   if (authorName === "Unknown Author") {
     const altAuthorElement =
-      element.querySelector(".fiction-author a") ||
-      element.querySelector(".author a") ||
-      element.querySelector("a[href^='/profile/']") ||
-      element.querySelector(".profile-info a");
+      root.querySelector(".fiction-author a") ||
+      root.querySelector(".author a") ||
+      root.querySelector("a[href^='/profile/']") ||
+      root.querySelector(".profile-info a");
     if (altAuthorElement) {
-      authorName = altAuthorElement.textContent?.trim() || "Unknown Author";
+      authorName = altAuthorElement.text.trim() || "Unknown Author";
     }
   }
 
@@ -79,13 +70,12 @@ export async function getPopularBooks(): Promise<Book[]> {
     const response = await fetch(`${ROYALROAD_BASE_URL}/fictions/best-rated`);
     const html = await response.text();
 
-    // Create a DOM using jsdom with serverless-friendly options
-    const dom = new JSDOM(html, JSDOM_OPTIONS);
-    const doc = dom.window.document;
+    // Parse HTML
+    const root = parse(html);
 
     // Find all fiction entries
-    const fictionElements = doc.querySelectorAll(".fiction-list-item");
-    const books = Array.from(fictionElements).map((element): Book => {
+    const fictionElements = root.querySelectorAll(".fiction-list-item");
+    const books = fictionElements.map((element): Book => {
       const titleElement = element.querySelector(".fiction-title");
       const authorName = extractAuthorName(element);
       const tagsElements = element.querySelectorAll(".tags a");
@@ -95,17 +85,14 @@ export async function getPopularBooks(): Promise<Book[]> {
       const id = element.getAttribute("data-id") || "";
       const url = `${ROYALROAD_BASE_URL}/fiction/${id}`;
       const rating = parseFloat(
-        element.querySelector(".rating")?.textContent?.trim() || "0"
+        element.querySelector(".rating")?.text.trim() || "0"
       );
       const coverUrl = imageElement?.getAttribute("src") || "";
 
       const stats: any = {};
       statsElements.forEach((stat) => {
-        const label = stat
-          .querySelector("label")
-          ?.textContent?.trim()
-          .toLowerCase();
-        const value = stat.textContent?.replace(label || "", "").trim();
+        const label = stat.querySelector("label")?.text.trim().toLowerCase();
+        const value = stat.text.replace(label || "", "").trim();
         if (label && value) {
           stats[label] = value;
         }
@@ -113,25 +100,18 @@ export async function getPopularBooks(): Promise<Book[]> {
 
       return {
         id,
-        title: titleElement?.textContent?.trim() || "",
+        title: titleElement?.text.trim() || "",
         author: {
           name: authorName,
         },
-        tags: Array.from(tagsElements).map(
-          (tag) => tag.textContent?.trim() || ""
-        ),
-        image: imageElement?.getAttribute("src") || "",
-        description: descriptionElement?.textContent?.trim() || "",
+        tags: tagsElements.map((tag) => tag.text.trim()),
+        image: coverUrl,
+        description: descriptionElement?.text.trim() || "",
         stats: {
           followers: parseInt(stats["followers"]?.replace(/,/g, "") || "0", 10),
           pages: parseInt(stats["pages"]?.replace(/,/g, "") || "0", 10),
           views: {
             total: parseInt(stats["total views"]?.replace(/,/g, "") || "0", 10),
-            average: 0,
-          },
-          score: {
-            total: parseFloat(stats["rating"]?.split(" ")[0] || "0"),
-            average: parseFloat(stats["rating"]?.split(" ")[0] || "0"),
           },
         },
         url,
@@ -187,11 +167,10 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html, JSDOM_OPTIONS);
-    const document = dom.window.document;
+    const root = parse(html);
 
-    const fictionElements = document.querySelectorAll(".fiction-list-item");
-    const books: Book[] = Array.from(fictionElements).map((element): Book => {
+    const fictionElements = root.querySelectorAll(".fiction-list-item");
+    const books: Book[] = fictionElements.map((element): Book => {
       const titleElement = element.querySelector(".fiction-title a");
       const authorName = extractAuthorName(element);
       const tagsElements = element.querySelectorAll(".tags a");
@@ -207,7 +186,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
       // Extract ID from URL path
       const id = urlPath.split("/")[2] || "";
 
-      const rating = parseFloat(ratingElement?.textContent?.trim() || "0");
+      const rating = parseFloat(ratingElement?.text.trim() || "0");
 
       // Parse stats
       const stats = {
@@ -217,7 +196,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
       };
 
       if (statsElement) {
-        const statsText = statsElement.textContent || "";
+        const statsText = statsElement.text || "";
         const followersMatch = statsText.match(/(\d+(?:,\d+)*)\s+Followers/);
         const viewsMatch = statsText.match(/(\d+(?:,\d+)*)\s+Views/);
         const pagesMatch = statsText.match(/(\d+(?:,\d+)*)\s+Pages/);
@@ -233,28 +212,24 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
         }
       }
 
-      const book = {
+      return {
         id,
-        title: titleElement?.textContent?.trim() || "",
+        title: titleElement?.text.trim() || "",
         author: {
           name: authorName,
         },
-        description: descriptionElement?.textContent?.trim() || "",
-        tags: Array.from(tagsElements).map(
-          (tag) => tag.textContent?.trim() || ""
-        ),
+        description: descriptionElement?.text.trim() || "",
+        tags: tagsElements.map((tag) => tag.text.trim()),
         image: imageElement?.getAttribute("src") || "",
         url,
         rating,
         coverUrl: imageElement?.getAttribute("src") || "",
         stats,
       };
-
-      return book;
     });
 
     // Get pagination info
-    const paginationElement = document.querySelector(".pagination");
+    const paginationElement = root.querySelector(".pagination");
     const lastPageElement = paginationElement?.querySelector("li:last-child a");
     const totalPages = lastPageElement
       ? parseInt(lastPageElement.getAttribute("data-page") || "1", 10)
@@ -316,18 +291,17 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html, JSDOM_OPTIONS);
-    const document = dom.window.document;
+    const root = parse(html);
 
-    const titleElement = document.querySelector(".fic-title h1");
-    const authorName = extractAuthorName(document.documentElement);
-    const descriptionElement = document.querySelector(".description");
-    const tagsElements = document.querySelectorAll(".tags a");
-    const ratingElement = document.querySelector(".rating-content");
-    const coverElement = document.querySelector(".cover-art-container img");
-    const statsElement = document.querySelector(".stats");
+    const titleElement = root.querySelector(".fic-title h1");
+    const authorName = extractAuthorName(root);
+    const descriptionElement = root.querySelector(".description");
+    const tagsElements = root.querySelectorAll(".tags a");
+    const ratingElement = root.querySelector(".rating-content");
+    const coverElement = root.querySelector(".cover-art-container img");
+    const statsElement = root.querySelector(".stats");
 
-    const rating = parseFloat(ratingElement?.textContent?.trim() || "0");
+    const rating = parseFloat(ratingElement?.text.trim() || "0");
 
     // Parse stats
     const stats = {
@@ -337,7 +311,7 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
     };
 
     if (statsElement) {
-      const statsText = statsElement.textContent || "";
+      const statsText = statsElement.text || "";
       const followersMatch = statsText.match(/(\d+(?:,\d+)*)\s+Followers/);
       const viewsMatch = statsText.match(/(\d+(?:,\d+)*)\s+Views/);
       const pagesMatch = statsText.match(/(\d+(?:,\d+)*)\s+Pages/);
@@ -355,14 +329,12 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
 
     const book = {
       id: bookId,
-      title: titleElement?.textContent?.trim() || "",
+      title: titleElement?.text.trim() || "",
       author: {
         name: authorName,
       },
-      description: descriptionElement?.textContent?.trim() || "",
-      tags: Array.from(tagsElements).map(
-        (tag) => tag.textContent?.trim() || ""
-      ),
+      description: descriptionElement?.text.trim() || "",
+      tags: tagsElements.map((tag) => tag.text.trim()),
       image: coverElement?.getAttribute("src") || "",
       url: `${ROYALROAD_BASE_URL}/fiction/${bookId}`,
       rating,
