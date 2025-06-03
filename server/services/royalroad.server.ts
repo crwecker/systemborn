@@ -65,83 +65,120 @@ function extractAuthorName(root: any): string {
   return authorName;
 }
 
+// Add timeout and retry logic for fetch
+async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+      return fetchWithRetry(url, retries - 1);
+    }
+    throw error;
+  }
+}
+
+// Helper function to parse numbers safely
+function parseNumber(value: string | undefined | null, defaultValue = 0): number {
+  if (!value) return defaultValue;
+  const cleaned = value.replace(/[^\d.]/g, '');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? defaultValue : parsed;
+}
+
 export async function getPopularBooks(): Promise<Book[]> {
   try {
-    const response = await fetch(`${ROYALROAD_BASE_URL}/fictions/best-rated`);
+    const response = await fetchWithRetry(`${ROYALROAD_BASE_URL}/fictions/best-rated`);
     const html = await response.text();
-
-    // Parse HTML
     const root = parse(html);
 
-    // Find all fiction entries
+    // Process in smaller batches to reduce memory usage
     const fictionElements = root.querySelectorAll(".fiction-list-item");
-    const books = fictionElements.map((element): Book => {
-      const titleElement = element.querySelector(".fiction-title");
-      const authorName = extractAuthorName(element);
-      const tagsElements = element.querySelectorAll(".tags a");
-      const imageElement = element.querySelector("img");
-      const descriptionElement = element.querySelector(".description");
-      const statsElements = element.querySelectorAll(".stats .col-sm-6");
-      const id = element.getAttribute("data-id") || "";
-      const url = `${ROYALROAD_BASE_URL}/fiction/${id}`;
-      const rating = parseFloat(
-        element.querySelector(".rating")?.text.trim() || "0"
-      );
-      const coverUrl = imageElement?.getAttribute("src") || "";
+    const books: Book[] = [];
 
-      const stats: any = {};
-      statsElements.forEach((stat) => {
-        const label = stat.querySelector("label")?.text.trim().toLowerCase();
-        const value = stat.text.replace(label || "", "").trim();
-        if (label && value) {
-          stats[label] = value;
-        }
-      });
+    for (const element of fictionElements) {
+      try {
+        const titleElement = element.querySelector(".fiction-title");
+        const authorName = extractAuthorName(element);
+        const tagsElements = element.querySelectorAll(".tags a");
+        const imageElement = element.querySelector("img");
+        const descriptionElement = element.querySelector(".description");
+        const id = element.getAttribute("data-id") || "";
 
-      return {
-        id,
-        title: titleElement?.text.trim() || "",
-        author: {
-          name: authorName,
-        },
-        tags: tagsElements.map((tag) => tag.text.trim()),
-        image: coverUrl,
-        description: descriptionElement?.text.trim() || "",
-        stats: {
-          followers: parseInt(stats["followers"]?.replace(/,/g, "") || "0", 10),
-          pages: parseInt(stats["pages"]?.replace(/,/g, "") || "0", 10),
-          views: {
-            total: parseInt(stats["total views"]?.replace(/,/g, "") || "0", 10),
-          },
-        },
-        url,
-        rating,
-        coverUrl,
-      };
-    });
+        if (!id) continue; // Skip invalid entries
 
-    // Store books and their stats in the database
-    await Promise.all(
-      books.map(async (book) => {
+        const book: Book = {
+          id,
+          title: titleElement?.text?.trim() || "",
+          author: { name: authorName },
+          tags: Array.from(tagsElements).map(tag => tag.text?.trim() || "").filter(Boolean),
+          image: imageElement?.getAttribute("src") || "",
+          description: descriptionElement?.text?.trim() || "",
+          url: `${ROYALROAD_BASE_URL}/fiction/${id}`,
+          rating: parseNumber(element.querySelector(".rating")?.text),
+          coverUrl: imageElement?.getAttribute("src") || "",
+          stats: {
+            followers: 0,
+            pages: 0,
+            views: { total: 0 }
+          }
+        };
+
+        // Parse stats separately to avoid memory issues
+        const statsElements = element.querySelectorAll(".stats .col-sm-6");
+        statsElements.forEach(stat => {
+          const label = stat.querySelector("label")?.text?.trim().toLowerCase();
+          const value = stat.text?.replace(label || "", "").trim() || "0";
+          
+          if (book.stats) {  // Add null check
+            switch (label) {
+              case "followers":
+                book.stats.followers = parseNumber(value);
+                break;
+              case "pages":
+                book.stats.pages = parseNumber(value);
+                break;
+              case "total views":
+                if (book.stats.views) {  // Add null check
+                  book.stats.views.total = parseNumber(value);
+                }
+                break;
+            }
+          }
+        });
+
+        books.push(book);
+
+        // Store in database immediately to reduce memory usage
         const dbBook = convertToDbBook(book);
         const dbStats = convertToDbStats(book);
 
-        // Upsert the book
         await prisma.book.upsert({
           where: { id: book.id },
           update: dbBook,
           create: dbBook,
         });
 
-        // Create new stats entry
         await prisma.bookStats.create({
           data: {
             ...dbStats,
             book: { connect: { id: book.id } },
           },
         });
-      })
-    );
+      } catch (error) {
+        console.error('Error processing book:', error);
+        continue; // Skip this book on error
+      }
+    }
 
     return books;
   } catch (error) {

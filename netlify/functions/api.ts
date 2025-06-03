@@ -28,8 +28,25 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    console.log('Request path:', event.path);
+    console.log('Request method:', event.httpMethod);
+    console.log('Query parameters:', event.queryStringParameters);
+
     const path = event.path.split('/').filter(Boolean);
+    console.log('Parsed path segments:', path);
+    
+    // Handle root API call
+    if (path.length === 0 || (path.length === 1 && path[0] === 'api')) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ status: 'API is running' })
+      };
+    }
+
     const endpoint = path[1]; // First segment after 'api'
+    console.log('Endpoint:', endpoint);
+    
     const params = event.queryStringParameters || {};
 
     switch (endpoint) {
@@ -43,6 +60,7 @@ export const handler: Handler = async (event) => {
       case 'books':
         // Handle different book-related endpoints
         const subEndpoint = path[2];
+        console.log('Books subEndpoint:', subEndpoint);
         
         switch (subEndpoint) {
           case 'litrpg':
@@ -128,10 +146,11 @@ export const handler: Handler = async (event) => {
         break;
 
       default:
+        console.log('No matching endpoint found for:', endpoint);
         return {
           statusCode: 404,
           headers,
-          body: JSON.stringify({ error: 'Endpoint not found' })
+          body: JSON.stringify({ error: 'Endpoint not found', path: event.path, segments: path })
         };
     }
   } catch (error) {
@@ -139,7 +158,11 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        path: event.path
+      })
     };
   }
 }; 
