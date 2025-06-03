@@ -1,11 +1,11 @@
 [build]
-  command = "remix build"
-  publish = "public"
-  functions = "netlify/functions"
+  command = "npm run build:netlify"
+  publish = "build/client"
 
 [dev]
-  command = "remix dev"
-  port = 3000
+  command = "npm run dev"
+  port = 5173
+  targetPort = 5173
 
 [[redirects]]
   from = "/*"
@@ -13,4 +13,5 @@
   status = 200
 
 [functions]
-  node_bundler = "esbuild" 
+  node_bundler = "esbuild"
+  directory = "netlify/functions" 

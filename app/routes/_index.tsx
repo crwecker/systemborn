@@ -1,6 +1,6 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import type { LoaderFunction } from "@remix-run/node";
+import { data } from "react-router";
+import { useLoaderData } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import type { Book } from "~/types/book";
 import { getPopularBooks } from "~/services/royalroad.server";
 
@@ -8,13 +8,13 @@ interface LoaderData {
   books: Book[];
 }
 
-export const loader: LoaderFunction = async () => {
+export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const books = await getPopularBooks();
-    return json<LoaderData>({ books });
+    return data<LoaderData>({ books });
   } catch (error) {
     console.error('Error fetching books:', error);
-    return json<LoaderData>({ books: [] });
+    return data<LoaderData>({ books: [] });
   }
 };
 

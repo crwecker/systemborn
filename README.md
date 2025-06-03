@@ -1,40 +1,58 @@
-# Welcome to Remix!
+# System Born - LitRPG Academy
 
-- 📖 [Remix docs](https://remix.run/docs)
+A React Router v7 application for discovering LitRPG, GameLit, and Progression Fantasy stories.
+
+## Features
+
+- Browse popular LitRPG stories from Royal Road
+- Modern, responsive design with Tailwind CSS
+- Server-side rendering for optimal performance
+- Book discovery with ratings, tags, and stats
 
 ## Development
 
-Run the dev server:
+```bash
+# Install dependencies
+npm install
 
-```shellscript
+# Start development server
 npm run dev
 ```
 
+The development server will start at `http://localhost:5173`.
+
 ## Deployment
 
-First, build your app for production:
+### Netlify Deployment
 
-```sh
-npm run build
+This project is configured for deployment on Netlify using React Router v7:
+
+```bash
+# Build for Netlify
+npm run build:netlify
 ```
 
-Then run the app in production mode:
+The `netlify.toml` file configures:
+- **Build command**: `npm run build:netlify`
+- **Publish directory**: `build/client` 
+- **Functions directory**: `netlify/functions`
+- **Dev server**: `npm run dev` on port 5173
 
-```sh
-npm start
-```
+### Netlify Setup
 
-Now you'll need to pick a host to deploy it to.
+1. Connect your repository to Netlify
+2. Netlify will automatically detect the `netlify.toml` configuration
+3. Ensure Node.js version is set to 20+ in Netlify build settings
+4. Deploy will build both the React Router app and the serverless function
 
-### DIY
+## Technology Stack
 
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
+- **Framework**: React Router v7
+- **Runtime**: Node.js 20+
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
+- **Deployment**: Netlify Functions
+- **API**: Royal Road scraping with jsdom
 
-Make sure to deploy the output of `npm run build`
 
-- `build/server`
-- `build/client`
 
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
