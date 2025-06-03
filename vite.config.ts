@@ -11,7 +11,13 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 5173,
+    proxy: {
+      '/.netlify/functions': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',

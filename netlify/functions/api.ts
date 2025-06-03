@@ -1,5 +1,5 @@
 import { Handler } from '@netlify/functions';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import {
   fetchBooks,
   fetchBookDetails,
@@ -10,13 +10,7 @@ import {
   getAuthorBooks,
   LITRPG_RELATED_TAGS,
   setPrismaInstance
-} from '../../server/services/royalroad.server';
-
-// Initialize Prisma Client
-const prisma = new PrismaClient({
-  errorFormat: 'minimal',
-  log: ['error', 'warn']
-});
+} from '../../lib/royalroad';
 
 // Set the Prisma instance for the service
 setPrismaInstance(prisma);
@@ -39,6 +33,7 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    console.log('Database URL:', process.env.DATABASE_URL); // Log the database URL (without sensitive parts)
     console.log('Request path:', event.path);
     console.log('Request method:', event.httpMethod);
     console.log('Query parameters:', event.queryStringParameters);

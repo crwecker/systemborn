@@ -8,6 +8,13 @@
   included_files = ["netlify/functions/generated/prisma/**"]
   external_node_modules = ["@prisma/client"]
 
+[dev]
+  command = "npm run frontend"
+  port = 3000
+  targetPort = 5173
+  framework = "#custom"
+  publish = "dist"
+
 # Handle redirects for SPA
 [[redirects]]
   from = "/*"

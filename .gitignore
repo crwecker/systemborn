@@ -26,3 +26,6 @@ dist-ssr
 
 server/generated/prisma
 netlify/functions/generated/prisma
+
+# Local Netlify folder
+.netlify

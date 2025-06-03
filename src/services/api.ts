@@ -3,7 +3,7 @@ import type { Book } from '../types/book';
 // Use Netlify Functions in production, local server in development
 const API_BASE_URL = import.meta.env.PROD 
   ? '/.netlify/functions/api'
-  : 'http://localhost:3005/api';
+  : 'http://localhost:3000/.netlify/functions/api';
 
 interface BookListResponse {
   books: Book[];

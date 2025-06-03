@@ -1,5 +1,5 @@
 import { parse } from 'node-html-parser';
-import type { Book } from "../../src/types/book";
+import type { Book } from "../src/types/book";
 import { PrismaClient } from "@prisma/client";
 
 // Define Source enum to match Prisma schema
@@ -704,4 +704,4 @@ export async function getAuthorBooks(authorName: string): Promise<Book[]> {
   });
 
   return convertBooksToApiFormat(books);
-}
+} 

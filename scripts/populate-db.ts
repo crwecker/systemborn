@@ -1,5 +1,5 @@
-import { prisma } from '../server/lib/prisma';
-import { fetchBooks } from '../server/services/royalroad.server';
+import { prisma } from '../lib/prisma';
+import { fetchBooks } from '../lib/royalroad';
 
 async function populateDatabase() {
   try {
