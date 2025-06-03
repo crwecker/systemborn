@@ -25,6 +25,7 @@
     "styled-components": "^6.0.0"
   },
   "devDependencies": {
+    "@netlify/functions": "^4.1.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/styled-components": "^5.1.0",

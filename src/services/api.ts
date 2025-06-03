@@ -1,6 +1,9 @@
 import type { Book } from '../types/book';
 
-const API_BASE_URL = 'http://localhost:3005/api';
+// Use Netlify Functions in production, local server in development
+const API_BASE_URL = import.meta.env.PROD 
+  ? '/.netlify/functions/books'
+  : 'http://localhost:3005/api/books';
 
 interface BookListResponse {
   books: Book[];
@@ -10,7 +13,7 @@ interface BookListResponse {
 
 export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/books?page=${page}`);
+    const response = await fetch(`${API_BASE_URL}?page=${page}`);
     if (!response.ok) {
       throw new Error('Failed to fetch books');
     }
@@ -23,7 +26,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
 
 export async function fetchBookDetails(bookId: string): Promise<Book> {
   try {
-    const response = await fetch(`${API_BASE_URL}/books/${bookId}`);
+    const response = await fetch(`${API_BASE_URL}/${bookId}`);
     if (!response.ok) {
       throw new Error('Failed to fetch book details');
     }
