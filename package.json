@@ -6,7 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev --manual",
-    "start": "remix-serve ./build/index.js",
+    "start": "netlify serve",
     "typecheck": "tsc",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
     "lint:fix": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint ."
@@ -14,10 +14,11 @@
   "dependencies": {
     "@fsoc/royalroadl-api": "^0.16.1",
     "@heroicons/react": "^2.0.18",
+    "@netlify/remix-adapter": "^2.2.0",
+    "@remix-run/netlify": "^2.4.1",
     "@remix-run/css-bundle": "*",
     "@remix-run/node": "*",
     "@remix-run/react": "*",
-    "@remix-run/serve": "*",
     "@tailwindcss/typography": "^0.5.10",
     "isbot": "^3.6.8",
     "jsdom": "^26.1.0",
