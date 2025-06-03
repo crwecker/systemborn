@@ -10,6 +10,9 @@ import {
   LITRPG_RELATED_TAGS
 } from '../../server/services/royalroad.server';
 
+// Initialize Prisma Client
+import '../../server/lib/prisma-client';
+
 export const handler: Handler = async (event) => {
   // Enable CORS
   const headers = {

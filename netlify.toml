@@ -5,6 +5,7 @@
 
 [functions]
   node_bundler = "esbuild"
+  included_files = ["server/generated/prisma/libquery_engine-*"]
   external_node_modules = ["@prisma/client", "prisma"]
 
 # Handle redirects for SPA

@@ -1,6 +1,6 @@
 import { parse } from 'node-html-parser';
 import type { Book } from "../../src/types/book";
-import { prisma } from "../lib/prisma";
+import { prisma } from '../lib/prisma-client';
 import { Source } from "../generated/prisma";
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
