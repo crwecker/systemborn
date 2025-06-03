@@ -1,61 +1,8 @@
 [build]
-  command = "npm run build && npm run build:netlify-function"
+  command = "react-router build"
   publish = "build/client"
 
 [dev]
   command = "react-router dev"
   port = 8888
-  targetPort = 5173
-
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["react-router", "jsdom", "react", "react-dom", "react-router-server.js"]
-        
-
-
-# Serve static assets directly
-[[redirects]]
-  from = "/assets/*"
-  to = "/assets/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/*.css"
-  to = "/:splat.css"
-  status = 200
-
-[[redirects]]
-  from = "/*.js"
-  to = "/:splat.js"
-  status = 200
-
-[[redirects]]
-  from = "/*.mjs"
-  to = "/:splat.mjs"
-  status = 200
-
-[[redirects]]
-  from = "/*.ico"
-  to = "/:splat.ico"
-  status = 200
-
-[[redirects]]
-  from = "/*.png"
-  to = "/:splat.png"
-  status = 200
-
-[[redirects]]
-  from = "/*.jpg"
-  to = "/:splat.jpg"
-  status = 200
-
-[[redirects]]
-  from = "/*.svg"
-  to = "/:splat.svg"
-  status = 200
-
-# Route everything else to the React Router serverless function
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/react-router-server"
-  status = 200 
+  targetPort = 5173 
