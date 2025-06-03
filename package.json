@@ -1,47 +1,44 @@
 {
-  "name": "systemborn",
+  "name": "litrpg-academy",
   "private": true,
-  "sideEffects": false,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build": "react-router build",
-    "build:netlify-function": "esbuild netlify/functions/react-router-server.js --bundle --platform=node --format=esm --outfile=netlify/functions/react-router-server.mjs --external:react-router --external:jsdom --external:react --external:react-dom --external:react-dom/server",
-    "dev": "react-router dev",
-    "start": "react-router-serve build/server/index.js",
-    "typecheck": "tsc",
-    "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
-    "lint:fix": "eslint --fix --cache --cache-location ./node_modules/.cache/eslint ."
+    "dev": "vite",
+    "server": "tsx watch server/index.ts",
+    "build": "tsc && vite build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@fsoc/royalroadl-api": "^0.16.1",
-    "@heroicons/react": "^2.0.18",
-    "@react-router/dev": "^7.0.2",
-    "@react-router/node": "^7.0.2",
-    "@react-router/serve": "^7.0.2",
-    "@tailwindcss/typography": "^0.5.10",
-    "isbot": "^3.6.8",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-query-devtools": "^5.0.0",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/jsdom": "^21.1.7",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "jsdom": "^26.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router": "^7.0.2",
-    "sourcemapped-stacktrace": "^1.1.11"
+    "react-router-dom": "^7.0.0",
+    "styled-components": "^6.0.0"
   },
   "devDependencies": {
-    "@netlify/vite-plugin-react-router": "^1.0.1",
-    "@types/react": "^18.2.20",
-    "@types/react-dom": "^18.2.7",
-    "@typescript-eslint/eslint-plugin": "^6.7.4",
-    "@typescript-eslint/parser": "^6.7.4",
-    "autoprefixer": "^10.4.21",
-    "esbuild": "^0.25.5",
-    "eslint": "^8.38.0",
-    "eslint-config-prettier": "^9.0.0",
-    "tailwindcss": "^3.3.3",
-    "typescript": "^5.1.6",
-    "vite": "^5.0.12",
-    "vite-tsconfig-paths": "^4.2.1"
-  },
-  "engines": {
-    "node": ">=20.0.0"
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/styled-components": "^5.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.3.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0"
   }
 }

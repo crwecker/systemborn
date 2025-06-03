@@ -1,59 +1,42 @@
----
-description: 
-globs: 
-alwaysApply: false
----
-# Book Recommendation Website - Testing Standards
+# Testing Standards
 
 ## Test Organization
+- Place tests next to the code they test
+- Use descriptive test names that explain the behavior
+- Group related tests using describe blocks
+- Keep test files organized and focused
 
-1. **File Structure**
-   - Place tests next to implementation files
-   - Use `.test.ts` or `.test.tsx` extensions
-   - Group related tests in describe blocks
+## Testing Requirements
+- All new components must have unit tests
+- Critical user flows require integration tests
+- Test error states and edge cases
+- Maintain test coverage above 80%
 
-2. **Naming Conventions**
-   - Test files: `ComponentName.test.tsx`
-   - Test suites: describe('ComponentName', ...)
-   - Test cases: it('should do something specific', ...)
+## Testing Best Practices
+- Use React Testing Library for component tests
+- Follow the "Arrange-Act-Assert" pattern
+- Test component behavior, not implementation
+- Mock external dependencies appropriately
+- Use meaningful test data
 
-## Testing Approaches
+## Test Types
+1. **Unit Tests**
+   - Test individual components and functions
+   - Focus on isolated behavior
+   - Use mocks for dependencies
 
-1. **Component Testing**
-   ```tsx
-   // Example component test structure
-   describe('BookCard', () => {
-     it('should render book details correctly', () => {
-       // Arrange
-       // Act
-       // Assert
-     })
-   })
-   ```
+2. **Integration Tests**
+   - Test component interactions
+   - Verify routing behavior
+   - Test data flow between components
 
-2. **Integration Testing**
-   - Test main user flows
-   - Verify data persistence
-   - Check component interactions
+3. **E2E Tests**
+   - Test critical user journeys
+   - Verify core functionality
+   - Test in production-like environment
 
-3. **API Testing**
-   - Test all API endpoints
-   - Verify error handling
-   - Mock external services
-
-## Best Practices
-
-1. **Test Coverage**
-   - Aim for 80% coverage
-   - Focus on business logic
-   - Test edge cases thoroughly
-
-2. **Mocking**
-   - Mock external dependencies
-   - Use MSW for API mocking
-   - Keep mocks simple and maintainable
-
-3. **Performance**
-   - Keep tests focused and fast
-   - Use setup/teardown effectively
-   - Avoid unnecessary assertions
+## Testing Utilities
+- Use consistent testing utilities
+- Create reusable test helpers
+- Maintain a shared test setup
+- Use proper cleanup after tests

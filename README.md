@@ -1,58 +1,54 @@
-# System Born - LitRPG Academy
+# React + TypeScript + Vite
 
-A React Router v7 application for discovering LitRPG, GameLit, and Progression Fantasy stories.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
+Currently, two official plugins are available:
 
-- Browse popular LitRPG stories from Royal Road
-- Modern, responsive design with Tailwind CSS
-- Server-side rendering for optimal performance
-- Book discovery with ratings, tags, and stats
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Development
+## Expanding the ESLint configuration
 
-```bash
-# Install dependencies
-npm install
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-# Start development server
-npm run dev
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
 ```
 
-The development server will start at `http://localhost:5173`.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Deployment
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-### Netlify Deployment
-
-This project is configured for deployment on Netlify using React Router v7:
-
-```bash
-# Build for Netlify
-npm run build:netlify
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
 ```
-
-The `netlify.toml` file configures:
-- **Build command**: `npm run build:netlify`
-- **Publish directory**: `build/client` 
-- **Functions directory**: `netlify/functions`
-- **Dev server**: `npm run dev` on port 5173
-
-### Netlify Setup
-
-1. Connect your repository to Netlify
-2. Netlify will automatically detect the `netlify.toml` configuration
-3. Ensure Node.js version is set to 20+ in Netlify build settings
-4. Deploy will build both the React Router app and the serverless function
-
-## Technology Stack
-
-- **Framework**: React Router v7
-- **Runtime**: Node.js 20+
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
-- **Deployment**: Netlify Functions
-- **API**: Royal Road scraping with jsdom
-
-
-
