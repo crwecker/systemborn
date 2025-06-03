@@ -4,9 +4,10 @@ export const handler = async (request: Request, context: Context) => {
   try {
     // Dynamic import of React Router build and handler
     const { createRequestHandler } = await import("react-router");
-    const build = await import("../../build/server/index.js");
+    const buildModule = await import("../../build/server/index.js");
     
-    const requestHandler = createRequestHandler(build, process.env.NODE_ENV);
+    // Use the module as the build, which should contain all the necessary exports
+    const requestHandler = createRequestHandler(buildModule as any, process.env.NODE_ENV);
     
     return await requestHandler(request, {
       netlify: context,
