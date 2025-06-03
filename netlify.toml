@@ -1,9 +1,15 @@
 [build]
-  command = "npx prisma generate && npm run build"
+  command = "npx prisma generate && npx prisma migrate deploy && npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+
+# Add API redirects
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
   status = 200 
