@@ -1,6 +1,6 @@
 import type { Config, Context } from "@netlify/functions";
 
-export default async (request: Request, context: Context) => {
+export const handler = async (request: Request, context: Context) => {
   try {
     // Dynamic import of React Router build and handler
     const { createRequestHandler } = await import("react-router");
