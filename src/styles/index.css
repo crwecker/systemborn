@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-blue text-light-gray;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-copper font-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded bg-copper text-dark-blue hover:bg-light-gray transition-colors duration-200;
+  }
+  .card {
+    @apply bg-slate p-4 rounded-lg shadow-lg;
+  }
+  .container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+} 

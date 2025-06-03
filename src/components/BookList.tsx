@@ -1,76 +1,5 @@
-import styled from 'styled-components';
 import { useQuery } from '@tanstack/react-query';
 import { fetchBooks } from '../services/api';
-
-const BookGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: ${props => props.theme.space.lg};
-  padding: ${props => props.theme.space.lg};
-`;
-
-const BookCard = styled.div`
-  background: ${props => props.theme.colors.darkBlue};
-  border-radius: 8px;
-  overflow: hidden;
-  transition: transform 0.2s;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  
-  &:hover {
-    transform: translateY(-4px);
-  }
-`;
-
-const BookCover = styled.img`
-  width: 100%;
-  height: 350px;
-  object-fit: cover;
-`;
-
-const BookInfo = styled.div`
-  padding: ${props => props.theme.space.md};
-  color: ${props => props.theme.colors.lightGray};
-`;
-
-const BookTitle = styled.h2`
-  color: ${props => props.theme.colors.copper};
-  font-size: ${props => props.theme.fontSizes.xl};
-  margin-bottom: ${props => props.theme.space.xs};
-`;
-
-const BookAuthor = styled.p`
-  color: ${props => props.theme.colors.lightGray};
-  font-size: ${props => props.theme.fontSizes.md};
-  margin-bottom: ${props => props.theme.space.sm};
-`;
-
-const BookTags = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${props => props.theme.space.xs};
-  margin-top: ${props => props.theme.space.sm};
-`;
-
-const Tag = styled.span`
-  background: ${props => props.theme.colors.slate};
-  color: ${props => props.theme.colors.lightGray};
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: ${props => props.theme.fontSizes.sm};
-`;
-
-const Rating = styled.div`
-  color: ${props => props.theme.colors.copper};
-  font-size: ${props => props.theme.fontSizes.lg};
-  margin-top: ${props => props.theme.space.sm};
-`;
-
-const LoadingOrError = styled.div`
-  text-align: center;
-  padding: ${props => props.theme.space.xl};
-  color: ${props => props.theme.colors.lightGray};
-  font-size: ${props => props.theme.fontSizes.lg};
-`;
 
 export function BookList() {
   const { data, isLoading, error } = useQuery({
@@ -79,32 +8,48 @@ export function BookList() {
   });
 
   if (isLoading) {
-    return <LoadingOrError>Loading books...</LoadingOrError>;
+    return <div className="text-center py-8 text-light-gray text-lg">Loading books...</div>;
   }
 
   if (error) {
-    return <LoadingOrError>Error loading books: {error instanceof Error ? error.message : 'Unknown error'}</LoadingOrError>;
+    return (
+      <div className="text-center py-8 text-light-gray text-lg">
+        Error loading books: {error instanceof Error ? error.message : 'Unknown error'}
+      </div>
+    );
   }
 
   return (
-    <BookGrid>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
       {data?.books.map((book) => (
-        <BookCard key={book.id}>
-          <a href={book.url} target="_blank" rel="noopener noreferrer">
-            <BookCover src={book.coverUrl} alt={book.title} />
+        <div 
+          key={book.id} 
+          className="bg-dark-blue rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-transform duration-200 hover:-translate-y-1"
+        >
+          <a href={book.url} target="_blank" rel="noopener noreferrer" className="block">
+            <img 
+              src={book.coverUrl} 
+              alt={book.title} 
+              className="w-full h-[350px] object-cover"
+            />
           </a>
-          <BookInfo>
-            <BookTitle>{book.title}</BookTitle>
-            <BookAuthor>by {book.author.name}</BookAuthor>
-            <Rating>★ {book.rating.toFixed(1)}</Rating>
-            <BookTags>
+          <div className="p-4 text-light-gray">
+            <h2 className="text-copper text-xl mb-1">{book.title}</h2>
+            <p className="text-light-gray text-base mb-2">by {book.author.name}</p>
+            <div className="text-copper text-lg mb-2">★ {book.rating.toFixed(1)}</div>
+            <div className="flex flex-wrap gap-1">
               {book.tags.map((tag) => (
-                <Tag key={tag}>{tag}</Tag>
+                <span 
+                  key={tag} 
+                  className="bg-slate text-light-gray px-2 py-1 rounded text-sm"
+                >
+                  {tag}
+                </span>
               ))}
-            </BookTags>
-          </BookInfo>
-        </BookCard>
+            </div>
+          </div>
+        </div>
       ))}
-    </BookGrid>
+    </div>
   );
 } 

@@ -1,7 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { ThemeProvider } from 'styled-components';
-import { theme } from './styles/theme';
 import { BooksPage } from './pages/Books';
 
 const queryClient = new QueryClient({
@@ -16,16 +14,16 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <div className="min-h-screen bg-[#04070e]">
-          <header className="py-6 px-4 bg-[#3c4464]">
-            <h1 className="text-3xl font-bold text-[#aa8c65]">LitRPG Academy</h1>
-          </header>
-          <main>
-            <BooksPage />
-          </main>
-        </div>
-      </ThemeProvider>
+      <div className="min-h-screen bg-dark-blue">
+        <header className="py-6 px-4 bg-slate">
+          <div className="container mx-auto">
+            <h1 className="text-3xl font-bold text-copper">LitRPG Academy</h1>
+          </div>
+        </header>
+        <main className="container mx-auto py-6">
+          <BooksPage />
+        </main>
+      </div>
       <ReactQueryDevtools />
     </QueryClientProvider>
   );

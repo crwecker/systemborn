@@ -49,7 +49,7 @@ export function BooksPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Trending Books */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-6 text-[#aa8c65]">Trending in LitRPG</h2>
+        <h2 className="text-2xl font-bold mb-6 text-copper">Trending in LitRPG</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {trendingBooks.slice(0, 4).map(book => (
             <BookCard
@@ -62,12 +62,12 @@ export function BooksPage() {
       </section>
 
       {/* Filters */}
-      <div className="mb-8 bg-[#3c4464] p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4 text-[#aa8c65]">Filters</h2>
+      <div className="mb-8 bg-slate p-6 rounded-lg shadow">
+        <h2 className="text-2xl font-bold mb-4 text-copper">Filters</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium text-[#afaaaa] mb-2">
+            <label className="block text-sm font-medium text-light-gray mb-2">
               Tags
             </label>
             <div className="flex flex-wrap gap-2">
@@ -81,9 +81,9 @@ export function BooksPage() {
                   )}
                   className={`px-3 py-1 rounded-full text-sm ${
                     selectedTags.includes(tag)
-                      ? 'bg-[#aa8c65] text-white'
-                      : 'bg-[#4f4b4b] text-[#afaaaa]'
-                  }`}
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray'
+                  } transition-colors duration-200`}
                 >
                   {tag}
                 </button>
@@ -93,7 +93,7 @@ export function BooksPage() {
 
           {/* Rating Filter */}
           <div>
-            <label className="block text-sm font-medium text-[#afaaaa] mb-2">
+            <label className="block text-sm font-medium text-light-gray mb-2">
               Minimum Rating
             </label>
             <input
@@ -103,20 +103,20 @@ export function BooksPage() {
               step="0.5"
               value={minRating}
               onChange={e => setMinRating(parseFloat(e.target.value))}
-              className="w-full"
+              className="w-full accent-copper"
             />
-            <span className="text-sm text-[#afaaaa]">{minRating} stars</span>
+            <span className="text-sm text-light-gray">{minRating} stars</span>
           </div>
 
           {/* Sort By */}
           <div>
-            <label className="block text-sm font-medium text-[#afaaaa] mb-2">
+            <label className="block text-sm font-medium text-light-gray mb-2">
               Sort By
             </label>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
-              className="w-full p-2 border rounded bg-[#4f4b4b] text-[#afaaaa] border-[#3c4464]"
+              className="w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper"
             >
               {SORT_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
@@ -130,7 +130,7 @@ export function BooksPage() {
 
       {/* Books Grid */}
       {isLoading ? (
-        <div className="text-center py-12 text-[#afaaaa]">Loading...</div>
+        <div className="text-center py-12 text-light-gray">Loading...</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {books.map(book => (
