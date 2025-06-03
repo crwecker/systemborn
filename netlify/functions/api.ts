@@ -32,11 +32,13 @@ export const handler: Handler = async (event) => {
     console.log('Request method:', event.httpMethod);
     console.log('Query parameters:', event.queryStringParameters);
 
-    const path = event.path.split('/').filter(Boolean);
+    // Remove the /.netlify/functions/api prefix from the path
+    const cleanPath = event.path.replace(/^\/.netlify\/functions\/api\/?/, '');
+    const path = cleanPath.split('/').filter(Boolean);
     console.log('Parsed path segments:', path);
     
     // Handle root API call
-    if (path.length === 0 || (path.length === 1 && path[0] === 'api')) {
+    if (path.length === 0) {
       return {
         statusCode: 200,
         headers,
@@ -44,7 +46,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const endpoint = path[1]; // First segment after 'api'
+    const endpoint = path[0]; // First segment of the clean path
     console.log('Endpoint:', endpoint);
     
     const params = event.queryStringParameters || {};
@@ -59,7 +61,7 @@ export const handler: Handler = async (event) => {
 
       case 'books':
         // Handle different book-related endpoints
-        const subEndpoint = path[2];
+        const subEndpoint = path[1];
         console.log('Books subEndpoint:', subEndpoint);
         
         switch (subEndpoint) {
@@ -96,7 +98,7 @@ export const handler: Handler = async (event) => {
             };
 
           case 'author':
-            const authorName = path[3];
+            const authorName = path[2];
             if (!authorName) {
               return {
                 statusCode: 400,
@@ -115,7 +117,7 @@ export const handler: Handler = async (event) => {
             // Handle single book or book list
             if (subEndpoint) {
               // Check if it's a request for similar books
-              if (path[3] === 'similar') {
+              if (path[2] === 'similar') {
                 const similarLimit = params.limit ? parseInt(params.limit) : 5;
                 const similarBooks = await getSimilarBooks(subEndpoint, similarLimit);
                 return {
@@ -150,7 +152,12 @@ export const handler: Handler = async (event) => {
         return {
           statusCode: 404,
           headers,
-          body: JSON.stringify({ error: 'Endpoint not found', path: event.path, segments: path })
+          body: JSON.stringify({ 
+            error: 'Endpoint not found', 
+            path: event.path, 
+            cleanPath,
+            segments: path 
+          })
         };
     }
   } catch (error) {
