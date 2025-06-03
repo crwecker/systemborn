@@ -9,7 +9,9 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["react-router", "jsdom", "react", "react-dom"]
+  external_node_modules = ["react-router", "jsdom", "react", "react-dom", "netlify/functions/react-router-server.js"]
+        
+
 
 # Serve static assets directly
 [[redirects]]

@@ -1,11 +1,416 @@
+var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined") return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
+var __commonJS = (cb, mod) => function __require2() {
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+};
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
 };
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+
+// node_modules/@mjackson/node-fetch-server/dist/node-fetch-server.cjs
+var require_node_fetch_server = __commonJS({
+  "node_modules/@mjackson/node-fetch-server/dist/node-fetch-server.cjs"(exports, module) {
+    "use strict";
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
+    var node_fetch_server_exports = {};
+    __export2(node_fetch_server_exports, {
+      createRequestListener: () => createRequestListener
+    });
+    module.exports = __toCommonJS(node_fetch_server_exports);
+    function createRequestListener(handler2, options) {
+      let onError = (options == null ? void 0 : options.onError) ?? defaultErrorHandler;
+      return async (req, res) => {
+        let controller = new AbortController();
+        res.on("close", () => {
+          controller.abort();
+        });
+        let request = createRequest(req, controller.signal, options);
+        let client = {
+          address: req.socket.remoteAddress,
+          family: req.socket.remoteFamily,
+          port: req.socket.remotePort
+        };
+        let response;
+        try {
+          response = await handler2(request, client);
+        } catch (error) {
+          try {
+            response = await onError(error) ?? internalServerError();
+          } catch (error2) {
+            console.error(`There was an error in the error handler: ${error2}`);
+            response = internalServerError();
+          }
+        }
+        let rawHeaders = [];
+        for (let [key, value] of response.headers) {
+          rawHeaders.push(key, value);
+        }
+        res.writeHead(response.status, rawHeaders);
+        if (response.body != null && req.method !== "HEAD") {
+          for await (let chunk of response.body) {
+            res.write(chunk);
+          }
+        }
+        res.end();
+      };
+    }
+    function defaultErrorHandler(error) {
+      console.error(error);
+      return internalServerError();
+    }
+    function internalServerError() {
+      return new Response(
+        // "Internal Server Error"
+        new Uint8Array([
+          73,
+          110,
+          116,
+          101,
+          114,
+          110,
+          97,
+          108,
+          32,
+          83,
+          101,
+          114,
+          118,
+          101,
+          114,
+          32,
+          69,
+          114,
+          114,
+          111,
+          114
+        ]),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "text/plain"
+          }
+        }
+      );
+    }
+    function createRequest(req, signal, options) {
+      let method = req.method ?? "GET";
+      let headers = createHeaders(req.rawHeaders);
+      let protocol = (options == null ? void 0 : options.protocol) ?? ("encrypted" in req.socket && req.socket.encrypted ? "https:" : "http:");
+      let host = (options == null ? void 0 : options.host) ?? headers.get("host") ?? "localhost";
+      let url = new URL(req.url, `${protocol}//${host}`);
+      let init = { method, headers, signal };
+      if (method !== "GET" && method !== "HEAD") {
+        init.body = new ReadableStream({
+          start(controller) {
+            req.on("data", (chunk) => {
+              controller.enqueue(new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength));
+            });
+            req.on("end", () => {
+              controller.close();
+            });
+          }
+        });
+        init.duplex = "half";
+      }
+      return new Request(url, init);
+    }
+    function createHeaders(rawHeaders) {
+      let headers = new Headers();
+      for (let i = 0; i < rawHeaders.length; i += 2) {
+        headers.append(rawHeaders[i], rawHeaders[i + 1]);
+      }
+      return headers;
+    }
+  }
+});
+
+// node_modules/@react-router/node/dist/index.js
+var require_dist = __commonJS({
+  "node_modules/@react-router/node/dist/index.js"(exports, module) {
+    "use strict";
+    var __create2 = Object.create;
+    var __defProp2 = Object.defineProperty;
+    var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
+    var __getOwnPropNames2 = Object.getOwnPropertyNames;
+    var __getProtoOf2 = Object.getPrototypeOf;
+    var __hasOwnProp2 = Object.prototype.hasOwnProperty;
+    var __export2 = (target, all) => {
+      for (var name in all)
+        __defProp2(target, name, { get: all[name], enumerable: true });
+    };
+    var __copyProps2 = (to, from, except, desc) => {
+      if (from && typeof from === "object" || typeof from === "function") {
+        for (let key of __getOwnPropNames2(from))
+          if (!__hasOwnProp2.call(to, key) && key !== except)
+            __defProp2(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc2(from, key)) || desc.enumerable });
+      }
+      return to;
+    };
+    var __toESM2 = (mod, isNodeMode, target) => (target = mod != null ? __create2(__getProtoOf2(mod)) : {}, __copyProps2(
+      // If the importer is in node compatibility mode or this is not an ESM
+      // file that has been converted to a CommonJS file using a Babel-
+      // compatible transform (i.e. "__esModule" has not been set), then set
+      // "default" to the CommonJS "module.exports" for node compatibility.
+      isNodeMode || !mod || !mod.__esModule ? __defProp2(target, "default", { value: mod, enumerable: true }) : target,
+      mod
+    ));
+    var __toCommonJS = (mod) => __copyProps2(__defProp2({}, "__esModule", { value: true }), mod);
+    var react_router_node_exports = {};
+    __export2(react_router_node_exports, {
+      createFileSessionStorage: () => createFileSessionStorage,
+      createReadableStreamFromReadable: () => createReadableStreamFromReadable2,
+      createRequestListener: () => createRequestListener,
+      readableStreamToString: () => readableStreamToString,
+      writeAsyncIterableToWritable: () => writeAsyncIterableToWritable,
+      writeReadableStreamToWritable: () => writeReadableStreamToWritable
+    });
+    module.exports = __toCommonJS(react_router_node_exports);
+    var import_react_router3 = __require("react-router");
+    var import_node_fetch_server = require_node_fetch_server();
+    function createRequestListener(options) {
+      let handleRequest2 = (0, import_react_router3.createRequestHandler)(options.build, options.mode);
+      return (0, import_node_fetch_server.createRequestListener)(async (request, client) => {
+        let loadContext = await options.getLoadContext?.(request, client);
+        return handleRequest2(request, loadContext);
+      });
+    }
+    var import_node_fs = __require("fs");
+    var path = __toESM2(__require("path"));
+    var import_react_router22 = __require("react-router");
+    function createFileSessionStorage({
+      cookie,
+      dir
+    }) {
+      return (0, import_react_router22.createSessionStorage)({
+        cookie,
+        async createData(data2, expires) {
+          let content = JSON.stringify({ data: data2, expires });
+          while (true) {
+            let randomBytes = crypto.getRandomValues(new Uint8Array(8));
+            let id = Buffer.from(randomBytes).toString("hex");
+            try {
+              let file = getFile(dir, id);
+              await import_node_fs.promises.mkdir(path.dirname(file), { recursive: true });
+              await import_node_fs.promises.writeFile(file, content, { encoding: "utf-8", flag: "wx" });
+              return id;
+            } catch (error) {
+              if (error.code !== "EEXIST") throw error;
+            }
+          }
+        },
+        async readData(id) {
+          try {
+            let file = getFile(dir, id);
+            let content = JSON.parse(await import_node_fs.promises.readFile(file, "utf-8"));
+            let data2 = content.data;
+            let expires = typeof content.expires === "string" ? new Date(content.expires) : null;
+            if (!expires || expires > /* @__PURE__ */ new Date()) {
+              return data2;
+            }
+            if (expires) await import_node_fs.promises.unlink(file);
+            return null;
+          } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+            return null;
+          }
+        },
+        async updateData(id, data2, expires) {
+          let content = JSON.stringify({ data: data2, expires });
+          let file = getFile(dir, id);
+          await import_node_fs.promises.mkdir(path.dirname(file), { recursive: true });
+          await import_node_fs.promises.writeFile(file, content, "utf-8");
+        },
+        async deleteData(id) {
+          if (!id) {
+            return;
+          }
+          try {
+            await import_node_fs.promises.unlink(getFile(dir, id));
+          } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+          }
+        }
+      });
+    }
+    function getFile(dir, id) {
+      return path.join(dir, id.slice(0, 4), id.slice(4));
+    }
+    var import_node_stream2 = __require("stream");
+    async function writeReadableStreamToWritable(stream, writable) {
+      let reader = stream.getReader();
+      let flushable = writable;
+      try {
+        while (true) {
+          let { done, value } = await reader.read();
+          if (done) {
+            writable.end();
+            break;
+          }
+          writable.write(value);
+          if (typeof flushable.flush === "function") {
+            flushable.flush();
+          }
+        }
+      } catch (error) {
+        writable.destroy(error);
+        throw error;
+      }
+    }
+    async function writeAsyncIterableToWritable(iterable, writable) {
+      try {
+        for await (let chunk of iterable) {
+          writable.write(chunk);
+        }
+        writable.end();
+      } catch (error) {
+        writable.destroy(error);
+        throw error;
+      }
+    }
+    async function readableStreamToString(stream, encoding) {
+      let reader = stream.getReader();
+      let chunks = [];
+      while (true) {
+        let { done, value } = await reader.read();
+        if (done) {
+          break;
+        }
+        if (value) {
+          chunks.push(value);
+        }
+      }
+      return Buffer.concat(chunks).toString(encoding);
+    }
+    var createReadableStreamFromReadable2 = (source) => {
+      let pump = new StreamPump(source);
+      let stream = new ReadableStream(pump, pump);
+      return stream;
+    };
+    var StreamPump = class {
+      highWaterMark;
+      accumulatedSize;
+      stream;
+      controller;
+      constructor(stream) {
+        this.highWaterMark = stream.readableHighWaterMark || new import_node_stream2.Stream.Readable().readableHighWaterMark;
+        this.accumulatedSize = 0;
+        this.stream = stream;
+        this.enqueue = this.enqueue.bind(this);
+        this.error = this.error.bind(this);
+        this.close = this.close.bind(this);
+      }
+      size(chunk) {
+        return chunk?.byteLength || 0;
+      }
+      start(controller) {
+        this.controller = controller;
+        this.stream.on("data", this.enqueue);
+        this.stream.once("error", this.error);
+        this.stream.once("end", this.close);
+        this.stream.once("close", this.close);
+      }
+      pull() {
+        this.resume();
+      }
+      cancel(reason) {
+        if (this.stream.destroy) {
+          this.stream.destroy(reason);
+        }
+        this.stream.off("data", this.enqueue);
+        this.stream.off("error", this.error);
+        this.stream.off("end", this.close);
+        this.stream.off("close", this.close);
+      }
+      enqueue(chunk) {
+        if (this.controller) {
+          try {
+            let bytes = chunk instanceof Uint8Array ? chunk : Buffer.from(chunk);
+            let available = (this.controller.desiredSize || 0) - bytes.byteLength;
+            this.controller.enqueue(bytes);
+            if (available <= 0) {
+              this.pause();
+            }
+          } catch (error) {
+            this.controller.error(
+              new Error(
+                "Could not create Buffer, chunk must be of type string or an instance of Buffer, ArrayBuffer, or Array or an Array-like Object"
+              )
+            );
+            this.cancel();
+          }
+        }
+      }
+      pause() {
+        if (this.stream.pause) {
+          this.stream.pause();
+        }
+      }
+      resume() {
+        if (this.stream.readable && this.stream.resume) {
+          this.stream.resume();
+        }
+      }
+      close() {
+        if (this.controller) {
+          this.controller.close();
+          delete this.controller;
+        }
+      }
+      error(error) {
+        if (this.controller) {
+          this.controller.error(error);
+          delete this.controller;
+        }
+      }
+    };
+  }
+});
 
 // netlify/functions/react-router-server.js
-import { createRequestHandler } from "@react-router/node";
+import { createRequestHandler } from "react-router";
 
 // build/server/index.js
 var server_exports = {};
@@ -22,9 +427,9 @@ __export(server_exports, {
   routes: () => routes,
   ssr: () => ssr
 });
+var import_node = __toESM(require_dist(), 1);
 import { jsx, jsxs } from "react/jsx-runtime";
 import { PassThrough } from "node:stream";
-import { createReadableStreamFromReadable } from "@react-router/node";
 import { ServerRouter, useMatches, useActionData, useLoaderData, useParams, Meta, Links, Outlet, ScrollRestoration, Scripts, data } from "react-router";
 
 // node_modules/isbot/index.mjs
@@ -567,7 +972,7 @@ function handleBotRequest(request, responseStatusCode, responseHeaders, routerCo
         onAllReady() {
           shellRendered = true;
           const body = new PassThrough();
-          const stream = createReadableStreamFromReadable(body);
+          const stream = (0, import_node.createReadableStreamFromReadable)(body);
           responseHeaders.set("Content-Type", "text/html");
           resolve(
             new Response(stream, {
@@ -606,7 +1011,7 @@ function handleBrowserRequest(request, responseStatusCode, responseHeaders, rout
         onShellReady() {
           shellRendered = true;
           const body = new PassThrough();
-          const stream = createReadableStreamFromReadable(body);
+          const stream = (0, import_node.createReadableStreamFromReadable)(body);
           responseHeaders.set("Content-Type", "text/html");
           resolve(
             new Response(stream, {
@@ -855,12 +1260,9 @@ var routes = {
 };
 
 // netlify/functions/react-router-server.js
-var requestHandler = createRequestHandler({
-  build: server_exports,
-  getLoadContext: async (_req, ctx) => ctx
-});
 var handler = async (event, context) => {
   try {
+    const requestHandler = createRequestHandler(server_exports, process.env.NODE_ENV);
     let url;
     if (event.rawUrl) {
       url = event.rawUrl;
@@ -877,7 +1279,9 @@ var handler = async (event, context) => {
       headers: new Headers(event.headers || {}),
       body: event.body && event.httpMethod !== "GET" ? event.isBase64Encoded ? Buffer.from(event.body, "base64") : event.body : void 0
     });
-    const response = await requestHandler(request, context);
+    const response = await requestHandler(request, {
+      netlify: context
+    });
     if (response instanceof Response) {
       const body = await response.text();
       return {
@@ -899,3 +1303,17 @@ var handler = async (event, context) => {
 export {
   handler
 };
+/*! Bundled license information:
+
+@react-router/node/dist/index.js:
+  (**
+   * @react-router/node v7.6.1
+   *
+   * Copyright (c) Remix Software Inc.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE.md file in the root directory of this source tree.
+   *
+   * @license MIT
+   *)
+*/
