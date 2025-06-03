@@ -2,7 +2,6 @@ import { JSDOM, ConstructorOptions as JSDOMOptions } from "jsdom";
 import type { Book } from "../../src/types/book";
 import { prisma } from "../lib/prisma";
 import { Source } from "../generated/prisma";
-import { fetch } from "node-fetch";
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
 
