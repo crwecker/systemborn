@@ -1,7 +1,14 @@
 import { parse } from 'node-html-parser';
 import type { Book } from "../../src/types/book";
-import { prisma } from '../lib/prisma-client';
+import { PrismaClient } from "@prisma/client";
 import { Source } from "../generated/prisma";
+
+// We'll get the Prisma instance from the API handler
+let prisma: PrismaClient;
+
+export function setPrismaInstance(instance: PrismaClient) {
+  prisma = instance;
+}
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
 

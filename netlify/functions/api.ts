@@ -1,4 +1,5 @@
 import { Handler } from '@netlify/functions';
+import { PrismaClient } from '@prisma/client';
 import {
   fetchBooks,
   fetchBookDetails,
@@ -7,20 +8,27 @@ import {
   searchBooks,
   getSimilarBooks,
   getAuthorBooks,
-  LITRPG_RELATED_TAGS
+  LITRPG_RELATED_TAGS,
+  setPrismaInstance
 } from '../../server/services/royalroad.server';
 
 // Initialize Prisma Client
-import '../../server/lib/prisma-client';
+const prisma = new PrismaClient({
+  errorFormat: 'minimal',
+  log: ['error', 'warn']
+});
+
+// Set the Prisma instance for the service
+setPrismaInstance(prisma);
+
+// CORS headers
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+};
 
 export const handler: Handler = async (event) => {
-  // Enable CORS
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  };
-
   // Handle OPTIONS request for CORS
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -49,7 +57,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const endpoint = path[0]; // First segment of the clean path
+    const endpoint = path[0];
     console.log('Endpoint:', endpoint);
     
     const params = event.queryStringParameters || {};
@@ -63,90 +71,98 @@ export const handler: Handler = async (event) => {
         };
 
       case 'books':
-        // Handle different book-related endpoints
         const subEndpoint = path[1];
         console.log('Books subEndpoint:', subEndpoint);
         
-        switch (subEndpoint) {
-          case 'litrpg':
-            const books = await getLitRPGBooks();
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify(books)
-            };
-
-          case 'trending':
-            const limit = params.limit ? parseInt(params.limit) : 10;
-            const trendingBooks = await getTrendingLitRPGBooks(limit);
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify(trendingBooks)
-            };
-
-          case 'search':
-            const searchResults = await searchBooks({
-              tags: params.tags ? (Array.isArray(params.tags) ? params.tags : [params.tags]) : [],
-              minRating: params.minRating ? parseFloat(params.minRating) : undefined,
-              minPages: params.minPages ? parseInt(params.minPages) : undefined,
-              sortBy: params.sortBy as any,
-              limit: params.limit ? parseInt(params.limit) : undefined,
-              offset: params.offset ? parseInt(params.offset) : undefined,
-            });
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify(searchResults)
-            };
-
-          case 'author':
-            const authorName = path[2];
-            if (!authorName) {
-              return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Author name is required' })
-              };
-            }
-            const authorBooks = await getAuthorBooks(authorName);
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify(authorBooks)
-            };
-
-          default:
-            // Handle single book or book list
-            if (subEndpoint) {
-              // Check if it's a request for similar books
-              if (path[2] === 'similar') {
-                const similarLimit = params.limit ? parseInt(params.limit) : 5;
-                const similarBooks = await getSimilarBooks(subEndpoint, similarLimit);
-                return {
-                  statusCode: 200,
-                  headers,
-                  body: JSON.stringify(similarBooks)
-                };
-              }
-              
-              // Single book details
-              const book = await fetchBookDetails(subEndpoint);
+        try {
+          switch (subEndpoint) {
+            case 'litrpg':
+              const books = await getLitRPGBooks();
               return {
                 statusCode: 200,
                 headers,
-                body: JSON.stringify(book)
+                body: JSON.stringify(books)
               };
-            }
-            
-            // Book list
-            const page = params.page ? parseInt(params.page) : 1;
-            const bookList = await fetchBooks(page);
-            return {
-              statusCode: 200,
-              headers,
-              body: JSON.stringify(bookList)
-            };
+
+            case 'trending':
+              const limit = params.limit ? parseInt(params.limit) : 10;
+              const trendingBooks = await getTrendingLitRPGBooks(limit);
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(trendingBooks)
+              };
+
+            case 'search':
+              const searchResults = await searchBooks({
+                tags: params.tags ? (Array.isArray(params.tags) ? params.tags : [params.tags]) : [],
+                minRating: params.minRating ? parseFloat(params.minRating) : undefined,
+                minPages: params.minPages ? parseInt(params.minPages) : undefined,
+                sortBy: params.sortBy as any,
+                limit: params.limit ? parseInt(params.limit) : undefined,
+                offset: params.offset ? parseInt(params.offset) : undefined,
+              });
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(searchResults)
+              };
+
+            case 'author':
+              const authorName = path[2];
+              if (!authorName) {
+                return {
+                  statusCode: 400,
+                  headers,
+                  body: JSON.stringify({ error: 'Author name is required' })
+                };
+              }
+              const authorBooks = await getAuthorBooks(authorName);
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(authorBooks)
+              };
+
+            default:
+              if (subEndpoint) {
+                if (path[2] === 'similar') {
+                  const similarLimit = params.limit ? parseInt(params.limit) : 5;
+                  const similarBooks = await getSimilarBooks(subEndpoint, similarLimit);
+                  return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify(similarBooks)
+                  };
+                }
+                
+                const book = await fetchBookDetails(subEndpoint);
+                return {
+                  statusCode: 200,
+                  headers,
+                  body: JSON.stringify(book)
+                };
+              }
+              
+              const page = params.page ? parseInt(params.page) : 1;
+              const bookList = await fetchBooks(page);
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(bookList)
+              };
+          }
+        } catch (error) {
+          console.error('Error in books endpoint:', error);
+          return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({
+              error: 'Error processing books request',
+              details: error instanceof Error ? error.message : 'Unknown error',
+              path: event.path
+            })
+          };
         }
         break;
 
@@ -174,5 +190,8 @@ export const handler: Handler = async (event) => {
         path: event.path
       })
     };
+  } finally {
+    // Disconnect Prisma Client
+    await prisma.$disconnect();
   }
 }; 
