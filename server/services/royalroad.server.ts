@@ -1,9 +1,17 @@
-import { JSDOM } from "jsdom";
+import { JSDOM, ConstructorOptions as JSDOMOptions } from "jsdom";
 import type { Book } from "../../src/types/book";
 import { prisma } from "../lib/prisma";
 import { Source } from "../generated/prisma";
+import { fetch } from "node-fetch";
 
 const ROYALROAD_BASE_URL = "https://www.royalroad.com";
+
+// JSDOM configuration for serverless environment
+const JSDOM_OPTIONS: JSDOMOptions = {
+  pretendToBeVisual: true,
+  runScripts: "outside-only",
+  resources: "usable"
+};
 
 // Helper function to convert scraped data to database format
 function convertToDbBook(scrapedBook: Book) {
@@ -72,8 +80,8 @@ export async function getPopularBooks(): Promise<Book[]> {
     const response = await fetch(`${ROYALROAD_BASE_URL}/fictions/best-rated`);
     const html = await response.text();
 
-    // Create a DOM using jsdom
-    const dom = new JSDOM(html);
+    // Create a DOM using jsdom with serverless-friendly options
+    const dom = new JSDOM(html, JSDOM_OPTIONS);
     const doc = dom.window.document;
 
     // Find all fiction entries
@@ -180,7 +188,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html);
+    const dom = new JSDOM(html, JSDOM_OPTIONS);
     const document = dom.window.document;
 
     const fictionElements = document.querySelectorAll(".fiction-list-item");
@@ -309,7 +317,7 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html);
+    const dom = new JSDOM(html, JSDOM_OPTIONS);
     const document = dom.window.document;
 
     const titleElement = document.querySelector(".fic-title h1");
