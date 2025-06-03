@@ -5,7 +5,7 @@ export default {
   appDirectory: "app",
   
   // Server build configuration
-  serverBuildFile: "index.js",
+  serverBuildFile: "server.js",
   
   // Ignore patterns for route files
   ignoredRouteFiles: ["**/.*"],
