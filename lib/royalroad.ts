@@ -702,7 +702,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     minPages = 0,
     onlyCompleted = false,
     sortBy = "rating",
-    limit = 50,
+    limit = 500,
     offset = 0,
   } = params;
 
