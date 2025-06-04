@@ -22,3 +22,4 @@ Things that would help find a LitRPG book to read
 ## Notes
 * Currently, we are using neon to host the db https://console.neon.tech/app/projects
 * We are using netlify to host the website
+* Need to add "As an Amazon Associate I earn from qualifying purchases." if we are approved to be an Amazon Associate (associate ID: litrpgacademy-20)
