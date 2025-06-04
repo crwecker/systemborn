@@ -63,6 +63,7 @@ const AFFILIATE_LINKS = [
 ];
 
 const SORT_OPTIONS = [
+  { value: "trending", label: "Trending" },
   { value: "rating", label: "Rating" },
   { value: "followers", label: "Followers" },
   { value: "views", label: "Views" },
@@ -72,9 +73,12 @@ const SORT_OPTIONS = [
 
 export function BooksPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("trending");
   const [minRating, setMinRating] = useState(0);
   const [minPages, setMinPages] = useState(0);
+
+  // Helper function to normalize tags
+  const normalizeTag = (tag: string) => tag.toLowerCase().trim();
 
   // Fetch available tags
   const { data: tags = [] } = useQuery<string[]>({
@@ -87,57 +91,70 @@ export function BooksPage() {
     queryKey: ["books", selectedTags, minRating, minPages, sortBy],
     queryFn: () =>
       searchBooks({
-        tags: selectedTags,
+        tags: selectedTags.map(normalizeTag),
         minRating,
         minPages,
         sortBy,
       }),
   });
 
-  const { data: trendingBooks = [] } = useQuery<Book[]>({
-    queryKey: ["trending-books"],
-    queryFn: () => fetchTrendingBooks(),
-  });
-
   const handleAuthorClick = (authorName: string) => {
-    // Navigate to author's page or filter by author
     window.location.href = `/author/${encodeURIComponent(authorName)}`;
+  };
+
+  const handleTagClick = (tag: string) => {
+    const normalizedTag = normalizeTag(tag);
+    setSelectedTags((prev) =>
+      prev.map(normalizeTag).includes(normalizedTag)
+        ? prev.filter((t) => normalizeTag(t) !== normalizedTag)
+        : [...prev, tag]
+    );
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Affiliate Recommendations */}
-      <section className="mb-12">
+      <section className="mb-16">
         <h2 className="text-2xl font-bold text-copper">
           Recommended Amazon Kindle Books
         </h2>
         <div className="text-light-gray text-md mb-8">
           If you are just getting into litrpg, these are some of my (and my
-          family's) all time favorites. As an Amazon Associate I earn from
-          qualifying purchases.
+          family's) all time favorites. Clicking on any title will take you to
+          the amazon page and as an Amazon Associate I earn from qualifying
+          purchases.
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
           {AFFILIATE_LINKS.map((book, index) => (
             <div
               key={index}
-              className="bg-slate rounded-lg shadow-lg overflow-hidden"
+              className="bg-[#1a1a1a] rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl group flex flex-col sm:flex-row lg:flex-col"
             >
               <a
                 href={book.affiliate_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block"
+                className="block w-full"
               >
-                <img
-                  src={book.poster}
-                  alt={book.title}
-                  className="w-full h-64 object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-copper mb-2">
+                <div className="relative sm:w-48 lg:w-full">
+                  <div className="relative pb-[150%] bg-[#1a1a1a]">
+                    <img
+                      src={book.poster}
+                      alt={book.title}
+                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-90"
+                    />
+                  </div>
+                </div>
+                <div className="p-6 flex flex-col flex-grow">
+                  <h3 className="text-lg font-bold text-copper mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors duration-300">
                     {book.title}
                   </h3>
-                  <p className="text-light-gray text-sm">{book.description}</p>
+                  <p className="text-light-gray text-sm leading-relaxed flex-grow">
+                    {book.description}
+                  </p>
+                  <div className="mt-4 text-xs text-copper opacity-80 font-medium uppercase tracking-wider">
+                    View on Amazon →
+                  </div>
                 </div>
               </a>
             </div>
@@ -145,105 +162,89 @@ export function BooksPage() {
         </div>
       </section>
 
-      {/* Trending Books */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-6 text-copper">
-          Trending in LitRPG
+      {/* Royal Road Books Section */}
+      <section className="mt-16">
+        <h2 className="text-2xl font-bold mb-8 text-copper">
+          Browse Royal Road Books
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {trendingBooks.slice(0, 4).map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              onAuthorClick={handleAuthorClick}
-            />
-          ))}
-        </div>
-      </section>
 
-      {/* Filters */}
-      <div className="mb-8 bg-slate p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold mb-4 text-copper">Filters</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Tags */}
-          <div>
-            <label className="block text-sm font-medium text-light-gray mb-2">
-              Tags
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() =>
-                    setSelectedTags((prev) =>
-                      prev.includes(tag)
-                        ? prev.filter((t) => t !== tag)
-                        : [...prev, tag]
-                    )
-                  }
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    selectedTags.includes(tag)
-                      ? "bg-copper text-dark-blue"
-                      : "bg-medium-gray text-light-gray"
-                  } transition-colors duration-200`}
-                >
-                  {tag}
-                </button>
-              ))}
+        {/* Filters */}
+        <div className="mb-8 bg-slate p-6 rounded-lg shadow">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Tags */}
+            <div>
+              <label className="block text-sm font-medium text-light-gray mb-2">
+                Tags
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => handleTagClick(tag)}
+                    className={`px-3 py-1 rounded-full text-sm ${
+                      selectedTags.map(normalizeTag).includes(normalizeTag(tag))
+                        ? "bg-copper text-dark-blue"
+                        : "bg-medium-gray text-light-gray"
+                    } transition-colors duration-200`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rating Filter */}
+            <div>
+              <label className="block text-sm font-medium text-light-gray mb-2">
+                Minimum Rating
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="5"
+                step="0.5"
+                value={minRating}
+                onChange={(e) => setMinRating(parseFloat(e.target.value))}
+                className="w-full accent-copper"
+              />
+              <span className="text-sm text-light-gray">{minRating} stars</span>
+            </div>
+
+            {/* Sort By */}
+            <div>
+              <label className="block text-sm font-medium text-light-gray mb-2">
+                Sort By
+              </label>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper"
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-
-          {/* Rating Filter */}
-          <div>
-            <label className="block text-sm font-medium text-light-gray mb-2">
-              Minimum Rating
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              step="0.5"
-              value={minRating}
-              onChange={(e) => setMinRating(parseFloat(e.target.value))}
-              className="w-full accent-copper"
-            />
-            <span className="text-sm text-light-gray">{minRating} stars</span>
-          </div>
-
-          {/* Sort By */}
-          <div>
-            <label className="block text-sm font-medium text-light-gray mb-2">
-              Sort By
-            </label>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper"
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
-      </div>
 
-      {/* Books Grid */}
-      {isLoading ? (
-        <div className="text-center py-12 text-light-gray">Loading...</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {books.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-              onAuthorClick={handleAuthorClick}
-            />
-          ))}
-        </div>
-      )}
+        {/* Books Grid */}
+        {isLoading ? (
+          <div className="text-center py-12 text-light-gray">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {books.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+                onAuthorClick={handleAuthorClick}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

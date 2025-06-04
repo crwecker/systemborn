@@ -8,12 +8,12 @@ interface BookCardProps {
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
   return (
-    <div className="bg-dark-blue rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
-      <div className="relative pb-[56.25%]">
+    <div className="bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+      <div className="relative pb-[150%] bg-[#1a1a1a]">
         <img
           src={book.coverUrl || '/placeholder-cover.jpg'}
           alt={`Cover for ${book.title}`}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-contain"
         />
       </div>
       <div className="p-4">
