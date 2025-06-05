@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookCard } from "../components/BookCard";
 import type { Book } from "../types/book";
-import { fetchTags, searchBooks, fetchTrendingBooks } from "../services/api";
+import { searchBooks, fetchTrendingBooks } from "../services/api";
+import { LITRPG_RELATED_TAGS } from "../../lib/royalroad";
 
 // Here are some affiliate links. Let's get these on the website along with the message ""As an Amazon Associate I earn from qualifying purchases."
 const AFFILIATE_LINKS = [
@@ -77,21 +78,12 @@ export function BooksPage() {
   const [minRating, setMinRating] = useState(0);
   const [minPages, setMinPages] = useState(0);
 
-  // Helper function to normalize tags
-  const normalizeTag = (tag: string) => tag.toLowerCase().trim();
-
-  // Fetch available tags
-  const { data: tags = [] } = useQuery<string[]>({
-    queryKey: ["tags"],
-    queryFn: fetchTags,
-  });
-
   // Fetch books with current filters
   const { data: books = [], isLoading } = useQuery<Book[]>({
     queryKey: ["books", selectedTags, minRating, minPages, sortBy],
     queryFn: () =>
       searchBooks({
-        tags: selectedTags.map(normalizeTag),
+        tags: selectedTags,
         minRating,
         minPages,
         sortBy,
@@ -103,10 +95,9 @@ export function BooksPage() {
   };
 
   const handleTagClick = (tag: string) => {
-    const normalizedTag = normalizeTag(tag);
     setSelectedTags((prev) =>
-      prev.map(normalizeTag).includes(normalizedTag)
-        ? prev.filter((t) => normalizeTag(t) !== normalizedTag)
+      prev.includes(tag)
+        ? prev.filter((t) => t !== tag)
         : [...prev, tag]
     );
   };
@@ -177,12 +168,12 @@ export function BooksPage() {
                 Tags
               </label>
               <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
+                {LITRPG_RELATED_TAGS.map((tag: string) => (
                   <button
                     key={tag}
                     onClick={() => handleTagClick(tag)}
                     className={`px-3 py-1 rounded-full text-sm ${
-                      selectedTags.map(normalizeTag).includes(normalizeTag(tag))
+                      selectedTags.includes(tag)
                         ? "bg-copper text-dark-blue"
                         : "bg-medium-gray text-light-gray"
                     } transition-colors duration-200`}

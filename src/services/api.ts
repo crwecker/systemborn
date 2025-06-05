@@ -129,4 +129,12 @@ export async function fetchAuthorBooks(authorName: string): Promise<Book[]> {
     console.error('Error fetching author books:', error);
     throw error;
   }
+}
+
+export async function fetchAvailableTags(): Promise<string[]> {
+  const response = await fetch('/api/tags');
+  if (!response.ok) {
+    throw new Error('Failed to fetch tags');
+  }
+  return response.json();
 } 

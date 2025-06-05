@@ -539,6 +539,40 @@ export async function getBooksByTags(tags: string[]): Promise<Book[]> {
   }));
 }
 
+// New function to fetch actual tags from Royal Road
+export async function fetchAvailableTags(): Promise<string[]> {
+  try {
+    // Fetch a sample of books to gather tags
+    const response = await fetch(`${ROYALROAD_BASE_URL}/fictions/best-rated`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch from Royal Road");
+    }
+
+    const html = await response.text();
+    const root = parse(html);
+
+    // Get all tag elements from the page
+    const tagElements = root.querySelectorAll(".tags a");
+    
+    // Create a Set to store unique tags
+    const uniqueTags = new Set<string>();
+    
+    // Add each tag to the Set
+    tagElements.forEach((tag) => {
+      const tagText = tag.text?.trim();
+      if (tagText) {
+        uniqueTags.add(tagText);
+      }
+    });
+
+    // Convert Set to array and sort alphabetically
+    return Array.from(uniqueTags).sort();
+  } catch (error) {
+    console.error("Error fetching tags:", error);
+    return [];
+  }
+}
+
 // Constants for our target genres
 export const LITRPG_RELATED_TAGS = [
   "litrpg",
@@ -709,17 +743,11 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   // Build the where clause
   const where: any = {};
 
+  // Use exact tag matching
   if (tags.length > 0) {
-    where.OR = tags.map((tag) => ({
-      tags: {
-        hasSome: [
-          tag,
-          tag.toLowerCase(),
-          tag.toUpperCase(),
-          tag.charAt(0).toUpperCase() + tag.slice(1),
-        ],
-      },
-    }));
+    where.tags = {
+      hasSome: tags
+    };
   }
 
   // Include stats for filtering
@@ -870,9 +898,9 @@ function parseStats(element: any): BookStats {
     if (!numbers) continue;
 
     const labels = text.split(/[\d,]+(\.\d+)?/).filter(Boolean);
-    const trimmedLabels = labels.map(label => label?.trim()?.toLowerCase());
+    const trimmedLabels = labels.map((label: string) => label?.trim()?.toLowerCase());
 
-    numbers.forEach((num, i) => {
+    numbers.forEach((num: string, i: number) => {
       const label = trimmedLabels[i];
       const value = parseFloat(num.replace(/,/g, ''));
       console.log('Processing number:', num, 'with label:', label);
@@ -894,7 +922,7 @@ function parseStats(element: any): BookStats {
     const starElements = scoreContainer.querySelectorAll('.star');
 
     // Process each star element
-    starElements.forEach(star => {
+    starElements.forEach((star: any) => {
       const label = star.getAttribute('data-original-title')?.toLowerCase().trim();
       const ariaLabel = star.getAttribute('aria-label');
       if (!label || !ariaLabel) return;
