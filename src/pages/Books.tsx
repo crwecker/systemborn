@@ -8,16 +8,10 @@ import { LITRPG_RELATED_TAGS } from "../../lib/royalroad";
 // Here are some affiliate links. Let's get these on the website along with the message ""As an Amazon Associate I earn from qualifying purchases."
 const AFFILIATE_LINKS = [
   {
-    title: `Dungeon Crawler Carl: Dungeon Crawler Carl Book 1`,
-    affiliate_link: `https://amzn.to/3SA9faY`,
-    poster: `https://m.media-amazon.com/images/I/81XbhUrUsBL._SY522_.jpg`,
-    description: `It's been a while since I've read this (pretty sure book 4 had just come out). I remember it being a little heavy on language/violence, but was a super fun read. Great characters and so fun as you learn more and more about the world Carl is thrust into.`,
-  },
-  {
-    title: `Unsouled (Cradle Book 1)`,
-    affiliate_link: `https://amzn.to/3ZfgFnT`,
-    poster: `https://m.media-amazon.com/images/I/513JnJQpruL._SY445_SX342_PQ35_.jpg`,
-    description: `Super fun read. Great progression. The unfolding of each new cultivation level opens up the world (and universe) a bit more so it keeps you on your toes. `,
+    title: `Mother of Learning: ARC 1`,
+    affiliate_link: `https://amzn.to/4jvc6gb`,
+    poster: `https://m.media-amazon.com/images/I/81NXjG0TyuL._SY522_.jpg`,
+    description: `Great story. Listened to it on a road trip and my teenagers loved it. Such a good time loop story. I love how the world unfolds and mysteries are revealed.`,
   },
   {
     title: `Iron Prince (Warformed: Stormweaver Book 1)`,
@@ -26,10 +20,10 @@ const AFFILIATE_LINKS = [
     description: `My teenager's read this book over and over. More sci-fi than litrpg, but it is such an awesome underdog story.`,
   },
   {
-    title: `He Who Fights with Monsters: A LitRPG Adventure`,
-    affiliate_link: `https://amzn.to/43q5Bqm`,
-    poster: `https://m.media-amazon.com/images/I/51l0a6bIDQL._SY445_SX342_PQ35_.jpg`,
-    description: `Classic litrpg. Great world building and great characters.`,
+    title: `Ritualist: An Epic Fantasy LitRPG Adventure (The Completionist Chronicles Book 1)`,
+    affiliate_link: `https://amzn.to/3FEfs2L`,
+    poster: `https://m.media-amazon.com/images/I/51prG6HjRRL._SY445_SX342_PQ35_.jpg`,
+    description: `One of the first litrpg books I listened to with my family. It had us laughing out loud. Great characters.`,
   },
   {
     title: `Heretical Fishing: A Cozy Guide to Annoying the Cults, Outsmarting the Fish, and Alienating Oneself`,
@@ -44,22 +38,28 @@ const AFFILIATE_LINKS = [
     description: `Also super cozy. I got my 70 year old parents to listen to this one and they loved it.`,
   },
   {
-    title: `Mother of Learning: ARC 1`,
-    affiliate_link: `https://amzn.to/4jvc6gb`,
-    poster: `https://m.media-amazon.com/images/I/81NXjG0TyuL._SY522_.jpg`,
-    description: `Great story. Listened to it on a road trip and my teenagers loved it. Such a good time loop story. I love how the world unfolds and mysteries are revealed.`,
-  },
-  {
     title: `The Wandering Inn: Book One in The Wandering Inn Series`,
     affiliate_link: `https://amzn.to/4jzfKFZ`,
     poster: `https://m.media-amazon.com/images/I/41zGUBv9XHL._SY445_SX342_PQ35_.jpg`,
     description: `Great story. Very epic. Lots of fun and unique characters. The story is super duper long and still going strong.`,
   },
   {
-    title: `Ritualist: An Epic Fantasy LitRPG Adventure (The Completionist Chronicles Book 1)`,
-    affiliate_link: `https://amzn.to/3FEfs2L`,
-    poster: `https://m.media-amazon.com/images/I/51prG6HjRRL._SY445_SX342_PQ35_.jpg`,
-    description: `One of the first litrpg books I listened to with my family. It had us laughing out loud. Great characters.`,
+    title: `Dungeon Crawler Carl: Dungeon Crawler Carl Book 1`,
+    affiliate_link: `https://amzn.to/3SA9faY`,
+    poster: `https://m.media-amazon.com/images/I/81XbhUrUsBL._SY522_.jpg`,
+    description: `It's been a while since I've read this (pretty sure book 4 had just come out). Great characters and so fun as you learn more and more about the world Carl is thrust into.`,
+  },
+  {
+    title: `Unsouled (Cradle Book 1)`,
+    affiliate_link: `https://amzn.to/3ZfgFnT`,
+    poster: `https://m.media-amazon.com/images/I/513JnJQpruL._SY445_SX342_PQ35_.jpg`,
+    description: `Super fun read. Great progression. The unfolding of each new cultivation level opens up the world (and universe) a bit more so it keeps you on your toes. `,
+  },
+  {
+    title: `He Who Fights with Monsters: A LitRPG Adventure`,
+    affiliate_link: `https://amzn.to/43q5Bqm`,
+    poster: `https://m.media-amazon.com/images/I/51l0a6bIDQL._SY445_SX342_PQ35_.jpg`,
+    description: `Classic litrpg. Great world building and great characters.`,
   },
 ];
 
