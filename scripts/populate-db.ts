@@ -9,7 +9,7 @@ async function populateDatabase() {
     // today.setHours(0, 0, 0, 0);
 
     // Fetch first 5 pages of books
-    for (let page = 1; page <= 750; page++) {
+    for (let page = 1; page <= 5; page++) {
       console.log(`Fetching page ${page}...`);
       const { books } = await fetchBooks(page);
 

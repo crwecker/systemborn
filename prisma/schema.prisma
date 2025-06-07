@@ -48,3 +48,25 @@ model BookStats {
 enum Source {
   ROYAL_ROAD
 }
+
+model User {
+  id            String      @id @default(cuid())
+  email         String      @unique
+  firstName     String
+  lastName      String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  magicLinks    MagicLink[]
+}
+
+model MagicLink {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  usedAt      DateTime?
+
+  @@index([token])
+}

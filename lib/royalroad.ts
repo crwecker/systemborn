@@ -23,11 +23,10 @@ function generateRandomId(): string {
 
 // Helper function to convert scraped data to database format
 export function convertToDbBook(scrapedBook: Book) {
-  console.log('Converting to DB Book, contentWarnings:', scrapedBook.contentWarnings);
   const dbBook = {
     id: scrapedBook.id,
     title: scrapedBook.title,
-    authorName: scrapedBook.author.name,
+    authorName: scrapedBook.author.name || "Unknown Author",
     description: scrapedBook.description,
     tags: scrapedBook.tags,
     coverUrl: scrapedBook.coverUrl,
