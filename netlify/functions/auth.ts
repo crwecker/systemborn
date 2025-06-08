@@ -1,22 +1,14 @@
 import { Handler } from '@netlify/functions';
 import { prisma } from '../../lib/prisma';
 import * as jwt from 'jsonwebtoken';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import * as crypto from 'crypto-js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const MAGIC_LINK_EXPIRY = 15 * 60 * 1000; // 15 minutes
 
-// Email configuration
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Resend configuration
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const headers = {
   'Access-Control-Allow-Origin': '*',
@@ -111,33 +103,76 @@ async function handleMagicLink(event: any) {
     });
     console.log('Magic link saved:', magicLink.id);
 
-    // Only attempt to send email if SMTP is configured
-    if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      console.log('SMTP configured, attempting to send email');
+    // Only attempt to send email if Resend API key is configured
+    if (process.env.RESEND_API_KEY) {
+      console.log('Resend API key configured, attempting to send email');
       const magicLinkUrl = `${process.env.APP_URL || 'http://localhost:3000'}/verify?token=${token}`;
       
       try {
-        await transporter.sendMail({
-          from: process.env.SMTP_FROM || 'noreply@litrpgacademy.com',
-          to: email,
+        const { data, error } = await resend.emails.send({
+          from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
+          to: [email],
           subject: 'Your Magic Link to LitRPG Academy',
           html: `
-            <h1>Welcome to LitRPG Academy!</h1>
-            <p>Click the button below to sign in. This link will expire in 15 minutes.</p>
-            <a href="${magicLinkUrl}" style="display: inline-block; padding: 12px 24px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 6px;">Sign In</a>
-            <p>If the button doesn't work, copy and paste this link into your browser:</p>
-            <p>${magicLinkUrl}</p>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #2B324B; margin-bottom: 10px;">Welcome to LitRPG Academy!</h1>
+                <p style="color: #666; font-size: 16px;">Your gateway to epic adventures awaits</p>
+              </div>
+              
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
+                <p style="color: #333; font-size: 16px; margin-bottom: 25px;">
+                  Click the button below to sign in. This link will expire in 15 minutes.
+                </p>
+                
+                <a href="${magicLinkUrl}" 
+                   style="display: inline-block; 
+                          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                          color: white; 
+                          padding: 15px 30px; 
+                          text-decoration: none; 
+                          border-radius: 8px; 
+                          font-weight: bold;
+                          font-size: 16px;">
+                  🔮 Enter the Academy
+                </a>
+              </div>
+              
+              <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px;">
+                <p style="color: #856404; margin: 0; font-size: 14px;">
+                  <strong>Can't click the button?</strong><br>
+                  Copy and paste this link into your browser:<br>
+                  <a href="${magicLinkUrl}" style="color: #856404; word-break: break-all;">${magicLinkUrl}</a>
+                </p>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px; color: #999; font-size: 14px;">
+                <p>Happy reading! 📚⚔️</p>
+                <p>The LitRPG Academy Team</p>
+              </div>
+            </div>
           `,
         });
-        console.log('Email sent successfully');
+        
+        if (error) {
+          console.error('Resend error:', error);
+          // Don't fail the request if email fails, just log it
+        } else {
+          console.log('Email sent successfully via Resend:', data);
+        }
       } catch (emailError) {
-        console.error('Failed to send email:', emailError);
+        console.error('Failed to send email via Resend:', emailError);
         // Don't fail the request if email fails, just log it
       }
     } else {
-      console.log('SMTP not configured, skipping email send');
-      // For development, return the token in the response
-      if (process.env.NODE_ENV !== 'production') {
+      console.log('Resend API key not configured, skipping email send');
+      // For development only - never expose tokens in production
+      const isProduction = process.env.NODE_ENV === 'production' || 
+                          process.env.NETLIFY === 'true' || 
+                          process.env.APP_URL?.includes('.netlify.app') ||
+                          process.env.APP_URL?.includes('litrpgacademy.com');
+      
+      if (!isProduction) {
         return {
           statusCode: 200,
           headers,
@@ -146,6 +181,16 @@ async function handleMagicLink(event: any) {
             message: 'Magic link created (email not sent - development mode)',
             token, // Only included in development
             verifyUrl: `${process.env.APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+          }),
+        };
+      } else {
+        // In production without email configured, this is an error
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ 
+            success: false,
+            error: 'Email service not configured' 
           }),
         };
       }

@@ -27,7 +27,8 @@
     "node-html-parser": "^6.1.12",
     "nodemailer": "^7.0.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "resend": "^4.5.2"
   },
   "devDependencies": {
     "@netlify/functions": "^4.1.1",
