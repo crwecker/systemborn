@@ -1,16 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # Testing Standards
 
-## Test Organization
-- Place tests next to the code they test
-- Use descriptive test names that explain the behavior
-- Group related tests using describe blocks
-- Keep test files organized and focused
-
-## Testing Requirements
-- All new components must have unit tests
-- Critical user flows require integration tests
-- Test error states and edge cases
-- Maintain test coverage above 80%
 
 ## Testing Best Practices
 - Use React Testing Library for component tests
@@ -24,16 +18,6 @@
    - Test individual components and functions
    - Focus on isolated behavior
    - Use mocks for dependencies
-
-2. **Integration Tests**
-   - Test component interactions
-   - Verify routing behavior
-   - Test data flow between components
-
-3. **E2E Tests**
-   - Test critical user journeys
-   - Verify core functionality
-   - Test in production-like environment
 
 ## Testing Utilities
 - Use consistent testing utilities

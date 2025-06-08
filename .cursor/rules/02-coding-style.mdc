@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # Coding Style Guidelines
 
 ## TypeScript Best Practices
@@ -14,7 +19,6 @@
 - Use React.memo() sparingly and only when necessary
 
 ## State Management
-- Use React Router's built-in state management where possible
 - Prefer local state over global state
 - Implement context only when state needs to be shared across multiple components
 - Keep state updates pure and predictable
@@ -36,3 +40,4 @@
 - Keep files focused on a single responsibility
 - Use meaningful variable and function names
 - Add JSDoc comments for complex functions
+

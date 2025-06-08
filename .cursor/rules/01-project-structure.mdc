@@ -1,5 +1,9 @@
 ---
-description:
-globs:
-alwaysApply: false
+description: 
+globs: 
+alwaysApply: true
 ---
+We are using the following:
+netlify
+tanstack routing
+tanstack react-query

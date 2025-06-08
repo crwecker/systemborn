@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
+import { Link } from '@tanstack/react-router';
+import { useAuthContext } from '../contexts/AuthContext';
+import { UserDropdown } from './UserDropdown';
 
 export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const { user, isLoading, isAuthenticated, logout } = useAuthContext();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,7 +33,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-32">
           <div className="flex items-center gap-4">
-            <a href="/" className="flex items-center">
+            <Link to="/" className="flex items-center">
               <img 
                 src="/assets/images/wizard.png" 
                 alt="Wizard Icon"
@@ -40,21 +44,29 @@ export function Header() {
                 alt="LitRPG Academy"
                 className="h-16 w-auto ml-2"
               />
-            </a>
+            </Link>
           </div>
           <nav className="hidden md:flex items-center space-x-6">
-            <a 
-              href="/signin" 
-              className="text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg"
-            >
-              Sign In
-            </a>
-            <a 
-              href="/signup"
-              className="bg-[#2B324B] text-white px-6 py-3 rounded-lg hover:bg-[#1A1F2E] transition-colors text-lg font-medium"
-            >
-              Sign Up
-            </a>
+            {isLoading ? (
+              <div className="text-[#2B324B]">Loading...</div>
+            ) : isAuthenticated && user ? (
+              <UserDropdown user={user} onLogout={logout} />
+            ) : (
+              <>
+                <Link 
+                  to="/signin" 
+                  className="text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg"
+                >
+                  Sign In
+                </Link>
+                <Link 
+                  to="/signup"
+                  className="bg-[#2B324B] text-white px-6 py-3 rounded-lg hover:bg-[#1A1F2E] transition-colors text-lg font-medium"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </nav>
           <button className="md:hidden text-[#2B324B]">
             Menu

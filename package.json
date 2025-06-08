@@ -16,10 +16,18 @@
   "dependencies": {
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-query-devtools": "^5.0.0",
+    "@tanstack/router": "^0.0.1-beta.53",
+    "@tanstack/router-devtools": "^1.120.18",
+    "@tanstack/router-vite-plugin": "^1.120.18",
+    "@types/crypto-js": "^4.2.2",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/nodemailer": "^6.4.17",
+    "crypto-js": "^4.2.0",
+    "jsonwebtoken": "^9.0.2",
     "node-html-parser": "^6.1.12",
+    "nodemailer": "^7.0.3",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^7.0.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@netlify/functions": "^4.1.1",

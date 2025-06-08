@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from '@tanstack/react-router';
 
 export function GenreFamiliarity() {
   const [familiarity, setFamiliarity] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const options = [
     { id: "newbie", label: "I'm new to LitRPG" },
@@ -13,7 +15,7 @@ export function GenreFamiliarity() {
   const handleSubmit = () => {
     if (familiarity) {
       // TODO: Handle the familiarity selection
-      window.location.href = "/"; // Navigate to home or next page
+      navigate({ to: '/' }); // Navigate to home or next page
     }
   };
 
