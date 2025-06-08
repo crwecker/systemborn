@@ -1,8 +1,26 @@
+import { useState, useEffect } from 'react';
+
 export function Banner() {
+  const [isWideScreen, setIsWideScreen] = useState(true);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const threshold = 1024; // Switch to regular banner below this width
+      setIsWideScreen(window.innerWidth >= threshold);
+    };
+
+    // Check initial screen size
+    checkScreenSize();
+
+    // Listen for window resize events
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   return (
     <div className="w-full relative pt-32 flex flex-col items-center bg-dark-blue">
       <img 
-        src="/assets/images/banner.png" 
+        src={isWideScreen ? "/assets/images/banner-wide.png" : "/assets/images/banner.png"}
         alt="LitRPG Academy Banner"
         className="w-full h-auto object-contain"
       />
