@@ -5,6 +5,10 @@ export const API_BASE_URL = import.meta.env.PROD
   ? '/.netlify/functions/api'
   : 'http://localhost:3000/.netlify/functions/api';
 
+export const USER_API_BASE_URL = import.meta.env.PROD 
+  ? '/.netlify/functions/user-api'
+  : 'http://localhost:3000/.netlify/functions/user-api';
+
 interface BookListResponse {
   books: Book[];
   totalPages: number;
@@ -137,4 +141,158 @@ export async function fetchAvailableTags(): Promise<string[]> {
     throw new Error('Failed to fetch tags');
   }
   return response.json();
+}
+
+// Book Tiers API functions
+import type { BookTier, BookReview, TierLevel } from '../types/book';
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+  const token = localStorage.getItem('authToken');
+  return {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
+  };
+}
+
+export async function fetchUserBookTiers(userId: string): Promise<BookTier[]> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/users/${userId}/tiers`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch user book tiers');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user book tiers:', error);
+    throw error;
+  }
+}
+
+export async function assignBookToTier(bookId: string, tier: TierLevel): Promise<BookTier> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/tiers`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ bookId, tier }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to assign book to tier');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error assigning book to tier:', error);
+    throw error;
+  }
+}
+
+export async function updateBookTier(tierId: string, tier: TierLevel): Promise<BookTier> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/tiers/${tierId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ tier }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update book tier');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating book tier:', error);
+    throw error;
+  }
+}
+
+export async function removeBookFromTiers(tierId: string): Promise<void> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/tiers/${tierId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error('Failed to remove book from tiers');
+    }
+  } catch (error) {
+    console.error('Error removing book from tiers:', error);
+    throw error;
+  }
+}
+
+// Book Reviews API functions
+export async function fetchUserBookReviews(userId: string): Promise<BookReview[]> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/users/${userId}/reviews`, {
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch user book reviews');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user book reviews:', error);
+    throw error;
+  }
+}
+
+export async function fetchBookReviews(bookId: string): Promise<BookReview[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/${bookId}/reviews`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch book reviews');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching book reviews:', error);
+    throw error;
+  }
+}
+
+export async function createBookReview(bookId: string, review: string): Promise<BookReview> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/reviews`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ bookId, review }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create book review');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating book review:', error);
+    throw error;
+  }
+}
+
+export async function updateBookReview(reviewId: string, review: string): Promise<BookReview> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/reviews/${reviewId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ review }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update book review');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error updating book review:', error);
+    throw error;
+  }
+}
+
+export async function deleteBookReview(reviewId: string): Promise<void> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders()
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete book review');
+    }
+  } catch (error) {
+    console.error('Error deleting book review:', error);
+    throw error;
+  }
 } 

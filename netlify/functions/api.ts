@@ -119,6 +119,30 @@ export const handler: Handler = async (event) => {
                 body: JSON.stringify(authorBooks)
               };
 
+            case 'reviews':
+              // Get public reviews for a specific book
+              if (path[2]) {
+                const bookReviews = await prisma.bookReview.findMany({
+                  where: { bookId: path[2] },
+                  include: { 
+                    user: { select: { firstName: true, lastName: true } },
+                    book: true 
+                  },
+                  orderBy: { createdAt: 'desc' },
+                  take: 50
+                });
+                return {
+                  statusCode: 200,
+                  headers,
+                  body: JSON.stringify(bookReviews)
+                };
+              }
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Book ID is required' })
+              };
+
             default:
               if (subEndpoint) {
                 if (path[2] === 'similar') {

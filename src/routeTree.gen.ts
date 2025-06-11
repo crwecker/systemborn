@@ -14,7 +14,10 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as VerifyImport } from './routes/verify'
 import { Route as SignupImport } from './routes/signup'
 import { Route as SigninImport } from './routes/signin'
+import { Route as MyTiersImport } from './routes/my-tiers'
+import { Route as MyReviewsImport } from './routes/my-reviews'
 import { Route as GenreFamiliarityImport } from './routes/genre-familiarity'
+import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -37,9 +40,27 @@ const SigninRoute = SigninImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const MyTiersRoute = MyTiersImport.update({
+  id: '/my-tiers',
+  path: '/my-tiers',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const MyReviewsRoute = MyReviewsImport.update({
+  id: '/my-reviews',
+  path: '/my-reviews',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const GenreFamiliarityRoute = GenreFamiliarityImport.update({
   id: '/genre-familiarity',
   path: '/genre-familiarity',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const AuthRoute = AuthImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -60,11 +81,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
     '/genre-familiarity': {
       id: '/genre-familiarity'
       path: '/genre-familiarity'
       fullPath: '/genre-familiarity'
       preLoaderRoute: typeof GenreFamiliarityImport
+      parentRoute: typeof rootRoute
+    }
+    '/my-reviews': {
+      id: '/my-reviews'
+      path: '/my-reviews'
+      fullPath: '/my-reviews'
+      preLoaderRoute: typeof MyReviewsImport
+      parentRoute: typeof rootRoute
+    }
+    '/my-tiers': {
+      id: '/my-tiers'
+      path: '/my-tiers'
+      fullPath: '/my-tiers'
+      preLoaderRoute: typeof MyTiersImport
       parentRoute: typeof rootRoute
     }
     '/signin': {
@@ -95,7 +137,10 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
+  '/my-reviews': typeof MyReviewsRoute
+  '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -103,7 +148,10 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
+  '/my-reviews': typeof MyReviewsRoute
+  '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -112,7 +160,10 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
+  '/my-reviews': typeof MyReviewsRoute
+  '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
@@ -120,13 +171,32 @@ export interface FileRoutesById {
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/genre-familiarity' | '/signin' | '/signup' | '/verify'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/genre-familiarity'
+    | '/my-reviews'
+    | '/my-tiers'
+    | '/signin'
+    | '/signup'
+    | '/verify'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/genre-familiarity' | '/signin' | '/signup' | '/verify'
+  to:
+    | '/'
+    | '/auth'
+    | '/genre-familiarity'
+    | '/my-reviews'
+    | '/my-tiers'
+    | '/signin'
+    | '/signup'
+    | '/verify'
   id:
     | '__root__'
     | '/'
+    | '/auth'
     | '/genre-familiarity'
+    | '/my-reviews'
+    | '/my-tiers'
     | '/signin'
     | '/signup'
     | '/verify'
@@ -135,7 +205,10 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   GenreFamiliarityRoute: typeof GenreFamiliarityRoute
+  MyReviewsRoute: typeof MyReviewsRoute
+  MyTiersRoute: typeof MyTiersRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
@@ -143,7 +216,10 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   GenreFamiliarityRoute: GenreFamiliarityRoute,
+  MyReviewsRoute: MyReviewsRoute,
+  MyTiersRoute: MyTiersRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
@@ -160,7 +236,10 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/auth",
         "/genre-familiarity",
+        "/my-reviews",
+        "/my-tiers",
         "/signin",
         "/signup",
         "/verify"
@@ -169,8 +248,17 @@ export const routeTree = rootRoute
     "/": {
       "filePath": "index.tsx"
     },
+    "/auth": {
+      "filePath": "auth.tsx"
+    },
     "/genre-familiarity": {
       "filePath": "genre-familiarity.tsx"
+    },
+    "/my-reviews": {
+      "filePath": "my-reviews.tsx"
+    },
+    "/my-tiers": {
+      "filePath": "my-tiers.tsx"
     },
     "/signin": {
       "filePath": "signin.tsx"

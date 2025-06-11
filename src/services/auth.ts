@@ -7,6 +7,7 @@ export interface AuthResponse {
   token?: string;
   user?: User;
   verifyUrl?: string; // For development mode
+  isExistingUser?: boolean; // Whether the user already existed
 }
 
 export interface User {
@@ -71,6 +72,36 @@ export async function requestSignInLink(email: string): Promise<AuthResponse> {
     return {
       success: false,
       message: 'Failed to request magic link',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+export async function checkUserExists(email: string): Promise<{ success: boolean; exists: boolean; error?: string }> {
+  try {
+    const response = await fetch(`${AUTH_BASE_URL}/check-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      return {
+        success: false,
+        exists: false,
+        error: `HTTP ${response.status}: ${text}`,
+      };
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return {
+      success: false,
+      exists: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }

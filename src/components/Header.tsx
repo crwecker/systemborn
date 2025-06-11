@@ -50,7 +50,21 @@ export function Header() {
             {isLoading ? (
               <div className="text-[#2B324B]">Loading...</div>
             ) : isAuthenticated && user ? (
-              <UserDropdown user={user} onLogout={logout} />
+              <>
+                <Link 
+                  to="/my-tiers" 
+                  className="text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg"
+                >
+                  My Tiers
+                </Link>
+                <Link 
+                  to="/my-reviews" 
+                  className="text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg"
+                >
+                  My Reviews
+                </Link>
+                <UserDropdown user={user} onLogout={logout} />
+              </>
             ) : (
               <>
                 <Link 
@@ -61,6 +75,7 @@ export function Header() {
                 </Link>
                 <Link 
                   to="/signup"
+                  search={{ email: undefined, fromSignin: undefined }}
                   className="bg-[#2B324B] text-white px-6 py-3 rounded-lg hover:bg-[#1A1F2E] transition-colors text-lg font-medium"
                 >
                   Sign Up

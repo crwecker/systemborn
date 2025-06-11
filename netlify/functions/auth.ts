@@ -39,6 +39,8 @@ export const handler: Handler = async (event) => {
         return await handleVerify(event);
       case 'me':
         return await handleMe(event);
+      case 'check-user':
+        return await handleCheckUser(event);
       default:
         return {
           statusCode: 404,
@@ -75,18 +77,38 @@ async function handleMagicLink(event: any) {
     const { email, firstName, lastName } = JSON.parse(event.body || '{}');
     console.log('Received data:', { email, firstName, lastName });
 
-    // Create or update user
-    console.log('Creating/updating user');
-    const user = await prisma.user.upsert({
+    // Check if user exists first
+    const existingUser = await prisma.user.findUnique({
       where: { email },
-      update: firstName && lastName ? { firstName, lastName } : {},
-      create: { 
-        email, 
-        firstName: firstName || '', 
-        lastName: lastName || '' 
-      },
     });
-    console.log('User created/updated:', user.id);
+
+    let user;
+    if (existingUser) {
+      // User exists - this is a sign in (ignore firstName/lastName if provided)
+      user = existingUser;
+      console.log('Existing user signing in:', user.id);
+    } else {
+      // New user - this is a sign up (require firstName/lastName)
+      if (!firstName || !lastName) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ 
+            success: false,
+            error: 'First name and last name are required for new accounts' 
+          }),
+        };
+      }
+      
+      user = await prisma.user.create({
+        data: { 
+          email, 
+          firstName, 
+          lastName 
+        },
+      });
+      console.log('New user created:', user.id);
+    }
 
     // Generate token
     const token = crypto.lib.WordArray.random(32).toString();
@@ -109,20 +131,28 @@ async function handleMagicLink(event: any) {
       const magicLinkUrl = `${process.env.APP_URL || 'http://localhost:3000'}/verify?token=${token}`;
       
       try {
+        const isNewUser = !existingUser;
+        const welcomeMessage = isNewUser 
+          ? 'Welcome to LitRPG Academy!' 
+          : 'Welcome back to LitRPG Academy!';
+        const subtitle = isNewUser 
+          ? 'Your gateway to epic adventures awaits' 
+          : 'Continue your reading adventure';
+
         const { data, error } = await resend.emails.send({
           from: process.env.FROM_EMAIL || 'onboarding@resend.dev',
           to: [email],
-          subject: 'Your Magic Link to LitRPG Academy',
+          subject: `Your Magic Link to LitRPG Academy`,
           html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
               <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #2B324B; margin-bottom: 10px;">Welcome to LitRPG Academy!</h1>
-                <p style="color: #666; font-size: 16px;">Your gateway to epic adventures awaits</p>
+                <h1 style="color: #2B324B; margin-bottom: 10px;">${welcomeMessage}</h1>
+                <p style="color: #666; font-size: 16px;">${subtitle}</p>
               </div>
               
               <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; text-align: center;">
                 <p style="color: #333; font-size: 16px; margin-bottom: 25px;">
-                  Click the button below to sign in. This link will expire in 15 minutes.
+                  Click the button below to ${isNewUser ? 'complete your registration' : 'sign in'}. This link will expire in 15 minutes.
                 </p>
                 
                 <a href="${magicLinkUrl}" 
@@ -134,7 +164,7 @@ async function handleMagicLink(event: any) {
                           border-radius: 8px; 
                           font-weight: bold;
                           font-size: 16px;">
-                  🔮 Enter the Academy
+                  🔮 ${isNewUser ? 'Join' : 'Enter'} the Academy
                 </a>
               </div>
               
@@ -180,7 +210,8 @@ async function handleMagicLink(event: any) {
             success: true,
             message: 'Magic link created (email not sent - development mode)',
             token, // Only included in development
-            verifyUrl: `${process.env.APP_URL || 'http://localhost:3000'}/verify?token=${token}`
+            verifyUrl: `${process.env.APP_URL || 'http://localhost:3000'}/verify?token=${token}`,
+            isExistingUser: !!existingUser
           }),
         };
       } else {
@@ -201,7 +232,8 @@ async function handleMagicLink(event: any) {
       headers,
       body: JSON.stringify({ 
         success: true,
-        message: 'Magic link sent successfully' 
+        message: 'Magic link sent successfully',
+        isExistingUser: !!existingUser
       }),
     };
   } catch (error) {
@@ -305,6 +337,57 @@ async function handleVerify(event: any) {
       body: JSON.stringify({ 
         success: false,
         error: 'Failed to verify magic link',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }),
+    };
+  }
+}
+
+async function handleCheckUser(event: any) {
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
+    };
+  }
+
+  try {
+    const { email } = JSON.parse(event.body || '{}');
+    
+    if (!email) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ 
+          success: false,
+          error: 'Email is required' 
+        }),
+      };
+    }
+
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        success: true,
+        exists: !!user,
+        email: email,
+      }),
+    };
+  } catch (error) {
+    console.error('Error in check-user handler:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ 
+        success: false,
+        error: 'Failed to check user',
         details: error instanceof Error ? error.message : 'Unknown error'
       }),
     };

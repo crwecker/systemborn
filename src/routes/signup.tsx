@@ -6,4 +6,8 @@ export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/signup',
   component: SignUp,
+  validateSearch: (search: Record<string, unknown>) => ({
+    email: (search.email as string) || undefined,
+    fromSignin: (search.fromSignin as string) || undefined,
+  }),
 }) 

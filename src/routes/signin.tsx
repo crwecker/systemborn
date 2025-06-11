@@ -6,4 +6,7 @@ export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/signin',
   component: SignIn,
+  validateSearch: (search: Record<string, unknown>) => ({
+    // For future use if needed
+  }),
 }) 

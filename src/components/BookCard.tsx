@@ -1,5 +1,9 @@
-import React from 'react';
-import type { Book } from '../types/book';
+import React, { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { assignBookToTier, fetchUserBookTiers } from '../services/api';
+import { useAuthContext } from '../contexts/AuthContext';
+import type { Book, TierLevel } from '../types/book';
+import { TIER_CONFIG } from '../types/book';
 
 interface BookCardProps {
   book: Book;
@@ -7,15 +11,115 @@ interface BookCardProps {
 }
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
+  const [showTierDropdown, setShowTierDropdown] = useState(false);
+  const [selectedTier, setSelectedTier] = useState<TierLevel>('A');
+  const { user } = useAuthContext();
+  const queryClient = useQueryClient();
+
+  const { data: userTiers = [] } = useQuery({
+    queryKey: ['userBookTiers', user?.id],
+    queryFn: () => user ? fetchUserBookTiers(user.id) : Promise.resolve([]),
+    enabled: !!user
+  });
+
+  const assignTierMutation = useMutation({
+    mutationFn: ({ bookId, tier }: { bookId: string; tier: TierLevel }) => 
+      assignBookToTier(bookId, tier),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBookTiers'] });
+      setShowTierDropdown(false);
+    }
+  });
+
+  // Check if book is already in user's tiers
+  const existingTier = userTiers.find(tier => tier.bookId === book.id);
+
+  const handleAddToTier = () => {
+    if (!user) return;
+    
+    // Check tier limits
+    const tierConfig = TIER_CONFIG[selectedTier];
+    const currentBooksInTier = userTiers.filter(tier => tier.tier === selectedTier).length;
+    
+    if (tierConfig.maxBooks && currentBooksInTier >= tierConfig.maxBooks) {
+      alert(`Tier ${selectedTier} is full! Maximum ${tierConfig.maxBooks} books allowed.`);
+      return;
+    }
+
+    assignTierMutation.mutate({ bookId: book.id, tier: selectedTier });
+  };
+
   return (
-    <div className="bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1">
+    <div className="bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group">
       <div className="relative pb-[150%] bg-[#1a1a1a]">
         <img
           src={book.coverUrl || '/placeholder-cover.jpg'}
           alt={`Cover for ${book.title}`}
           className="absolute inset-0 w-full h-full object-contain"
         />
+        
+        {/* Tier Action Overlay */}
+        {user && (
+          <div className="absolute top-2 right-2">
+            {existingTier ? (
+              <div 
+                className={`px-2 py-1 rounded text-white text-xs font-bold ${TIER_CONFIG[existingTier.tier].color}`}
+                title={`In ${TIER_CONFIG[existingTier.tier].name}`}
+              >
+                {existingTier.tier}
+              </div>
+            ) : (
+              <div className="relative">
+                <button
+                  onClick={() => setShowTierDropdown(!showTierDropdown)}
+                  className="bg-copper text-dark-blue px-3 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  Add to Tier
+                </button>
+                
+                {showTierDropdown && (
+                  <div className="absolute top-full right-0 mt-1 bg-slate border border-medium-gray rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="p-2 space-y-2">
+                      <select
+                        value={selectedTier}
+                        onChange={(e) => setSelectedTier(e.target.value as TierLevel)}
+                        className="w-full p-1 text-xs bg-dark-blue text-light-gray border border-medium-gray rounded"
+                      >
+                        {Object.entries(TIER_CONFIG).map(([tier, config]) => {
+                          const currentCount = userTiers.filter(t => t.tier === tier).length;
+                          const isDisabled = config.maxBooks ? currentCount >= config.maxBooks : false;
+                          
+                          return (
+                            <option key={tier} value={tier} disabled={isDisabled}>
+                              {config.name} {config.maxBooks ? `(${currentCount}/${config.maxBooks})` : ''}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={handleAddToTier}
+                          disabled={assignTierMutation.isPending}
+                          className="flex-1 bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray disabled:opacity-50"
+                        >
+                          {assignTierMutation.isPending ? 'Adding...' : 'Add'}
+                        </button>
+                        <button
+                          onClick={() => setShowTierDropdown(false)}
+                          className="px-2 py-1 bg-medium-gray text-light-gray rounded text-xs hover:bg-light-gray hover:text-dark-blue"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      
       <div className="p-4">
         <h3 className="text-copper text-xl font-serif mb-2">{book.title}</h3>
         <button
