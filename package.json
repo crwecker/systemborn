@@ -8,13 +8,13 @@
     "test-functions": "tsx scripts/test-functions.ts",
     "dev": "netlify dev",
     "frontend": "vite",
-    "postinstall": "npx prisma generate",
-    "prebuild": "npx prisma generate --schema=./netlify/functions/generated/prisma/schema.prisma && node scripts/copy-prisma-engines.js",
+    "prebuild": "npx prisma generate && npx prisma generate --schema=./netlify/functions/generated/prisma/schema.prisma && node scripts/copy-prisma-engines.js",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@prisma/client": "^6.9.0",
     "@tanstack/react-query": "^5.0.0",
     "@tanstack/react-query-devtools": "^5.0.0",
     "@tanstack/router": "^0.0.1-beta.53",
@@ -27,13 +27,13 @@
     "jsonwebtoken": "^9.0.2",
     "node-html-parser": "^6.1.12",
     "nodemailer": "^7.0.3",
+    "prisma": "^6.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "resend": "^4.5.2"
   },
   "devDependencies": {
     "@netlify/functions": "^4.1.1",
-    "@prisma/client": "^6.9.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -44,7 +44,6 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.0",
     "postcss": "^8.4.0",
-    "prisma": "^6.9.0",
     "tailwindcss": "^3.3.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
