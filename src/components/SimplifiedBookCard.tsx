@@ -5,9 +5,29 @@ import { TIER_CONFIG } from '../types/book';
 interface SimplifiedBookCardProps {
   book: Book;
   tier?: TierLevel;
+  compact?: boolean;
 }
 
-export const SimplifiedBookCard: React.FC<SimplifiedBookCardProps> = ({ book, tier }) => {
+export const SimplifiedBookCard: React.FC<SimplifiedBookCardProps> = ({ book, tier, compact = false }) => {
+  if (compact) {
+    return (
+      <div className="bg-white rounded shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 border w-full h-full">
+        <div className="relative h-full bg-gray-100">
+          <img
+            src={book.coverUrl || '/placeholder-cover.jpg'}
+            alt={`Cover for ${book.title}`}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          {tier && (
+            <div className={`absolute top-0.5 left-0.5 px-1 py-0.5 rounded text-white text-[8px] font-bold ${TIER_CONFIG[tier].color}`}>
+              {tier}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 border">
       <div className="relative pb-[140%] bg-gray-100">

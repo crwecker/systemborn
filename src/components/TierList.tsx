@@ -23,6 +23,68 @@ import type { BookTier, TierLevel, TierData } from '../types/book';
 import { TIER_CONFIG } from '../types/book';
 import { SimplifiedBookCard } from './SimplifiedBookCard';
 
+// Compact Premium Tier Component
+interface CompactPremiumTierProps {
+  tier: TierLevel;
+  books: BookTier[];
+  maxBooks: number;
+  onRemove: (tierId: string) => void;
+}
+
+const CompactPremiumTier: React.FC<CompactPremiumTierProps> = ({ tier, books, maxBooks, onRemove }) => {
+  const { setNodeRef, isOver } = useDroppable({ id: tier });
+  const config = TIER_CONFIG[tier];
+
+  // Create slots array to show placeholders
+  const slots = Array.from({ length: maxBooks }, (_, index) => {
+    const book = books[index];
+    return book || null;
+  });
+
+    return (
+    <div 
+      ref={setNodeRef}
+      className={`md:relative p-3 rounded-lg border-2 ${isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'} transition-colors`}
+    >
+      {/* Mobile: Traditional header layout */}
+      <div className="flex items-center justify-between mb-2 md:hidden">
+        <div className={`px-2 py-1 rounded text-white font-bold text-xs ${config.color}`}>
+          {config.name}
+        </div>
+        <span className="text-xs text-gray-500">
+          {books.length}/{maxBooks}
+        </span>
+      </div>
+
+      {/* Desktop: Absolutely positioned badges */}
+      <div className={`hidden md:block absolute top-2 left-2 px-2 py-1 rounded text-white font-bold text-xs ${config.color} z-10`}>
+        {config.name}
+      </div>
+      <span className="hidden md:block absolute top-2 right-2 text-xs text-gray-500 bg-white px-2 py-1 rounded shadow-sm z-10">
+        {books.length}/{maxBooks}
+      </span>
+      
+      <div className="flex gap-2 justify-center h-24 md:h-32">
+        <SortableContext items={books.map(b => b.id)} strategy={rectSortingStrategy}>
+          {slots.map((bookTier, index) => (
+            <div key={bookTier?.id || `empty-${tier}-${index}`} className="w-16 md:w-20 h-full">
+              {bookTier ? (
+                <DraggableBookItem bookTier={bookTier} onRemove={onRemove} compact={true} />
+              ) : (
+                <div className="w-full h-full border-2 border-dashed border-gray-300 rounded flex items-center justify-center bg-gray-50 hover:border-gray-400 transition-colors">
+                  <div className="text-xs text-gray-400 text-center">
+                    <div>+</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
 // Tier Droppable Component
 interface TierDroppableProps {
   tier: TierLevel;
@@ -47,9 +109,10 @@ const TierDroppable: React.FC<TierDroppableProps> = ({ tier, children, className
 interface DraggableBookItemProps {
   bookTier: BookTier;
   onRemove: (tierId: string) => void;
+  compact?: boolean;
 }
 
-const DraggableBookItem: React.FC<DraggableBookItemProps> = ({ bookTier, onRemove }) => {
+const DraggableBookItem: React.FC<DraggableBookItemProps> = ({ bookTier, onRemove, compact = false }) => {
   const {
     attributes,
     listeners,
@@ -70,17 +133,21 @@ const DraggableBookItem: React.FC<DraggableBookItemProps> = ({ bookTier, onRemov
       style={style}
       {...attributes}
       {...listeners}
-      className={`relative cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''}`}
+      className={`relative cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''} ${compact ? 'w-full h-full' : ''}`}
     >
       {bookTier.book && (
-        <div className="relative">
-          <SimplifiedBookCard book={bookTier.book} tier={bookTier.tier} />
+        <div className="relative w-full h-full">
+          <SimplifiedBookCard book={bookTier.book} tier={bookTier.tier} compact={compact} />
           <button
             onClick={(e) => {
               e.stopPropagation();
               onRemove(bookTier.id);
             }}
-            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600 transition-colors z-10"
+            className={`absolute bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors z-10 ${
+              compact 
+                ? 'top-0.5 right-0.5 w-3 h-3 text-[8px]' 
+                : 'top-2 right-2 w-6 h-6 text-sm'
+            }`}
             title="Remove from tier"
           >
             ×
@@ -179,6 +246,10 @@ const TierList: React.FC = () => {
     maxBooks: config.maxBooks
   }));
 
+  // Separate premium tiers (SSS, SS, S) from regular tiers
+  const premiumTiers = tierData.filter(t => ['SSS', 'SS', 'S'].includes(t.tier));
+  const regularTiers = tierData.filter(t => !['SSS', 'SS', 'S'].includes(t.tier));
+
   const handleRemoveFromTier = (tierId: string) => {
     if (window.confirm('Remove this book from your tier list?')) {
       removeTierMutation.mutate(tierId);
@@ -264,46 +335,73 @@ const TierList: React.FC = () => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-          <div className="space-y-6">
-            {tierData.map(({ tier, books, maxBooks }) => {
-              const config = TIER_CONFIG[tier];
-              
-              return (
-                <TierDroppable key={tier} tier={tier} className="border rounded-lg p-6 bg-white shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`px-4 py-2 rounded-lg text-white font-bold ${config.color}`}>
-                        {config.name}
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        {books.length} book{books.length !== 1 ? 's' : ''}
-                        {maxBooks && ` / ${maxBooks} max`}
-                      </span>
-                    </div>
-                  </div>
+                  <div className="space-y-6">
+          {/* Premium Tiers - Compact Layout */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border-2 border-purple-100">
+            <div className="mb-3">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">Premium Tiers</h2>
+              <p className="text-sm text-gray-600">
+                Your absolute favorites - fill all 9 slots! {premiumTiers.reduce((sum, t) => sum + t.books.length, 0)}/9 completed
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              {premiumTiers.map(({ tier, books, maxBooks }) => (
+                <CompactPremiumTier
+                  key={tier}
+                  tier={tier}
+                  books={books}
+                  maxBooks={maxBooks!}
+                  onRemove={handleRemoveFromTier}
+                />
+              ))}
+            </div>
+          </div>
 
-                  <div className="min-h-[200px] p-4 rounded-lg bg-gray-50 border-2 border-dashed border-gray-200">
-                    <SortableContext items={books.map(b => b.id)} strategy={rectSortingStrategy}>
-                      {books.length === 0 ? (
-                        <div className="flex items-center justify-center h-32 text-gray-400">
-                          <p>Drop books here to add them to {config.name}</p>
+          {/* Regular Tiers - Standard Layout */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Organization Tiers</h2>
+            <div className="space-y-4">
+              {regularTiers.map(({ tier, books, maxBooks }) => {
+                const config = TIER_CONFIG[tier];
+                
+                return (
+                  <TierDroppable key={tier} tier={tier} className="border rounded-lg p-6 bg-white shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`px-4 py-2 rounded-lg text-white font-bold ${config.color}`}>
+                          {config.name}
                         </div>
-                      ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                          {books.map((bookTier) => (
-                            <DraggableBookItem
-                              key={bookTier.id}
-                              bookTier={bookTier}
-                              onRemove={handleRemoveFromTier}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </SortableContext>
-                  </div>
-                </TierDroppable>
-              );
-            })}
+                        <span className="text-sm text-gray-500">
+                          {books.length} book{books.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="min-h-[200px] p-4 rounded-lg bg-gray-50 border-2 border-dashed border-gray-200">
+                      <SortableContext items={books.map(b => b.id)} strategy={rectSortingStrategy}>
+                        {books.length === 0 ? (
+                          <div className="flex items-center justify-center h-32 text-gray-400">
+                            <p>Drop books here to add them to {config.name}</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                            {books.map((bookTier) => (
+                              <DraggableBookItem
+                                key={bookTier.id}
+                                bookTier={bookTier}
+                                onRemove={handleRemoveFromTier}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </SortableContext>
+                    </div>
+                  </TierDroppable>
+                );
+              })}
+            </div>
+          </div>
           </div>
 
           <DragOverlay>
@@ -315,19 +413,17 @@ const TierList: React.FC = () => {
           </DragOverlay>
         </DndContext>
 
-      {/* Instructions */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">About your tier list:</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• <strong>SSS Tier:</strong> Your current absolute favorite book (1 book max)</li>
-          <li>• <strong>SS Tier:</strong> Your top-tier favorites (3 books max)</li>
-          <li>• <strong>S Tier:</strong> Excellent books you highly recommend (5 books max)</li>
-          <li>• <strong>A-F Tiers:</strong> Organize the rest of your books as you see fit (unlimited)</li>
-          <li>• Add books to tiers from individual book pages</li>
-          <li>• Drag books between tiers to reorganize them</li>
-          <li>• Click the × button to remove books from your tier list</li>
-        </ul>
-      </div>
+        {/* Instructions */}
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="font-semibold text-blue-900 mb-2">How to use your tier list:</h3>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• <strong>Premium Tiers:</strong> Your absolute favorites (9 slots total - fill them all!)</li>
+            <li>• <strong>Organization Tiers:</strong> Categorize the rest of your books (unlimited slots)</li>
+            <li>• Add books to tiers from individual book pages</li>
+            <li>• Drag books between tiers to reorganize them</li>
+            <li>• Click the × button to remove books from your tier list</li>
+          </ul>
+        </div>
     </div>
   );
 };
