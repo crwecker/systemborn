@@ -2,23 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import './styles/index.css';
-
-// Import route components
-import { Route as rootRoute } from './routes/__root'
-import { Route as indexRoute } from './routes/index'
-import { Route as genreFamiliarityRoute } from './routes/genre-familiarity'
-import { Route as signinRoute } from './routes/signin'
-import { Route as signupRoute } from './routes/signup'
-import { Route as verifyRoute } from './routes/verify'
-
-// Create the route tree
-const routeTree = rootRoute.addChildren([
-  indexRoute,
-  genreFamiliarityRoute,
-  signinRoute,
-  signupRoute,
-  verifyRoute,
-])
+import { routeTree } from './routeTree.gen'
 
 // Create a new router instance
 const router = createRouter({ routeTree })
