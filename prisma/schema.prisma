@@ -4,6 +4,12 @@ generator client {
   binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
+generator functions_client {
+  provider      = "prisma-client-js"
+  output        = "../netlify/functions/generated/prisma"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
