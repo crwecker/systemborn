@@ -16,7 +16,6 @@ import { Route as SignupImport } from './routes/signup'
 import { Route as SigninImport } from './routes/signin'
 import { Route as MyTiersImport } from './routes/my-tiers'
 import { Route as MyReviewsImport } from './routes/my-reviews'
-import { Route as GenreFamiliarityImport } from './routes/genre-familiarity'
 import { Route as CommunityFavoritesImport } from './routes/community-favorites'
 import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
@@ -50,12 +49,6 @@ const MyTiersRoute = MyTiersImport.update({
 const MyReviewsRoute = MyReviewsImport.update({
   id: '/my-reviews',
   path: '/my-reviews',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const GenreFamiliarityRoute = GenreFamiliarityImport.update({
-  id: '/genre-familiarity',
-  path: '/genre-familiarity',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -102,13 +95,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CommunityFavoritesImport
       parentRoute: typeof rootRoute
     }
-    '/genre-familiarity': {
-      id: '/genre-familiarity'
-      path: '/genre-familiarity'
-      fullPath: '/genre-familiarity'
-      preLoaderRoute: typeof GenreFamiliarityImport
-      parentRoute: typeof rootRoute
-    }
     '/my-reviews': {
       id: '/my-reviews'
       path: '/my-reviews'
@@ -153,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
-  '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
@@ -165,7 +150,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
-  '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
@@ -178,7 +162,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
-  '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
@@ -192,7 +175,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/community-favorites'
-    | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
@@ -203,7 +185,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/community-favorites'
-    | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
@@ -214,7 +195,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/community-favorites'
-    | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
@@ -227,7 +207,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   CommunityFavoritesRoute: typeof CommunityFavoritesRoute
-  GenreFamiliarityRoute: typeof GenreFamiliarityRoute
   MyReviewsRoute: typeof MyReviewsRoute
   MyTiersRoute: typeof MyTiersRoute
   SigninRoute: typeof SigninRoute
@@ -239,7 +218,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   CommunityFavoritesRoute: CommunityFavoritesRoute,
-  GenreFamiliarityRoute: GenreFamiliarityRoute,
   MyReviewsRoute: MyReviewsRoute,
   MyTiersRoute: MyTiersRoute,
   SigninRoute: SigninRoute,
@@ -260,7 +238,6 @@ export const routeTree = rootRoute
         "/",
         "/auth",
         "/community-favorites",
-        "/genre-familiarity",
         "/my-reviews",
         "/my-tiers",
         "/signin",
@@ -276,9 +253,6 @@ export const routeTree = rootRoute
     },
     "/community-favorites": {
       "filePath": "community-favorites.tsx"
-    },
-    "/genre-familiarity": {
-      "filePath": "genre-familiarity.tsx"
     },
     "/my-reviews": {
       "filePath": "my-reviews.tsx"
