@@ -23,8 +23,12 @@ export const Route = createRootRoute({
           <Outlet />
         </div>
       </AuthProvider>
-      <ReactQueryDevtools />
-      <TanStackRouterDevtools />
+      {import.meta.env.DEV && (
+        <>
+          <ReactQueryDevtools />
+          <TanStackRouterDevtools />
+        </>
+      )}
     </QueryClientProvider>
   ),
 }) 
