@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BookCard } from "../components/BookCard";
 import type { Book } from "../types/book";
@@ -77,16 +77,28 @@ export function BooksPage() {
   const [sortBy, setSortBy] = useState("trending");
   const [minRating, setMinRating] = useState(0);
   const [minPages, setMinPages] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300); // 300ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch books with current filters
   const { data: books = [], isLoading } = useQuery<Book[]>({
-    queryKey: ["books", selectedTags, minRating, minPages, sortBy],
+    queryKey: ["books", selectedTags, minRating, minPages, sortBy, debouncedSearchQuery],
     queryFn: () =>
       searchBooks({
         tags: selectedTags,
         minRating,
         minPages,
         sortBy,
+        query: debouncedSearchQuery,
       }),
   });
 
@@ -161,6 +173,36 @@ export function BooksPage() {
 
         {/* Filters */}
         <div className="mb-8 bg-slate p-6 rounded-lg shadow">
+          {/* Search Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-light-gray mb-2">
+              Search Books
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by title, author, or description..."
+                className="w-full p-3 pr-10 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper placeholder-gray-400"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light-gray"
+                  type="button"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            {debouncedSearchQuery && (
+              <div className="mt-2 text-sm text-copper">
+                Searching for: "{debouncedSearchQuery}"
+              </div>
+            )}
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Tags */}
             <div>
@@ -223,17 +265,33 @@ export function BooksPage() {
 
         {/* Books Grid */}
         {isLoading ? (
-          <div className="text-center py-12 text-light-gray">Loading...</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                onAuthorClick={handleAuthorClick}
-              />
-            ))}
+          <div className="text-center py-12 text-light-gray">
+            <div className="animate-pulse">
+              {debouncedSearchQuery ? `Searching for "${debouncedSearchQuery}"...` : "Loading books..."}
+            </div>
           </div>
+        ) : (
+          <>
+            {debouncedSearchQuery && (
+              <div className="mb-4 text-sm text-light-gray">
+                Found {books.length} book{books.length !== 1 ? 's' : ''} matching "{debouncedSearchQuery}"
+              </div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {books.map((book) => (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  onAuthorClick={handleAuthorClick}
+                />
+              ))}
+            </div>
+            {books.length === 0 && debouncedSearchQuery && (
+              <div className="text-center py-12 text-medium-gray">
+                No books found matching "{debouncedSearchQuery}". Try adjusting your search terms or filters.
+              </div>
+            )}
+          </>
         )}
       </section>
     </div>

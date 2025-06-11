@@ -1,6 +1,7 @@
 import { parse } from 'node-html-parser';
 import type { Book } from "../src/types/book";
 import { PrismaClient } from "@prisma/client";
+import Fuse from 'fuse.js';
 
 // Define Source enum to match Prisma schema
 export enum Source {
@@ -596,6 +597,7 @@ export interface BookSearchParams {
   sortBy?: "rating" | "followers" | "views" | "pages" | "latest";
   limit?: number;
   offset?: number;
+  query?: string; // Fuzzy search query
 }
 
 // Get all books that match our target genres
@@ -737,6 +739,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     sortBy = "rating",
     limit = 500,
     offset = 0,
+    query = "", // Extract the search query
   } = params;
 
   // Build the where clause
@@ -762,7 +765,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     skip: offset,
   });
 
-  // Post-process to apply filters and sort
+  // Post-process to apply filters
   const filteredBooks = books.filter((book) => {
     const latestStats = book.stats?.[0];
     if (!latestStats) return false;
@@ -773,32 +776,54 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     return true;
   });
 
-  // Sort the filtered books
-  const sortedBooks = [...filteredBooks].sort((a, b) => {
-    const statsA = a.stats?.[0];
-    const statsB = b.stats?.[0];
+  let processedBooks = filteredBooks;
 
-    if (!statsA || !statsB) return 0;
+  // Apply fuzzy search if query is provided
+  if (query && query.trim()) {
+    const fuseOptions = {
+      keys: [
+        { name: 'title', weight: 0.4 },
+        { name: 'authorName', weight: 0.3 },
+        { name: 'description', weight: 0.2 },
+        { name: 'tags', weight: 0.1 },
+      ],
+      threshold: 0.4, // Lower = more strict matching
+      includeScore: true,
+    };
 
-    switch (sortBy) {
-      case "rating":
-        return statsB.rating - statsA.rating;
-      case "followers":
-        return statsB.followers - statsA.followers;
-      case "views":
-        return statsB.views - statsA.views;
-      case "pages":
-        return statsB.pages - statsA.pages;
-      case "latest":
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      default:
-        return 0;
-    }
-  });
+    const fuse = new Fuse(filteredBooks, fuseOptions);
+    const searchResults = fuse.search(query.trim());
+    
+    // Extract items from Fuse results and sort by score
+    processedBooks = searchResults.map(result => result.item);
+  } else {
+    // Sort the filtered books only if no fuzzy search is applied
+    processedBooks = [...filteredBooks].sort((a, b) => {
+      const statsA = a.stats?.[0];
+      const statsB = b.stats?.[0];
 
-  return convertBooksToApiFormat(sortedBooks);
+      if (!statsA || !statsB) return 0;
+
+      switch (sortBy) {
+        case "rating":
+          return statsB.rating - statsA.rating;
+        case "followers":
+          return statsB.followers - statsA.followers;
+        case "views":
+          return statsB.views - statsA.views;
+        case "pages":
+          return statsB.pages - statsA.pages;
+        case "latest":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        default:
+          return 0;
+      }
+    });
+  }
+
+  return convertBooksToApiFormat(processedBooks);
 }
 
 // Get similar books based on tags

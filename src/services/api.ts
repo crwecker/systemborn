@@ -74,6 +74,7 @@ interface SearchParams {
   sortBy?: string;
   limit?: number;
   offset?: number;
+  query?: string;
 }
 
 export async function searchBooks(params: SearchParams): Promise<Book[]> {
@@ -96,6 +97,9 @@ export async function searchBooks(params: SearchParams): Promise<Book[]> {
     }
     if (params.offset) {
       searchParams.append('offset', params.offset.toString());
+    }
+    if (params.query) {
+      searchParams.append('query', params.query);
     }
 
     const response = await fetch(`${API_BASE_URL}/books/search?${searchParams}`);

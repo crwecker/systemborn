@@ -96,6 +96,7 @@ export const handler: Handler = async (event) => {
                 sortBy: params.sortBy as any,
                 limit: params.limit ? parseInt(params.limit) : undefined,
                 offset: params.offset ? parseInt(params.offset) : undefined,
+                query: params.query || undefined,
               });
               return {
                 statusCode: 200,
