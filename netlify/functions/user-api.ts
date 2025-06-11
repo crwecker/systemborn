@@ -72,6 +72,16 @@ export const handler: Handler = async (event) => {
       case 'reviews':
         return await handleReviewsEndpoint(event.httpMethod, path, user.id, body);
       
+      case 'community-favorites':
+        if (event.httpMethod === 'GET') {
+          return await getCommunityFavorites();
+        }
+        return {
+          statusCode: 405,
+          headers,
+          body: JSON.stringify({ error: 'Method not allowed' })
+        };
+      
       case 'users':
         if (subEndpoint === user.id || subEndpoint === 'me') {
           if (path[2] === 'tiers') {
@@ -569,5 +579,63 @@ async function getUserReviews(userId: string) {
     statusCode: 200,
     headers,
     body: JSON.stringify(transformedReviews)
+  };
+}
+
+async function getCommunityFavorites() {
+  // Get all users who have SSS, SS, or S tier books
+  const usersWithFavorites = await prisma.user.findMany({
+    where: {
+      bookTiers: {
+        some: {
+          tier: { in: ['SSS', 'SS', 'S'] }
+        }
+      }
+    },
+    include: {
+      bookTiers: {
+        where: {
+          tier: { in: ['SSS', 'SS', 'S'] }
+        },
+        include: {
+          book: {
+            include: {
+              stats: {
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          }
+        },
+        orderBy: [
+          { tier: 'asc' },
+          { createdAt: 'desc' }
+        ]
+      }
+    }
+  });
+
+  // Transform the data for frontend
+  const communityData: { [userId: string]: { user: { name: string; id: string }; tiers: any[] } } = {};
+  
+  usersWithFavorites.forEach(user => {
+    if (user.bookTiers.length > 0) {
+      communityData[user.id] = {
+        user: {
+          name: `${user.firstName} ${user.lastName.charAt(0)}.`,
+          id: user.id
+        },
+        tiers: user.bookTiers.map(tier => ({
+          ...tier,
+          book: tier.book ? transformBookForFrontend(tier.book) : null
+        }))
+      };
+    }
+  });
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify(communityData)
   };
 } 

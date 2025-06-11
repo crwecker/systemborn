@@ -17,6 +17,7 @@ import { Route as SigninImport } from './routes/signin'
 import { Route as MyTiersImport } from './routes/my-tiers'
 import { Route as MyReviewsImport } from './routes/my-reviews'
 import { Route as GenreFamiliarityImport } from './routes/genre-familiarity'
+import { Route as CommunityFavoritesImport } from './routes/community-favorites'
 import { Route as AuthImport } from './routes/auth'
 import { Route as IndexImport } from './routes/index'
 
@@ -58,6 +59,12 @@ const GenreFamiliarityRoute = GenreFamiliarityImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const CommunityFavoritesRoute = CommunityFavoritesImport.update({
+  id: '/community-favorites',
+  path: '/community-favorites',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AuthRoute = AuthImport.update({
   id: '/auth',
   path: '/auth',
@@ -86,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/community-favorites': {
+      id: '/community-favorites'
+      path: '/community-favorites'
+      fullPath: '/community-favorites'
+      preLoaderRoute: typeof CommunityFavoritesImport
       parentRoute: typeof rootRoute
     }
     '/genre-familiarity': {
@@ -138,6 +152,7 @@ declare module '@tanstack/react-router' {
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/community-favorites': typeof CommunityFavoritesRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
@@ -149,6 +164,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/community-favorites': typeof CommunityFavoritesRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
@@ -161,6 +177,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/community-favorites': typeof CommunityFavoritesRoute
   '/genre-familiarity': typeof GenreFamiliarityRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
@@ -174,6 +191,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/community-favorites'
     | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
@@ -184,6 +202,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/community-favorites'
     | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
@@ -194,6 +213,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/community-favorites'
     | '/genre-familiarity'
     | '/my-reviews'
     | '/my-tiers'
@@ -206,6 +226,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CommunityFavoritesRoute: typeof CommunityFavoritesRoute
   GenreFamiliarityRoute: typeof GenreFamiliarityRoute
   MyReviewsRoute: typeof MyReviewsRoute
   MyTiersRoute: typeof MyTiersRoute
@@ -217,6 +238,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CommunityFavoritesRoute: CommunityFavoritesRoute,
   GenreFamiliarityRoute: GenreFamiliarityRoute,
   MyReviewsRoute: MyReviewsRoute,
   MyTiersRoute: MyTiersRoute,
@@ -237,6 +259,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/auth",
+        "/community-favorites",
         "/genre-familiarity",
         "/my-reviews",
         "/my-tiers",
@@ -250,6 +273,9 @@ export const routeTree = rootRoute
     },
     "/auth": {
       "filePath": "auth.tsx"
+    },
+    "/community-favorites": {
+      "filePath": "community-favorites.tsx"
     },
     "/genre-familiarity": {
       "filePath": "genre-familiarity.tsx"

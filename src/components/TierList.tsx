@@ -340,9 +340,17 @@ const TierList: React.FC = () => {
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border-2 border-purple-100">
             <div className="mb-3">
               <h2 className="text-xl font-bold text-gray-900 mb-1">Premium Tiers</h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mb-2">
                 Your absolute favorites - fill all 9 slots! {premiumTiers.reduce((sum, t) => sum + t.books.length, 0)}/9 completed
               </p>
+              <div className="flex items-center gap-2 text-xs text-purple-700 bg-purple-100 rounded-lg px-3 py-2">
+                <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <span>
+                  <strong>Public Visibility:</strong> Your premium tier books will be visible to other users in Community Favorites
+                </span>
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -417,8 +425,8 @@ const TierList: React.FC = () => {
         <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-2">How to use your tier list:</h3>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• <strong>Premium Tiers:</strong> Your absolute favorites (9 slots total - fill them all!)</li>
-            <li>• <strong>Organization Tiers:</strong> Categorize the rest of your books (unlimited slots)</li>
+            <li>• <strong>Premium Tiers:</strong> Your absolute favorites (9 slots total - publicly visible to other users)</li>
+            <li>• <strong>Organization Tiers:</strong> Categorize the rest of your books (private, unlimited slots)</li>
             <li>• Add books to tiers from individual book pages</li>
             <li>• Drag books between tiers to reorganize them</li>
             <li>• Click the × button to remove books from your tier list</li>
