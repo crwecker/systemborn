@@ -46,7 +46,13 @@ const CompactPremiumTier: React.FC<CompactPremiumTierProps> = ({ tier, books, ma
     return (
     <div 
       ref={setNodeRef}
-      className={`md:relative p-3 rounded-lg border-2 ${isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'} transition-colors`}
+      className={`md:relative p-3 rounded-lg border-2 ${isOver ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'} transition-colors cursor-pointer hover:bg-gray-50`}
+      onClick={(e) => {
+        // Only trigger search if clicking on the background, not on books
+        if (e.target === e.currentTarget || (e.target as Element).closest?.('.tier-background')) {
+          onSearchAdd(tier);
+        }
+      }}
     >
       {/* Mobile: Traditional header layout */}
       <div className="flex items-center justify-between mb-2 md:hidden">
@@ -73,10 +79,13 @@ const CompactPremiumTier: React.FC<CompactPremiumTierProps> = ({ tier, books, ma
               {bookTier ? (
                 <DraggableBookItem bookTier={bookTier} onRemove={onRemove} compact={true} />
               ) : (
-                <div className="w-full h-full border-2 border-dashed border-gray-300 rounded flex items-center justify-center bg-gray-50 hover:border-gray-400 transition-colors group cursor-pointer" onClick={() => onSearchAdd(tier)}>
+                <div className="w-full h-full border-2 border-dashed border-gray-300 rounded flex items-center justify-center bg-gray-50 hover:border-gray-400 hover:bg-gray-100 transition-colors group cursor-pointer" onClick={(e) => {
+                  e.stopPropagation();
+                  onSearchAdd(tier);
+                }}>
                   <div className="text-xs text-gray-400 text-center group-hover:text-gray-600">
-                    <div>+</div>
-                    <div className="mt-1 hidden md:block">Search</div>
+                    <div className="text-2xl">+</div>
+                    <div className="mt-1">Click to search</div>
                   </div>
                 </div>
               )}
@@ -137,6 +146,7 @@ const DraggableBookItem: React.FC<DraggableBookItemProps> = ({ bookTier, onRemov
       {...attributes}
       {...listeners}
       className={`relative cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''} ${compact ? 'w-full h-full' : ''}`}
+      onClick={(e) => e.stopPropagation()}
     >
       {bookTier.book && (
         <div className="relative w-full h-full">
@@ -347,7 +357,7 @@ const TierList: React.FC = () => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-                  <div className="space-y-6">
+                  <div className="space-y-3">
           {/* Premium Tiers - Compact Layout */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 border-2 border-purple-100">
             <div className="mb-3">
@@ -384,45 +394,53 @@ const TierList: React.FC = () => {
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-100">
               <div className="mb-3">
                 <h2 className="text-xl font-bold text-gray-900 mb-1">Read Collection</h2>
-                <p className="text-sm text-gray-600 mb-2">
-                  Books you've read but haven't ranked yet - drag them to tiers when you're ready!
-                </p>
                 <div className="flex items-center gap-2 text-xs text-blue-700 bg-blue-100 rounded-lg px-3 py-2">
                   <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M12 2C13.1 2 14 2.9 14 4V5H16C17.1 5 18 5.9 18 7V19C18 20.1 17.1 21 16 21H8C6.9 21 6 20.1 6 19V7C6 5.9 6.9 5 8 5H10V4C10 2.9 10.9 2 12 2ZM12 4V5H12V4ZM8 7V19H16V7H8Z" clipRule="evenodd" />
                   </svg>
                   <span>
-                    <strong>Staging Area:</strong> These books are marked as read and ready to be organized into your tier rankings
+                    <strong>Staging Area:</strong> These books are marked as read and ready to be ranked by dragging them into other tiers
                   </span>
                 </div>
               </div>
               
-              <TierDroppable tier="READ" className="border rounded-lg p-6 bg-white shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`px-4 py-2 rounded-lg text-white font-bold ${TIER_CONFIG.READ.color}`}>
-                      {TIER_CONFIG.READ.name}
+              <TierDroppable tier="READ" className="border rounded-lg bg-white shadow-sm">
+                <div className="flex items-stretch">
+                  {/* Tier Label Column */}
+                  <div className="flex flex-col items-center justify-center p-4 min-w-[120px] border-r border-gray-200">
+                    <div className={`px-3 py-2 rounded-lg text-white font-bold text-sm ${TIER_CONFIG.READ.color} mb-2`}>
+                      READ
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <div className="text-xs text-gray-500 text-center">
                       {readTier.books.length} book{readTier.books.length !== 1 ? 's' : ''}
-                    </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="min-h-[200px] p-4 rounded-lg bg-blue-50 border-2 border-dashed border-blue-200">
-                  <SortableContext items={readTier.books.map(b => b.id)} strategy={rectSortingStrategy}>
-                    {readTier.books.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-32 text-blue-400 space-y-3">
-                        <p>Mark books as "Read" to add them here, then drag them to tiers when you're ready to rank them!</p>
-                        <button
-                          onClick={() => handleSearchAdd('READ')}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          + Search & Mark as Read
-                        </button>
+                  {/* Books Content Column */}
+                  <div className="flex-1 p-4">
+
+                    <div className="min-h-[120px] p-4 rounded-lg bg-blue-50 border-2 border-dashed border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors" onClick={(e) => {
+                      // Only trigger search if clicking on the background, not on books
+                      if (e.target === e.currentTarget || (e.target as Element).closest?.('.tier-background')) {
+                        handleSearchAdd('READ');
+                      }
+                    }}>
+                      <SortableContext items={readTier.books.map(b => b.id)} strategy={rectSortingStrategy}>
+                                            {readTier.books.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-32 text-blue-400 cursor-pointer hover:bg-blue-100 transition-colors rounded-lg" onClick={(e) => {
+                        e.stopPropagation();
+                        handleSearchAdd('READ');
+                      }}>
+                        <div className="text-4xl mb-2">+</div>
+                        <p>Click to search and mark books as read</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 cursor-pointer hover:bg-blue-100 rounded p-2 -m-2 transition-colors" onClick={(e) => {
+                        // Only trigger search if clicking on the grid background, not on books
+                        if (e.target === e.currentTarget) {
+                          handleSearchAdd('READ');
+                        }
+                      }}>
                         {readTier.books.map((bookTier) => (
                           <DraggableBookItem
                             key={bookTier.id}
@@ -430,18 +448,21 @@ const TierList: React.FC = () => {
                             onRemove={handleRemoveFromTier}
                           />
                         ))}
-                        <div className="flex items-center justify-center">
-                          <button
-                            onClick={() => handleSearchAdd('READ')}
-                            className="w-full h-24 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-blue-600 hover:border-blue-400 hover:text-blue-700 transition-colors group"
-                          >
-                            <div className="text-2xl group-hover:scale-110 transition-transform">+</div>
-                            <div className="text-xs mt-1">Add Book</div>
-                          </button>
+                        <div 
+                          className="w-full h-full min-h-[120px] border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-blue-600 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer group"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSearchAdd('READ');
+                          }}
+                        >
+                          <div className="text-2xl group-hover:scale-110 transition-transform">+</div>
+                          <div className="text-xs mt-1">Search</div>
                         </div>
                       </div>
                     )}
                   </SortableContext>
+                    </div>
+                  </div>
                 </div>
               </TierDroppable>
             </div>
@@ -450,37 +471,47 @@ const TierList: React.FC = () => {
           {/* Regular Tiers - Standard Layout */}
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-4">Organization Tiers</h2>
-            <div className="space-y-4">
+            <div className="space-y-2">
               {regularTiers.map(({ tier, books, maxBooks }) => {
                 const config = TIER_CONFIG[tier];
                 
                 return (
-                  <TierDroppable key={tier} tier={tier} className="border rounded-lg p-6 bg-white shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className={`px-4 py-2 rounded-lg text-white font-bold ${config.color}`}>
-                          {config.name}
+                  <TierDroppable key={tier} tier={tier} className="border rounded-lg bg-white shadow-sm">
+                    <div className="flex items-stretch">
+                      {/* Tier Label Column */}
+                      <div className="flex flex-col items-center justify-center p-4 min-w-[120px] border-r border-gray-200">
+                        <div className={`px-3 py-2 rounded-lg text-white font-bold text-sm ${config.color} mb-2`}>
+                          {tier}
                         </div>
-                        <span className="text-sm text-gray-500">
+                        <div className="text-xs text-gray-500 text-center">
                           {books.length} book{books.length !== 1 ? 's' : ''}
-                        </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="min-h-[200px] p-4 rounded-lg bg-gray-50 border-2 border-dashed border-gray-200">
+                      {/* Books Content Column */}
+                      <div className="flex-1 p-4">
+                        <div className="min-h-[120px] p-4 rounded-lg bg-gray-50 border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors" onClick={(e) => {
+                          // Only trigger search if clicking on the background, not on books
+                          if (e.target === e.currentTarget || (e.target as Element).closest?.('.tier-background')) {
+                            handleSearchAdd(tier);
+                          }
+                        }}>
                       <SortableContext items={books.map(b => b.id)} strategy={rectSortingStrategy}>
                         {books.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center h-32 text-gray-400 space-y-3">
-                            <p>Drop books here to add them to {config.name}</p>
-                            <button
-                              onClick={() => handleSearchAdd(tier)}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                            >
-                              + Search & Add Books
-                            </button>
+                          <div className="flex flex-col items-center justify-center h-32 text-gray-400 cursor-pointer hover:bg-gray-100 transition-colors rounded-lg" onClick={(e) => {
+                            e.stopPropagation();
+                            handleSearchAdd(tier);
+                          }}>
+                            <div className="text-4xl mb-2">+</div>
+                            <p>Click to search or drag books here</p>
                           </div>
                         ) : (
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 cursor-pointer hover:bg-gray-100 rounded p-2 -m-2 transition-colors" onClick={(e) => {
+                            // Only trigger search if clicking on the grid background, not on books
+                            if (e.target === e.currentTarget) {
+                              handleSearchAdd(tier);
+                            }
+                          }}>
                             {books.map((bookTier) => (
                               <DraggableBookItem
                                 key={bookTier.id}
@@ -488,18 +519,21 @@ const TierList: React.FC = () => {
                                 onRemove={handleRemoveFromTier}
                               />
                             ))}
-                            <div className="flex items-center justify-center">
-                              <button
-                                onClick={() => handleSearchAdd(tier)}
-                                className="w-full h-24 border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-blue-600 hover:border-blue-400 hover:text-blue-700 transition-colors group"
-                              >
-                                <div className="text-2xl group-hover:scale-110 transition-transform">+</div>
-                                <div className="text-xs mt-1">Add Book</div>
-                              </button>
+                            <div 
+                              className="w-full h-full min-h-[120px] border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-blue-600 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer group"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSearchAdd(tier);
+                              }}
+                            >
+                              <div className="text-2xl group-hover:scale-110 transition-transform">+</div>
+                              <div className="text-xs mt-1">Search</div>
                             </div>
                           </div>
                         )}
                       </SortableContext>
+                        </div>
+                      </div>
                     </div>
                   </TierDroppable>
                 );
@@ -518,7 +552,7 @@ const TierList: React.FC = () => {
         </DndContext>
 
         {/* Instructions */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-2">How to use your tier list:</h3>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• <strong>Premium Tiers:</strong> Your absolute favorites (9 slots total - publicly visible to other users)</li>
