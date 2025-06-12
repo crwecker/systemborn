@@ -74,6 +74,11 @@ const BookActions: React.FC<BookActionsProps> = ({ bookId, bookTitle }) => {
     createReviewMutation.mutate({ bookId, review: reviewText.trim() });
   };
 
+  const handleMarkAsRead = () => {
+    if (!user) return;
+    assignTierMutation.mutate({ bookId, tier: 'READ' });
+  };
+
   if (!user) {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -86,6 +91,23 @@ const BookActions: React.FC<BookActionsProps> = ({ bookId, bookTitle }) => {
 
   return (
     <div className="space-y-6">
+      {/* Quick Actions */}
+      {!existingTier && (
+        <div className="bg-white border rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          <button
+            onClick={handleMarkAsRead}
+            disabled={assignTierMutation.isPending}
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {assignTierMutation.isPending ? 'Adding...' : 'Mark as Read'}
+          </button>
+          <p className="text-sm text-gray-600 mt-2">
+            Add this book to your read collection, then organize it into tiers later from your Tier List page.
+          </p>
+        </div>
+      )}
+
       {/* Tier Selection */}
       <div className="bg-white border rounded-lg p-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Add to Tier List</h3>

@@ -49,6 +49,11 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
     assignTierMutation.mutate({ bookId: book.id, tier: selectedTier });
   };
 
+  const handleMarkAsRead = () => {
+    if (!user) return;
+    assignTierMutation.mutate({ bookId: book.id, tier: 'READ' });
+  };
+
   return (
     <div className="bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group">
       <div className="relative pb-[150%] bg-[#1a1a1a]">
@@ -69,10 +74,17 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
                 {existingTier.tier}
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative flex flex-col gap-1">
+                <button
+                  onClick={handleMarkAsRead}
+                  disabled={assignTierMutation.isPending}
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium hover:bg-blue-600 transition-colors opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                >
+                  {assignTierMutation.isPending ? 'Adding...' : 'Mark as Read'}
+                </button>
                 <button
                   onClick={() => setShowTierDropdown(!showTierDropdown)}
-                  className="bg-copper text-dark-blue px-3 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100"
+                  className="bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100"
                 >
                   Add to Tier
                 </button>

@@ -115,6 +115,7 @@ enum TierLevel {
   A
   B
   C
+  READ
   D
   E
   F

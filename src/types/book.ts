@@ -28,7 +28,7 @@ export interface Book {
   };
 }
 
-export type TierLevel = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+export type TierLevel = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'READ' | 'D' | 'E' | 'F';
 
 export interface BookTier {
   id: string;
@@ -63,6 +63,7 @@ export const TIER_CONFIG: Record<TierLevel, { name: string; maxBooks?: number; c
   A: { name: 'A Tier', color: 'bg-gradient-to-r from-green-400 to-teal-500' },
   B: { name: 'B Tier', color: 'bg-gradient-to-r from-blue-400 to-indigo-500' },
   C: { name: 'C Tier', color: 'bg-gradient-to-r from-indigo-400 to-purple-500' },
+  READ: { name: 'Read (Unranked)', color: 'bg-gradient-to-r from-blue-300 to-cyan-400' },
   D: { name: 'D Tier', color: 'bg-gradient-to-r from-gray-400 to-gray-500' },
   E: { name: 'E Tier', color: 'bg-gradient-to-r from-gray-500 to-gray-600' },
   F: { name: 'F Tier', color: 'bg-gradient-to-r from-gray-600 to-gray-700' },
