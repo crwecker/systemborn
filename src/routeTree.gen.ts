@@ -18,6 +18,7 @@ import { Route as MyTiersImport } from './routes/my-tiers'
 import { Route as MyReviewsImport } from './routes/my-reviews'
 import { Route as CommunityFavoritesImport } from './routes/community-favorites'
 import { Route as AuthImport } from './routes/auth'
+import { Route as AddBookImport } from './routes/add-book'
 import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
@@ -64,6 +65,12 @@ const AuthRoute = AuthImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AddBookRoute = AddBookImport.update({
+  id: '/add-book',
+  path: '/add-book',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
@@ -79,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/add-book': {
+      id: '/add-book'
+      path: '/add-book'
+      fullPath: '/add-book'
+      preLoaderRoute: typeof AddBookImport
       parentRoute: typeof rootRoute
     }
     '/auth': {
@@ -137,6 +151,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
@@ -148,6 +163,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
@@ -160,6 +176,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
@@ -173,6 +190,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/add-book'
     | '/auth'
     | '/community-favorites'
     | '/my-reviews'
@@ -183,6 +201,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/add-book'
     | '/auth'
     | '/community-favorites'
     | '/my-reviews'
@@ -193,6 +212,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/add-book'
     | '/auth'
     | '/community-favorites'
     | '/my-reviews'
@@ -205,6 +225,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AddBookRoute: typeof AddBookRoute
   AuthRoute: typeof AuthRoute
   CommunityFavoritesRoute: typeof CommunityFavoritesRoute
   MyReviewsRoute: typeof MyReviewsRoute
@@ -216,6 +237,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AddBookRoute: AddBookRoute,
   AuthRoute: AuthRoute,
   CommunityFavoritesRoute: CommunityFavoritesRoute,
   MyReviewsRoute: MyReviewsRoute,
@@ -236,6 +258,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/add-book",
         "/auth",
         "/community-favorites",
         "/my-reviews",
@@ -247,6 +270,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/add-book": {
+      "filePath": "add-book.tsx"
     },
     "/auth": {
       "filePath": "auth.tsx"

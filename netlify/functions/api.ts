@@ -18,8 +18,8 @@ setPrismaInstance(prisma);
 // CORS headers
 const headers = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 };
 
 export const handler: Handler = async (event) => {
@@ -68,6 +68,78 @@ export const handler: Handler = async (event) => {
       case 'books':
         const subEndpoint = path[1];
         console.log('Books subEndpoint:', subEndpoint);
+        
+        // Handle POST request to create a new book
+        if (event.httpMethod === 'POST' && !subEndpoint) {
+          try {
+            const bookData = JSON.parse(event.body || '{}');
+            
+            // Validate required fields
+            const requiredFields = ['id', 'title', 'authorName', 'description', 'sourceUrl', 'source'];
+            for (const field of requiredFields) {
+              if (!bookData[field]) {
+                return {
+                  statusCode: 400,
+                  headers,
+                  body: JSON.stringify({ error: `${field} is required` })
+                };
+              }
+            }
+
+            // Create book in database
+            const newBook = await prisma.book.create({
+              data: {
+                id: bookData.id,
+                title: bookData.title,
+                authorName: bookData.authorName,
+                description: bookData.description,
+                tags: bookData.tags || [],
+                coverUrl: bookData.coverUrl || null,
+                sourceUrl: bookData.sourceUrl,
+                source: bookData.source,
+                contentWarnings: bookData.contentWarnings || []
+              }
+            });
+
+            // Create initial stats entry
+            await prisma.bookStats.create({
+              data: {
+                bookId: newBook.id,
+                rating: bookData.rating || 0,
+                followers: bookData.followers || 0,
+                views: bookData.views || 0,
+                pages: bookData.pages || 0,
+                average_views: bookData.average_views || 0,
+                favorites: bookData.favorites || 0,
+                ratings_count: bookData.ratings_count || 0,
+                character_score: bookData.character_score || 0,
+                grammar_score: bookData.grammar_score || 0,
+                overall_score: bookData.overall_score || 0,
+                story_score: bookData.story_score || 0,
+                style_score: bookData.style_score || 0
+              }
+            });
+
+            return {
+              statusCode: 201,
+              headers,
+              body: JSON.stringify({ 
+                message: 'Book created successfully', 
+                book: newBook 
+              })
+            };
+          } catch (error) {
+            console.error('Error creating book:', error);
+            return {
+              statusCode: 500,
+              headers,
+              body: JSON.stringify({ 
+                error: 'Failed to create book',
+                details: error instanceof Error ? error.message : 'Unknown error'
+              })
+            };
+          }
+        }
         
         try {
           switch (subEndpoint) {

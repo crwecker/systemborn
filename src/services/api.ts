@@ -299,4 +299,51 @@ export async function deleteBookReview(reviewId: string): Promise<void> {
     console.error('Error deleting book review:', error);
     throw error;
   }
+}
+
+// Create a new book
+export interface CreateBookData {
+  id: string;
+  title: string;
+  authorName: string;
+  description: string;
+  tags: string[];
+  coverUrl?: string;
+  sourceUrl: string;
+  source: 'ROYAL_ROAD' | 'AMAZON';
+  contentWarnings: string[];
+  rating?: number;
+  followers?: number;
+  views?: number;
+  pages?: number;
+  average_views?: number;
+  favorites?: number;
+  ratings_count?: number;
+  character_score?: number;
+  grammar_score?: number;
+  overall_score?: number;
+  story_score?: number;
+  style_score?: number;
+}
+
+export async function createBook(bookData: CreateBookData): Promise<{ message: string; book: any }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(bookData),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create book');
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating book:', error);
+    throw error;
+  }
 } 

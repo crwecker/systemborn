@@ -135,9 +135,7 @@ async function handleMagicLink(event: any) {
         const welcomeMessage = isNewUser 
           ? 'Welcome to LitRPG Academy!' 
           : 'Welcome back to LitRPG Academy!';
-        const subtitle = isNewUser 
-          ? 'Your gateway to epic adventures awaits' 
-          : 'Continue your reading adventure';
+        const subtitle = 'Find your next favorite LitRPG book!';
 
         const { data, error } = await resend.emails.send({
           from: process.env.FROM_EMAIL || 'onboarding@resend.dev',

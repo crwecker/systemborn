@@ -55,6 +55,7 @@ model BookStats {
 
 enum Source {
   ROYAL_ROAD
+  AMAZON
 }
 
 model User {
