@@ -117,7 +117,7 @@ export const BookSearchModal: React.FC<BookSearchModalProps> = ({ isOpen, onClos
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for books by title, author, or description..."
-              className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full p-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-400"
               autoFocus
             />
             {isSearching && (
