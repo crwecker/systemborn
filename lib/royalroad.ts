@@ -752,6 +752,8 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     };
   }
 
+  const searchLimit = query && query.trim() ? undefined : limit;
+
   // Include stats for filtering
   const books = await prisma.book.findMany({
     where,
@@ -761,7 +763,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
         take: 1,
       },
     },
-    take: limit,
+    take: searchLimit,
     skip: offset,
   });
 
@@ -794,8 +796,8 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     const fuse = new Fuse(filteredBooks, fuseOptions);
     const searchResults = fuse.search(query.trim());
     
-    // Extract items from Fuse results and sort by score
-    processedBooks = searchResults.map(result => result.item);
+    // Extract items from Fuse results and sort by score, then apply limit
+    processedBooks = searchResults.map(result => result.item).slice(0, limit);
   } else {
     // Sort the filtered books only if no fuzzy search is applied
     processedBooks = [...filteredBooks].sort((a, b) => {
