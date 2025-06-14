@@ -1,0 +1,65 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Architecture Guide
+
+## Technology Stack
+- **Frontend**: React + TypeScript + Vite
+- **Backend**: Netlify Functions
+- **Database**: PostgreSQL with Prisma ORM
+- **Styling**: Tailwind CSS
+- **Data Fetching**: TanStack React Query
+- **Routing**: TanStack Router
+
+## Directory Structure
+```
+├── prisma/               # Database schema and migrations
+├── netlify/functions/    # Backend API endpoints
+├── src/
+│   ├── components/       # Reusable React components
+│   ├── pages/           # Page components
+│   ├── services/        # API client functions
+│   ├── types/           # TypeScript type definitions
+│   └── hooks/           # Custom React hooks
+├── scripts/             # Database population and utility scripts
+└── lib/                 # Shared utilities and configurations
+```
+
+## Key Files
+- [prisma/schema.prisma](mdc:prisma/schema.prisma) - Database schema definition
+- [src/pages/Books.tsx](mdc:src/pages/Books.tsx) - Main books listing page
+- [src/services/api.ts](mdc:src/services/api.ts) - Frontend API service layer
+- [netlify/functions/api.ts](mdc:netlify/functions/api.ts) - Main backend API
+- [scripts/populate-affiliate-links.ts](mdc:scripts/populate-affiliate-links.ts) - Database population example
+
+## Coding Conventions
+
+### TypeScript
+- Use explicit types for all function parameters and return values
+- Define interfaces for complex data structures
+- Avoid `any` type when possible
+
+### Error Handling
+- Always include try-catch blocks for async operations
+- Log errors with meaningful context
+- Provide user-friendly error messages
+
+### Database Operations
+- Use upsert operations to handle existing records
+- Always disconnect Prisma: `await prisma.$disconnect()`
+- Include proper relationships with `include` clauses
+
+### Component Patterns
+- Extract complex logic into helper functions
+- Use TanStack Query for all data fetching
+- Implement proper loading and error states
+- Follow the established Tailwind styling patterns
+
+## Development Workflow
+1. Update database schema in [prisma/schema.prisma](mdc:prisma/schema.prisma) if needed
+2. Create migration: `npx prisma migrate dev`
+3. Add backend API endpoint in [netlify/functions/api.ts](mdc:netlify/functions/api.ts)
+4. Add frontend API function in [src/services/api.ts](mdc:src/services/api.ts)
+5. Update React components to use new data

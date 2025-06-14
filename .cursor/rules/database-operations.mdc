@@ -1,0 +1,49 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Database Operations Guide
+
+## Prisma Schema Structure
+The main database schema is defined in [prisma/schema.prisma](mdc:prisma/schema.prisma) with the following key models:
+
+- **Book**: Main book entity with source (ROYAL_ROAD | AMAZON)
+- **BookContributor**: Links books to contributors with contributor types
+- **Contributor**: Author/contributor information
+- **BookReview**: User reviews for books
+- **BookStats**: Statistical data for books
+- **User**: User accounts and authentication
+
+## Database Population Scripts
+Scripts for populating the database are located in the `scripts/` directory:
+
+- Use [scripts/populate-affiliate-links.ts](mdc:scripts/populate-affiliate-links.ts) as a reference for creating new population scripts
+- Always use `prisma.book.upsert()` to avoid duplicates
+- Handle multiple data formats with helper functions (see `getContributors()` and `getSourceUrl()`)
+- Use proper error handling and logging
+- Always disconnect Prisma at the end: `await prisma.$disconnect()`
+
+## Database Query Patterns
+When querying books with related data:
+
+```typescript
+// Include contributors and reviews
+const books = await prisma.book.findMany({
+  where: { source: 'AMAZON' },
+  include: {
+    bookContributors: {
+      include: {
+        contributor: true
+      }
+    },
+    bookReviews: {
+      where: { userId: 'specific-user-id' },
+      take: 1
+    }
+  }
+})
+```
+
+## Running Population Scripts
+Execute with: `npx tsx scripts/script-name.ts`

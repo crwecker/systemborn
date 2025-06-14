@@ -1,0 +1,65 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Amazon Affiliate Books Guide
+
+## Data Flow Overview
+Amazon affiliate books flow from database → API → frontend display:
+
+1. **Database**: Books with `source: 'AMAZON'` in [prisma/schema.prisma](mdc:prisma/schema.prisma)
+2. **Population**: Use [scripts/populate-affiliate-links.ts](mdc:scripts/populate-affiliate-links.ts) to add new books
+3. **API**: `/books/amazon` endpoint in [netlify/functions/api.ts](mdc:netlify/functions/api.ts)
+4. **Frontend**: Display in [src/pages/Books.tsx](mdc:src/pages/Books.tsx)
+
+## Adding New Affiliate Books
+
+### Database Structure
+Each affiliate book requires:
+- **Book**: Main record with `source: 'AMAZON'`
+- **Contributor**: Author information
+- **BookContributor**: Link between book and author
+- **BookReview**: Personal review (using user ID: `cmbjdfr1c0000kyu3giis7lz2`)
+
+### Script Pattern
+Follow the pattern in [scripts/populate-affiliate-links.ts](mdc:scripts/populate-affiliate-links.ts):
+
+```typescript
+// 1. Normalize different data structures
+const contributors = getContributors(book);
+const sourceUrl = getSourceUrl(book);
+
+// 2. Create/update book
+await prisma.book.upsert({
+  where: { id: book.id },
+  update: bookData,
+  create: bookData,
+});
+
+// 3. Handle contributors
+for (const contributorData of contributors) {
+  // Find or create contributor
+  // Create book-contributor relationship
+}
+
+// 4. Add review
+await prisma.bookReview.upsert({
+  where: { userId_bookId: { userId: USER_ID, bookId: book.id } },
+  update: { review: book.review },
+  create: { userId: USER_ID, bookId: book.id, review: book.review },
+});
+```
+
+## Frontend Display
+In [src/pages/Books.tsx](mdc:src/pages/Books.tsx):
+
+- Use `fetchAmazonBooks()` from [src/services/api.ts](mdc:src/services/api.ts)
+- Extract authors with `getAuthors()` helper function
+- Display reviews with `getReview()` helper function
+- Link to `book.sourceUrl` for affiliate purchases
+
+## Affiliate Compliance
+- Always include disclaimer: "As an Amazon Associate I earn from qualifying purchases"
+- Use proper affiliate links in `sourceUrl` field
+- Ensure links open in new tab with proper security attributes

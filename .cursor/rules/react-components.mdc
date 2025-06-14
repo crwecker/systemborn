@@ -1,0 +1,58 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# React Components Guide
+
+## Component Structure
+Components are organized in [src/components/](mdc:src/components) and pages in [src/pages/](mdc:src/pages).
+
+## Data Fetching Patterns
+Use TanStack Query for all data fetching operations:
+
+```typescript
+const { data: books = [], isLoading } = useQuery<Book[]>({
+  queryKey: ['books', filters],
+  queryFn: () => searchBooks(filters),
+})
+```
+
+## Component Pattern Examples
+Reference [src/pages/Books.tsx](mdc:src/pages/Books.tsx) for:
+
+- **Database Integration**: How to fetch and display Amazon affiliate books
+- **Loading States**: Proper loading indicators with meaningful messages
+- **Helper Functions**: Extract complex logic into helper functions (e.g., `getAuthors()`, `getReview()`)
+- **Conditional Rendering**: Handle different data structures gracefully
+
+## Key Patterns from Books.tsx
+
+### Data Transformation
+```typescript
+// Helper function to normalize database structure
+const getAuthors = (book: any) => {
+  if (book.bookContributors && book.bookContributors.length > 0) {
+    return book.bookContributors
+      .filter((bc: any) => bc.contributorType === 'AUTHOR')
+      .map((bc: any) => bc.contributor.name)
+      .join(', ')
+  }
+  return book.authorName || 'Unknown Author'
+}
+```
+
+### Affiliate Link Display
+- Use `book.sourceUrl` for Amazon affiliate links
+- Display "As an Amazon Associate I earn from qualifying purchases" disclaimer
+- Include proper `target='_blank'` and `rel='noopener noreferrer'` for external links
+
+## Styling Conventions
+- Use Tailwind CSS classes
+- Follow the established color scheme: `text-copper`, `bg-slate`, `text-light-gray`
+- Maintain consistent hover effects: `hover:scale-[1.02]`, `hover:text-amber-400`
+
+## State Management
+- Use `useState` for local component state
+- Implement debouncing for search inputs (300ms delay)
+- Use proper TypeScript types for all state variables

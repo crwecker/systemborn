@@ -160,6 +160,29 @@ export const handler: Handler = async (event) => {
                 body: JSON.stringify(trendingBooks)
               };
 
+            case 'amazon':
+              // Get all Amazon books (affiliate recommendations)
+              const amazonBooks = await prisma.book.findMany({
+                where: { source: 'AMAZON' },
+                include: {
+                  bookContributors: {
+                    include: {
+                      contributor: true
+                    }
+                  },
+                  bookReviews: {
+                    where: { userId: 'cmbjdfr1c0000kyu3giis7lz2' }, // Admin/reviewer user
+                    take: 1
+                  }
+                },
+                orderBy: { createdAt: 'asc' }
+              });
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify(amazonBooks)
+              };
+
             case 'search':
               const searchResults = await searchBooks({
                 tags: params.tags ? (Array.isArray(params.tags) ? params.tags : [params.tags]) : [],

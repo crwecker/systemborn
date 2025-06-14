@@ -69,6 +69,19 @@ export async function fetchTrendingBooks(limit: number = 10): Promise<Book[]> {
   }
 }
 
+export async function fetchAmazonBooks(): Promise<Book[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/books/amazon`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch Amazon books')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching Amazon books:', error)
+    throw error
+  }
+}
+
 interface SearchParams {
   tags?: string[]
   minRating?: number
