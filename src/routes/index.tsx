@@ -13,9 +13,9 @@ function Index() {
   return (
     <>
       <Banner />
-      <main className="container mx-auto py-6">
+      <main className='container mx-auto py-6'>
         <BooksPage />
       </main>
     </>
   )
-} 
+}

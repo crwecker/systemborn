@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Generated files
+netlify/functions/generated/
+server/generated/
+
+# Database
+prisma/migrations/
+
+# Logs
+*.log
+
+# Environment files
+.env*
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Other
+.DS_Store
+*.tsbuildinfo 

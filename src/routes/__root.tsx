@@ -18,7 +18,7 @@ export const Route = createRootRoute({
   component: () => (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <div className="min-h-screen bg-dark-blue">
+        <div className='min-h-screen bg-dark-blue'>
           <Header />
           <Outlet />
         </div>
@@ -31,4 +31,4 @@ export const Route = createRootRoute({
       )}
     </QueryClientProvider>
   ),
-}) 
+})

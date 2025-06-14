@@ -30,6 +30,7 @@ model Book {
   stats           BookStats[]
   bookTiers       BookTier[]
   bookReviews     BookReview[]
+  bookContributors BookContributor[]
 }
 
 model BookStats {
@@ -106,6 +107,37 @@ model BookReview {
   book      Book     @relation(fields: [bookId], references: [id])
 
   @@unique([userId, bookId])
+}
+
+model Contributor {
+  id                  String            @id @default(cuid())
+  name                String
+  linkToContributor   String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  bookContributors    BookContributor[]
+}
+
+model BookContributor {
+  id              String          @id @default(cuid())
+  bookId          String
+  contributorId   String
+  contributorType ContributorType
+  createdAt       DateTime        @default(now())
+  book            Book            @relation(fields: [bookId], references: [id])
+  contributor     Contributor     @relation(fields: [contributorId], references: [id])
+
+  @@unique([bookId, contributorId, contributorType])
+}
+
+enum ContributorType {
+  AUTHOR
+  ILLUSTRATOR
+  PUBLISHER
+  EDITOR
+  TRANSLATOR
+  NARRATOR
+  COVER_ARTIST
 }
 
 enum TierLevel {

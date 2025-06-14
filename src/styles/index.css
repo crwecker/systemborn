@@ -40,7 +40,12 @@
   body {
     @apply bg-dark-blue text-light-gray font-sans;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply text-copper font-serif;
   }
 }
@@ -61,4 +66,4 @@
   .text-shadow {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   }
-} 
+}

@@ -6,4 +6,4 @@ export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/add-book',
   component: AddBook,
-}) 
+})

@@ -3,4 +3,4 @@ import CommunityFavorites from '../pages/CommunityFavorites'
 
 export const Route = createFileRoute('/community-favorites')({
   component: CommunityFavorites,
-}) 
+})

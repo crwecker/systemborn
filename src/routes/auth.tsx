@@ -6,4 +6,4 @@ export const Route = createRoute({
   getParentRoute: () => rootRoute,
   path: '/auth',
   component: SmartAuth,
-}) 
+})

@@ -9,4 +9,4 @@ export const Route = createRoute({
   validateSearch: (search: Record<string, unknown>) => ({
     // For future use if needed
   }),
-}) 
+})

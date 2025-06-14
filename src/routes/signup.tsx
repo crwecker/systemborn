@@ -10,4 +10,4 @@ export const Route = createRoute({
     email: (search.email as string) || undefined,
     fromSignin: (search.fromSignin as string) || undefined,
   }),
-}) 
+})

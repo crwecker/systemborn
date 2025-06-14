@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react';
-import { getCurrentUser, logout, type User } from '../services/auth';
+import { useState, useEffect } from 'react'
+import { getCurrentUser, logout, type User } from '../services/auth'
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const checkAuth = async () => {
     try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
     } catch (error) {
-      console.error('Error checking auth:', error);
-      setUser(null);
+      console.error('Error checking auth:', error)
+      setUser(null)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     // Check if there's a token in localStorage
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken')
     if (token) {
-      checkAuth();
+      checkAuth()
     } else {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, []);
+  }, [])
 
   const handleLogout = () => {
-    logout();
-    setUser(null);
-  };
+    logout()
+    setUser(null)
+  }
 
   const refreshAuth = async () => {
-    setIsLoading(true);
-    await checkAuth();
-  };
+    setIsLoading(true)
+    await checkAuth()
+  }
 
   return {
     user,
@@ -43,5 +43,5 @@ export function useAuth() {
     isAuthenticated: !!user,
     logout: handleLogout,
     refreshAuth,
-  };
-} 
+  }
+}

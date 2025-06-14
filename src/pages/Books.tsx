@@ -1,97 +1,258 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { BookCard } from "../components/BookCard";
-import type { Book } from "../types/book";
-import { searchBooks, fetchTrendingBooks } from "../services/api";
-import { LITRPG_RELATED_TAGS } from "../../lib/royalroad";
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { BookCard } from '../components/BookCard'
+import type { Book } from '../types/book'
+import { searchBooks, fetchTrendingBooks } from '../services/api'
+import { LITRPG_RELATED_TAGS } from '../../lib/royalroad'
 
 // Here are some affiliate links. Let's get these on the website along with the message ""As an Amazon Associate I earn from qualifying purchases."
 const AFFILIATE_LINKS = [
   {
+    id: `asin-B09M2R6QLF`,
     title: `Mother of Learning: ARC 1`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `nobody103`,
+        linkToContributor: `https://www.amazon.com/stores/nobody103/author/B09M91FQ27?isDramIntegrated=true&shoppingPortalEnabled=true&ccs_id=7aa95fc6-9714-4c4a-b3c1-14cc71c399fb&linkCode=ll2&tag=litrpgacademy-20&linkId=125f0624c24a7ed0b70701c505f6fab5&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
     affiliate_link: `https://amzn.to/4jvc6gb`,
     poster: `https://m.media-amazon.com/images/I/81NXjG0TyuL._SY522_.jpg`,
-    description: `Great story. Listened to it on a road trip and my teenagers loved it. Such a good time loop story. I love how the world unfolds and mysteries are revealed.`,
+    description: `Zorian Kazinski has all the time in the world to get stronger, and he plans on taking full advantage of it.
+
+A teenage mage of humble birth and slightly above-average skill, Zorian is attending his third year of education at Cyoria's magical academy. A driven and quiet young man, he is consumed by a desire to ensure his own future and free himself of the influence of his family, resenting the Kazinskis for favoring his brothers over him. Consequently, Zorian has no time for pointless distractions, much less other people's problems.
+
+As it happens, though, time is something he is about to get plenty of.
+
+On the eve of Cyoria's annual summer festival, Zorian is murdered, then abruptly brought back to the beginning of the month, just before he was about to take the train to school. Finding himself trapped in a time loop with no clear end or exit, he will have to look both within and without to unravel the mystery set before him. He does have to unravel it, too, because the loop clearly wasn’t made for his sake, and in a world of magic even a time traveler isn't safe from those who wish him ill.
+
+Fortunately for Zorian, repetition is the mother of learning…`,
+    review: `Great story. Listened to it on a road trip and my teenagers loved it. Such a good time loop story. I love how the world unfolds and mysteries are revealed.`,
   },
   {
+    id: `asin-B08KGT4CLQ`,
     title: `Iron Prince (Warformed: Stormweaver Book 1)`,
-    affiliate_link: `https://amzn.to/45El8Ep`,
+    authors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Bryce O'Connor`,
+        linkToContributor: `https://www.amazon.com/stores/Bryce-OConnor/author/B019A75WZG?ccs_id=c1714be2-51b4-4c81-a1ff-f22b6d164b02&linkCode=ll2&tag=litrpgacademy-20&linkId=d7059941a18f7b2b1ad62a8f501414ed&language=en_US&ref_=as_li_ss_tl`,
+      },
+      {
+        contributorType: `AUTHOR`,
+        name: `Luke Chmilenko`,
+        linkToContributor: `https://www.amazon.com/stores/Luke-Chmilenko/author/B01LZ2769R?ccs_id=5a94c80b-deba-44cf-821e-1e28e861b5e1&linkCode=ll2&tag=litrpgacademy-20&linkId=4691ba1a438e2b2566b007078b2129a2&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/45El8Ep`,
     poster: `https://m.media-amazon.com/images/I/81GLx+EaP2L._SY522_.jpg`,
-    description: `My teenager's read this book over and over. More sci-fi than litrpg, but it is such an awesome underdog story.`,
+    description: `Reidon Ward will become a god.
+
+He doesn't know it yet, of course. Reidon was born weak, sickly and small. Afflicted with a painful disease and abandoned by his parents because of it, he has had to fight tooth and nail for every minor advantage life has allowed him.
+
+His perseverance has not gone unnoticed, however, and when the most powerful artificial intelligence in human history takes an interest in him, things began to change quickly. Granted a CAD—a Combat Assistance Device—with awful specs but an infinite potential for growth, Reidon finds himself at the bottom of his class at the Galens Institute, one of the top military academies in the Collective. Along with his best friend, Viviana Arada, Reidon will have to start his long climb through the school rankings, and on to the combat tournament circuits that have become humanity's greatest source of excitement and entertainment.
+
+So begins the rise of a god. So begins the ascent of the Stormweaver.`,
+    review: `My teenager's read this book over and over. More sci-fi than litrpg, but it is such an awesome underdog story.`,
   },
   {
+    id: `asin-B0BFMB1X6Y`,
     title: `Ritualist: An Epic Fantasy LitRPG Adventure (The Completionist Chronicles Book 1)`,
-    affiliate_link: `https://amzn.to/3FEfs2L`,
+    author: `Dakota Krout`,
+    author_url: ``,
+    source_url: `https://amzn.to/3FEfs2L`,
     poster: `https://m.media-amazon.com/images/I/51prG6HjRRL._SY445_SX342_PQ35_.jpg`,
-    description: `One of the first litrpg books I listened to with my family. It had us laughing out loud. Great characters.`,
+    description: `A game that puts all others to shame. Magic that has been banned from the world. A man willing to learn no matter the cost.
+
+The decision to start a new life is never an easy one, but for Joe the transition was far from figurative. Becoming a permanent addition to a game world, it doesn't take long to learn that people with his abilities are actively hunted. In fact, if the wrong people gained knowledge of what he was capable of, assassins would appear in droves.
+
+In his pursuit of power, Joe fights alongside his team, completes quests, and delves into the mysteries of his class, which he quickly discovers can only be practiced in secret. Ultimately, his goal is to complete every mission, master every ability, and learn all of the world's secrets.
+
+All he has to do is survive long enough to make that happen.`,
+    review: `One of the first litrpg books I listened to with my family. It had us laughing out loud. Great characters.`,
   },
   {
+    id: `asin-B0CVD8D7H6`,
     title: `Heretical Fishing: A Cozy Guide to Annoying the Cults, Outsmarting the Fish, and Alienating Oneself`,
-    affiliate_link: `https://amzn.to/45DK8vq`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Haylock Jobson`,
+        linkToContributor: `https://www.amazon.com/stores/Haylock-Jobson/author/B0CVGY4Y77?isDramIntegrated=true&shoppingPortalEnabled=true&ccs_id=c6ae39d9-a417-4396-8852-d779560148c2&linkCode=ll2&tag=litrpgacademy-20&linkId=2a5dd07493c9b8368e5628602fd7a680&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/45DK8vq`,
     poster: `https://m.media-amazon.com/images/I/41qt6S2ttZL._SY445_SX342_PQ35_.jpg`,
-    description: `I've read (listened to) this one a few times. It is very cozy. Great characters and really makes you want to go fishing!`,
+    description: `A world abandoned by the gods, mystifying cosmic forces, unimaginable power for those willing to ascend, and a hero who would rather . . . go fishing???
+
+When summoned to a fantastical world and granted powers by a broken System, most freshly minted protagonists would strap on their big-boy boots and get ready for their stats to start climbing. But Fischer isn’tlike most MCs. In fact, he doesn’t want to be a hero at all.
+
+Fame? Fortune? Power? He had enough of all that in his old life. Discovering forbidden fishing techniques and petting every cute animal that comes within scritching distance? Now that’s a good time.
+
+Unfortunately for Fischer, cosmic forces rarely care for mortal feelings. He’s hounded on all sides by inept cults, conspiring nobles, and more magical misunderstandings than those of a preteen relationship. Even his dutiful pet crab is firing energy blades like an anime antagonist.
+
+So grab your fishing rod and a good snack, and pet your dog for me. The catch of a lifetime awaits!
+
+The first volume of the laugh-out-loud LitRPG adventure series—a #1 Rising Star on Royal Road with more than three million views—now available on Kindle, Kindle Unlimited, and Audible!
+
+“I can’t think of a single story I’d rather get truck-kun’d (truck-kunned?) into than [that of] the vivid, lush world portrayed in Heretical Fishing, especially if I can hang out with Fischer and his gang. . . . The best book I’ve read this year.” —Matt Dinniman, author of Dungeon Crawler Carl`,
+    review: `I've read (listened to) this one a few times. It is very cozy. Great characters and really makes you want to go fishing!`,
   },
   {
+    id: `asin-B09Y6RQSHM`,
     title: `Beware of Chicken: A Xianxia Cultivation Novel`,
-    affiliate_link: `https://amzn.to/43Afbpi`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Casualfarmer`,
+        linkToContributor: `https://www.amazon.com/stores/Casualfarmer/author/B0B23WCPKJ?isDramIntegrated=true&shoppingPortalEnabled=true&ccs_id=ec4a20e5-165d-474f-b740-1a9d220c0508&linkCode=ll2&tag=litrpgacademy-20&linkId=7b0b8aef9bd1c90af1add3bcc136989a&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/43Afbpi`,
     poster: `https://m.media-amazon.com/images/I/512HZqVOzeL._SY445_SX342_PQ35_.jpg`,
-    description: `Also super cozy. I got my 70 year old parents to listen to this one and they loved it.`,
+    description: `A laugh-out-loud, slice-of-life martial-arts fantasy about . . . farming????
+
+Jin Rou wanted to be a cultivator. A man powerful enough to defy the heavens. A master of martial arts. A lord of spiritual power. Unfortunately for him, he died, and now I’m stuck in his body.
+
+Arrogant Masters? Heavenly Tribulations? All that violence and bloodshed? Yeah, no thanks. I’m getting out of here.
+
+Farm life sounds pretty great. Tilling a field by hand is fun when you’ve got the strength of ten men—though maybe I shouldn’t have fed those Spirit Herbs to my pet rooster. I’m not used to seeing a chicken move with such grace . . . but Qi makes everything kind of wonky, so it’s probably fine.
+
+Instead of a lifetime of battle, my biggest concerns are building a house, the size of my harvest, and the way the girl from the nearby village glares at me when I tease her.
+
+A slow, simple, fulfilling life in a place where nothing exciting or out of the ordinary ever happens . . . right?
+
+The first volume of the blockbuster progression-fantasy series—with more than 20 million views on Royal Road—now available in paperback, ebook, and audiobook!`,
+    review: `Also super cozy. I got my 70 year old parents to listen to this one and they loved it.`,
   },
   {
+    id: `asin-B07G4MX1Z4`,
     title: `The Wandering Inn: Book One in The Wandering Inn Series`,
-    affiliate_link: `https://amzn.to/4jzfKFZ`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `pirate aba`,
+        linkToContributor: `https://www.amazon.com/stores/pirate-aba/author/B07XCYVYMW?ccs_id=e6372c96-6bc9-4f52-a21d-479aed9cefe7&linkCode=ll2&tag=litrpgacademy-20&linkId=55448ae5b56a83e8c38da821233658c5&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/4jzfKFZ`,
     poster: `https://m.media-amazon.com/images/I/41zGUBv9XHL._SY445_SX342_PQ35_.jpg`,
-    description: `Great story. Very epic. Lots of fun and unique characters. The story is super duper long and still going strong.`,
+    description: `(This novel is the e-book version of the free web serial. You may read the entire ongoing story at wanderinginn.com free of charge.)
+
+“No killing Goblins.”
+
+So reads the sign outside of The Wandering Inn, a small building run by a young woman named Erin Solstice. She serves pasta with sausage, blue fruit juice, and dead acid flies on request. And she comes from another world. Ours.
+
+It’s a bad day when Erin finds herself transported to a fantastical world and nearly gets eaten by a Dragon. She doesn’t belong in a place where monster attacks are a fact of life, and where Humans are one species among many. But she must adapt to her new life. Or die.
+
+In a dangerous world where magic is real and people can level up and gain classes, Erin Solstice must battle somewhat evil Goblins, deadly Rock Crabs, and hungry [Necromancers]. She is no warrior, no mage. Erin Solstice runs an inn. She’s an [Innkeeper].`,
+    review: `Great story. Very epic. Lots of fun and unique characters. The story is super duper long and still going strong.`,
   },
   {
+    id: `asin-B08BKGYQXW`,
     title: `Dungeon Crawler Carl: Dungeon Crawler Carl Book 1`,
-    affiliate_link: `https://amzn.to/3SA9faY`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Matt Dinniman`,
+        linkToContributor: `https://www.amazon.com/stores/Matt-Dinniman/author/B002BLP1QY?ccs_id=8a36f884-0fd7-4580-9f54-7fe448735146&linkCode=ll2&tag=litrpgacademy-20&linkId=293fa6dd5d7534bf82af637f18271efb&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/3SA9faY`,
     poster: `https://m.media-amazon.com/images/I/81XbhUrUsBL._SY522_.jpg`,
-    description: `It's been a while since I've read this (pretty sure book 4 had just come out). Great characters and so fun as you learn more and more about the world Carl is thrust into.`,
+    description: `The apocalypse will be televised!
+You know what’s worse than breaking up with your girlfriend? Being stuck with her prize-winning show cat. And you know what’s worse than that? An alien invasion, the destruction of all man-made structures on Earth, and the systematic exploitation of all the survivors for a sadistic intergalactic game show. That’s what.
+
+Join Coast Guard vet Carl and his ex-girlfriend’s cat, Princess Donut, as they try to survive the end of the world—or just get to the next level—in a video game–like, trap-filled fantasy dungeon. A dungeon that’s actually the set of a reality television show with countless viewers across the galaxy. Exploding goblins. Magical potions. Deadly, drug-dealing llamas. This ain’t your ordinary game show.
+
+Welcome, Crawler. Welcome to the Dungeon. Survival is optional. Keeping the viewers entertained is not.`,
+    review: `It's been a while since I've read this (pretty sure book 4 had just come out). Great characters and so fun as you learn more and more about the world Carl is thrust into.`,
   },
   {
+    id: `asin-B01H1CYBS6`,
     title: `Unsouled (Cradle Book 1)`,
-    affiliate_link: `https://amzn.to/3ZfgFnT`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Will Wight`,
+        linkToContributor: `https://www.amazon.com/stores/Will-Wight/author/B00D9S1IMO?ccs_id=2372ed37-dc1b-4a3c-86a6-36bd626fd407&linkCode=ll2&tag=litrpgacademy-20&linkId=80b46c566ed5921f8a8565ee241670e8&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/3ZfgFnT`,
     poster: `https://m.media-amazon.com/images/I/513JnJQpruL._SY445_SX342_PQ35_.jpg`,
-    description: `Super fun read. Great progression. The unfolding of each new cultivation level opens up the world (and universe) a bit more so it keeps you on your toes. `,
+    description: `The first book in the New York Times bestselling Cradle series!
+
+Lindon is born Unsouled, the one person in his family unable to use the magical Paths of the sacred arts. He uses every trick and technique he can borrow or steal to improve his life, but it seems he will never be able to join the ranks of the truly powerful.
+
+Until the heavens descend and show him the future.
+
+When Lindon becomes the only one who sees the approaching doom, he must leave his homeland to save it... and to see how far he can go by walking his own Path.
+
+Cradle is now complete! This 12-book series begins here with Unsouled and concludes with Waybound.`,
+    review: `Super fun read. Great progression. The unfolding of each new cultivation level opens up the world (and universe) a bit more so it keeps you on your toes. `,
   },
   {
+    id: `asin-B08WCT9W26`,
     title: `He Who Fights with Monsters: A LitRPG Adventure`,
-    affiliate_link: `https://amzn.to/43q5Bqm`,
+    contributors: [
+      {
+        contributorType: `AUTHOR`,
+        name: `Shirtaloon`,
+        linkToContributor: `https://www.amazon.com/stores/Shirtaloon/author/B08VWFRTMS?isDramIntegrated=true&shoppingPortalEnabled=true&ccs_id=98b4f95b-0060-409d-a87d-98e91d0ec904&linkCode=ll2&tag=litrpgacademy-20&linkId=7c9ef0b913a81e9d88706ca7c369ef56&language=en_US&ref_=as_li_ss_tl`,
+      },
+    ],
+    source_url: `https://amzn.to/43q5Bqm`,
     poster: `https://m.media-amazon.com/images/I/51l0a6bIDQL._SY445_SX342_PQ35_.jpg`,
-    description: `Classic litrpg. Great world building and great characters.`,
+    description: `Jason wakes up in a mysterious world of magic and monsters.
+
+It’s not easy making the career jump from office-supplies-store middle manager to heroic interdimensional adventurer. At least, Jason tries to be heroic, but it's hard to be good when all your powers are evil.
+
+He’ll face off against cannibals, cultists, wizards, monsters...and that’s just on the first day. He’s going to need courage, he’s going to need wit, and he’s going to need some magic powers of his own. But first, he’s going to need pants.
+
+After cementing itself as one of the best-rated serial novels on Royal Road with an astonishing 13 million views, He Who Fights with Monsters is now available on Kindle.
+
+About the series: Experience an isekai culture clash as a laid-back Australian finds himself in a very serious world. See him gain suspiciously evil powers through a unique progression system combining cultivation and traditional LitRPG elements. Enjoy a weak-to-strong story with a main character who earns his power without overshadowing everyone around him, with plenty of loot, adventurers, gods and magic. Rich characters and world-building offer humor, political intrigue and slice-of-life elements alongside lots of monster fighting and adventure.`,
+    review: `Classic litrpg. Great world building and great characters.`,
   },
-];
+]
 
 const SORT_OPTIONS = [
-  { value: "trending", label: "Trending" },
-  { value: "rating", label: "Rating" },
-  { value: "followers", label: "Followers" },
-  { value: "views", label: "Views" },
-  { value: "pages", label: "Pages" },
-  { value: "latest", label: "Latest" },
-];
+  { value: 'trending', label: 'Trending' },
+  { value: 'rating', label: 'Rating' },
+  { value: 'followers', label: 'Followers' },
+  { value: 'views', label: 'Views' },
+  { value: 'pages', label: 'Pages' },
+  { value: 'latest', label: 'Latest' },
+]
 
 export function BooksPage() {
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState("trending");
-  const [minRating, setMinRating] = useState(0);
-  const [minPages, setMinPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState('trending')
+  const [minRating, setMinRating] = useState(0)
+  const [minPages, setMinPages] = useState(0)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
 
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 300); // 300ms delay
+      setDebouncedSearchQuery(searchQuery)
+    }, 300) // 300ms delay
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
   // Fetch books with current filters
   const { data: books = [], isLoading } = useQuery<Book[]>({
-    queryKey: ["books", selectedTags, minRating, minPages, sortBy, debouncedSearchQuery],
+    queryKey: [
+      'books',
+      selectedTags,
+      minRating,
+      minPages,
+      sortBy,
+      debouncedSearchQuery,
+    ],
     queryFn: () =>
       searchBooks({
         tags: selectedTags,
@@ -100,62 +261,58 @@ export function BooksPage() {
         sortBy,
         query: debouncedSearchQuery,
       }),
-  });
+  })
 
   const handleAuthorClick = (authorName: string) => {
-    window.location.href = `/author/${encodeURIComponent(authorName)}`;
-  };
+    window.location.href = `/author/${encodeURIComponent(authorName)}`
+  }
 
   const handleTagClick = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag)
-        ? prev.filter((t) => t !== tag)
-        : [...prev, tag]
-    );
-  };
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    )
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className='container mx-auto px-4 py-8'>
       {/* Affiliate Recommendations */}
-      <section className="mb-16">
-        <h2 className="text-2xl font-bold text-copper">
+      <section className='mb-16'>
+        <h2 className='text-2xl font-bold text-copper'>
           Recommended Amazon Kindle Books
         </h2>
-        <div className="text-light-gray text-md mb-8">
+        <div className='text-light-gray text-md mb-8'>
           If you are just getting into litrpg, these are some of my (and my
           family's) all time favorites. Clicking on any title will take you to
           the amazon page and as an Amazon Associate I earn from qualifying
           purchases.
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8'>
           {AFFILIATE_LINKS.map((book, index) => (
             <div
               key={index}
-              className="bg-[#1a1a1a] rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl group flex flex-col sm:flex-row lg:flex-col"
-            >
+              className='bg-[#1a1a1a] rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl group flex flex-col sm:flex-row lg:flex-col'>
               <a
                 href={book.affiliate_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full"
-              >
-                <div className="relative sm:w-48 lg:w-full">
-                  <div className="relative pb-[150%] bg-[#1a1a1a]">
+                target='_blank'
+                rel='noopener noreferrer'
+                className='block w-full'>
+                <div className='relative sm:w-48 lg:w-full'>
+                  <div className='relative pb-[150%] bg-[#1a1a1a]'>
                     <img
                       src={book.poster}
                       alt={book.title}
-                      className="absolute inset-0 w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-90"
+                      className='absolute inset-0 w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-90'
                     />
                   </div>
                 </div>
-                <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-lg font-bold text-copper mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors duration-300">
+                <div className='p-6 flex flex-col flex-grow'>
+                  <h3 className='text-lg font-bold text-copper mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors duration-300'>
                     {book.title}
                   </h3>
-                  <p className="text-light-gray text-sm leading-relaxed flex-grow">
+                  <p className='text-light-gray text-sm leading-relaxed flex-grow'>
                     {book.description}
                   </p>
-                  <div className="mt-4 text-xs text-copper opacity-80 font-medium uppercase tracking-wider">
+                  <div className='mt-4 text-xs text-copper opacity-80 font-medium uppercase tracking-wider'>
                     View on Amazon →
                   </div>
                 </div>
@@ -166,60 +323,58 @@ export function BooksPage() {
       </section>
 
       {/* Royal Road Books Section */}
-      <section className="mt-16">
-        <h2 className="text-2xl font-bold mb-8 text-copper">
+      <section className='mt-16'>
+        <h2 className='text-2xl font-bold mb-8 text-copper'>
           Browse Royal Road Books
         </h2>
 
         {/* Filters */}
-        <div className="mb-8 bg-slate p-6 rounded-lg shadow">
+        <div className='mb-8 bg-slate p-6 rounded-lg shadow'>
           {/* Search Input */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium text-light-gray mb-2">
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-light-gray mb-2'>
               Search Books
             </label>
-            <div className="relative">
+            <div className='relative'>
               <input
-                type="text"
+                type='text'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by title, author, or description..."
-                className="w-full p-3 pr-10 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper placeholder-gray-400"
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder='Search by title, author, or description...'
+                className='w-full p-3 pr-10 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper placeholder-gray-400'
               />
               {searchQuery && (
                 <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light-gray"
-                  type="button"
-                >
+                  onClick={() => setSearchQuery('')}
+                  className='absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-light-gray'
+                  type='button'>
                   ✕
                 </button>
               )}
             </div>
             {debouncedSearchQuery && (
-              <div className="mt-2 text-sm text-copper">
+              <div className='mt-2 text-sm text-copper'>
                 Searching for: "{debouncedSearchQuery}"
               </div>
             )}
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-light-gray mb-2">
+              <label className='block text-sm font-medium text-light-gray mb-2'>
                 Tags
               </label>
-              <div className="flex flex-wrap gap-2">
+              <div className='flex flex-wrap gap-2'>
                 {LITRPG_RELATED_TAGS.map((tag: string) => (
                   <button
                     key={tag}
                     onClick={() => handleTagClick(tag)}
                     className={`px-3 py-1 rounded-full text-sm ${
                       selectedTags.includes(tag)
-                        ? "bg-copper text-dark-blue"
-                        : "bg-medium-gray text-light-gray"
-                    } transition-colors duration-200`}
-                  >
+                        ? 'bg-copper text-dark-blue'
+                        : 'bg-medium-gray text-light-gray'
+                    } transition-colors duration-200`}>
                     {tag}
                   </button>
                 ))}
@@ -228,32 +383,31 @@ export function BooksPage() {
 
             {/* Rating Filter */}
             <div>
-              <label className="block text-sm font-medium text-light-gray mb-2">
+              <label className='block text-sm font-medium text-light-gray mb-2'>
                 Minimum Rating
               </label>
               <input
-                type="range"
-                min="0"
-                max="5"
-                step="0.5"
+                type='range'
+                min='0'
+                max='5'
+                step='0.5'
                 value={minRating}
-                onChange={(e) => setMinRating(parseFloat(e.target.value))}
-                className="w-full accent-copper"
+                onChange={e => setMinRating(parseFloat(e.target.value))}
+                className='w-full accent-copper'
               />
-              <span className="text-sm text-light-gray">{minRating} stars</span>
+              <span className='text-sm text-light-gray'>{minRating} stars</span>
             </div>
 
             {/* Sort By */}
             <div>
-              <label className="block text-sm font-medium text-light-gray mb-2">
+              <label className='block text-sm font-medium text-light-gray mb-2'>
                 Sort By
               </label>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper"
-              >
-                {SORT_OPTIONS.map((option) => (
+                onChange={e => setSortBy(e.target.value)}
+                className='w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper'>
+                {SORT_OPTIONS.map(option => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -265,20 +419,23 @@ export function BooksPage() {
 
         {/* Books Grid */}
         {isLoading ? (
-          <div className="text-center py-12 text-light-gray">
-            <div className="animate-pulse">
-              {debouncedSearchQuery ? `Searching for "${debouncedSearchQuery}"...` : "Loading books..."}
+          <div className='text-center py-12 text-light-gray'>
+            <div className='animate-pulse'>
+              {debouncedSearchQuery
+                ? `Searching for "${debouncedSearchQuery}"...`
+                : 'Loading books...'}
             </div>
           </div>
         ) : (
           <>
             {debouncedSearchQuery && (
-              <div className="mb-4 text-sm text-light-gray">
-                Found {books.length} book{books.length !== 1 ? 's' : ''} matching "{debouncedSearchQuery}"
+              <div className='mb-4 text-sm text-light-gray'>
+                Found {books.length} book{books.length !== 1 ? 's' : ''}{' '}
+                matching "{debouncedSearchQuery}"
               </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {books.map((book) => (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+              {books.map(book => (
                 <BookCard
                   key={book.id}
                   book={book}
@@ -287,13 +444,14 @@ export function BooksPage() {
               ))}
             </div>
             {books.length === 0 && debouncedSearchQuery && (
-              <div className="text-center py-12 text-medium-gray">
-                No books found matching "{debouncedSearchQuery}". Try adjusting your search terms or filters.
+              <div className='text-center py-12 text-medium-gray'>
+                No books found matching "{debouncedSearchQuery}". Try adjusting
+                your search terms or filters.
               </div>
             )}
           </>
         )}
       </section>
     </div>
-  );
+  )
 }
