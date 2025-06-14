@@ -8,7 +8,7 @@ import {
   searchBooks,
   getSimilarBooks,
   getAuthorBooks,
-  LITRPG_RELATED_TAGS,
+  getPopularTags,
   setPrismaInstance
 } from '../../lib/royalroad';
 
@@ -59,10 +59,11 @@ export const handler: Handler = async (event) => {
 
     switch (endpoint) {
       case 'tags':
+        const popularTags = await getPopularTags(12);
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify(LITRPG_RELATED_TAGS)
+          body: JSON.stringify(popularTags)
         };
 
       case 'books':
@@ -184,8 +185,19 @@ export const handler: Handler = async (event) => {
               };
 
             case 'search':
+              // Handle both array format and comma-separated string format
+              let tagsArray: string[] = [];
+              if (params.tags) {
+                if (Array.isArray(params.tags)) {
+                  tagsArray = params.tags;
+                } else if (typeof params.tags === 'string') {
+                  // Split comma-separated string and trim whitespace
+                  tagsArray = params.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+                }
+              }
+              
               const searchResults = await searchBooks({
-                tags: params.tags ? (Array.isArray(params.tags) ? params.tags : [params.tags]) : [],
+                tags: tagsArray,
                 minRating: params.minRating ? parseFloat(params.minRating) : undefined,
                 minPages: params.minPages ? parseInt(params.minPages) : undefined,
                 sortBy: params.sortBy as any,
@@ -193,6 +205,7 @@ export const handler: Handler = async (event) => {
                 offset: params.offset ? parseInt(params.offset) : undefined,
                 query: params.query || undefined,
               });
+              
               return {
                 statusCode: 200,
                 headers,

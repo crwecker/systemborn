@@ -162,15 +162,20 @@ export async function fetchAuthorBooks(authorName: string): Promise<Book[]> {
 }
 
 export async function fetchAvailableTags(): Promise<string[]> {
-  const response = await fetch('/api/tags')
-  if (!response.ok) {
-    throw new Error('Failed to fetch tags')
+  try {
+    const response = await fetch(`${API_BASE_URL}/tags`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch tags')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching tags:', error)
+    throw error
   }
-  return response.json()
 }
 
 // Book Tiers API functions
-import type { BookTier, BookReview, TierLevel } from '../types/book'
+import type { BookTier, BookReview, TierLevel, ReadingStatus } from '../types/book'
 
 // Helper function to get auth headers
 function getAuthHeaders() {
@@ -198,13 +203,14 @@ export async function fetchUserBookTiers(userId: string): Promise<BookTier[]> {
 
 export async function assignBookToTier(
   bookId: string,
-  tier: TierLevel
+  tier: TierLevel,
+  readingStatus: ReadingStatus = 'FINISHED'
 ): Promise<BookTier> {
   try {
     const response = await fetch(`${USER_API_BASE_URL}/tiers`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ bookId, tier }),
+      body: JSON.stringify({ bookId, tier, readingStatus }),
     })
     if (!response.ok) {
       throw new Error('Failed to assign book to tier')
@@ -232,6 +238,26 @@ export async function updateBookTier(
     return await response.json()
   } catch (error) {
     console.error('Error updating book tier:', error)
+    throw error
+  }
+}
+
+export async function updateReadingStatus(
+  bookId: string,
+  readingStatus: ReadingStatus
+): Promise<BookTier> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/reading-status`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ bookId, readingStatus }),
+    })
+    if (!response.ok) {
+      throw new Error('Failed to update reading status')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error updating reading status:', error)
     throw error
   }
 }

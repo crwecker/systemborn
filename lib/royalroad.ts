@@ -344,7 +344,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
         };
 
         console.log(`Processed book: ${book.title} by ${book.author.name} (Rating: ${book.rating})`);
-        console.log(`Stats: Views: ${book.stats.views.total} (avg: ${book.stats.views.average}), Followers: ${book.stats.followers}, Favorites: ${book.stats.favorites}, Ratings: ${book.stats.ratings_count}`);
+        console.log(`Stats: Views: ${book.stats?.views.total} (avg: ${book.stats?.views.average}), Followers: ${book.stats?.followers}, Favorites: ${book.stats?.favorites}, Ratings: ${book.stats?.ratings_count}`);
         books.push(book);
         
         // Add a small delay between requests
@@ -483,7 +483,7 @@ export async function updateBookStats(bookId: string): Promise<void> {
     await prisma.bookStats.create({
       data: {
         ...dbStats,
-        book: { connect: { id: bookId } },
+        bookId: bookId,
       },
     });
   } catch (error) {
@@ -574,20 +574,8 @@ export async function fetchAvailableTags(): Promise<string[]> {
 }
 
 // Constants for our target genres
-export const LITRPG_RELATED_TAGS = [
-  "litrpg",
-  "gamelit",
-  "progression",
-  "xianxia",
-  "cultivation",
-  "portal fantasy",
-  "isekai",
-  "dungeon",
-  "system",
-  "apocalypse",
-] as const;
-
-type LitRPGTag = (typeof LITRPG_RELATED_TAGS)[number];
+// Legacy function - kept for backward compatibility
+// Gets books with common LitRPG-related tags
 
 export interface BookSearchParams {
   tags?: string[];
@@ -602,9 +590,12 @@ export interface BookSearchParams {
 
 // Get all books that match our target genres
 export async function getLitRPGBooks(): Promise<Book[]> {
+  // Get popular tags dynamically
+  const popularTags = await getPopularTags(12);
+  
   const books = await prisma.book.findMany({
     where: {
-      OR: LITRPG_RELATED_TAGS.map((tag) => ({
+      OR: popularTags.map((tag) => ({
         tags: {
           hasSome: [
             tag,
@@ -658,9 +649,12 @@ export async function getLitRPGBooks(): Promise<Book[]> {
 export async function getTrendingLitRPGBooks(
   limit: number = 10
 ): Promise<Book[]> {
+  // Get popular tags dynamically
+  const popularTags = await getPopularTags(12);
+  
   const books = await prisma.book.findMany({
     where: {
-      OR: LITRPG_RELATED_TAGS.map((tag) => ({
+      OR: popularTags.map((tag) => ({
         tags: {
           hasSome: [
             tag,
@@ -745,14 +739,20 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   // Build the where clause
   const where: any = {};
 
-  // Use exact tag matching
-  if (tags.length > 0) {
-    where.tags = {
-      hasSome: tags
-    };
-  }
+  // Remove database-level tag filtering - we'll do fuzzy matching in JavaScript
+  // if (tags.length > 0) {
+  //   where.tags = {
+  //     hasSome: tags.flatMap(tag => [
+  //       tag,
+  //       tag.toLowerCase(),
+  //       tag.toUpperCase(),
+  //       tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),
+  //     ])
+  //   };
+  // }
 
-  const searchLimit = query && query.trim() ? undefined : limit;
+  // When filtering by tags, we need to fetch more books since we're filtering in JavaScript
+  const searchLimit = query && query.trim() ? undefined : (tags.length > 0 ? undefined : limit);
 
   // Include stats for filtering
   const books = await prisma.book.findMany({
@@ -767,13 +767,26 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     skip: offset,
   });
 
-  // Post-process to apply filters
+  // Post-process to apply filters including fuzzy tag matching
   const filteredBooks = books.filter((book) => {
     const latestStats = book.stats?.[0];
     if (!latestStats) return false;
 
     if (minRating && latestStats.rating < minRating) return false;
     if (minPages && latestStats.pages < minPages) return false;
+
+    // Apply fuzzy tag filtering
+    if (tags.length > 0) {
+      const bookTags = book.tags.map(tag => tag.toLowerCase());
+      const selectedTags = tags.map(tag => tag.toLowerCase());
+      
+      // ALL selected tags must match (AND logic)
+      const hasAllMatchingTags = selectedTags.every(selectedTag => 
+        bookTags.some(bookTag => bookTag.includes(selectedTag))
+      );
+      
+      if (!hasAllMatchingTags) return false;
+    }
 
     return true;
   });
@@ -823,6 +836,11 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
           return 0;
       }
     });
+    
+    // Apply limit after sorting when we have tag filtering
+    if (tags.length > 0) {
+      processedBooks = processedBooks.slice(0, limit);
+    }
   }
 
   return convertBooksToApiFormat(processedBooks);
@@ -972,4 +990,40 @@ function parseStats(element: any): BookStats {
 
   console.log('Final parsed stats:', stats);
   return stats;
+}
+
+// Get the most popular tags from the database
+export async function getPopularTags(limit: number = 12): Promise<string[]> {
+  try {
+    // Get all books with their tags
+    const books = await prisma.book.findMany({
+      select: { tags: true }
+    });
+
+    // Count tag frequency and keep track of the most common case
+    const tagFrequency: Record<string, { count: number; originalCase: string }> = {};
+    
+    books.forEach(book => {
+      book.tags.forEach(tag => {
+        const lowerTag = tag.toLowerCase();
+        if (tagFrequency[lowerTag]) {
+          tagFrequency[lowerTag].count += 1;
+        } else {
+          tagFrequency[lowerTag] = { count: 1, originalCase: tag };
+        }
+      });
+    });
+
+    // Sort tags by frequency (most popular first) and return top N with original case
+    const sortedTags = Object.values(tagFrequency)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, limit)
+      .map(({ originalCase }) => originalCase);
+
+    return sortedTags;
+  } catch (error) {
+    console.error('Error fetching popular tags:', error);
+    // Fallback to some common tags if database query fails
+    return ['LitRPG', 'Progression', 'GameLit', 'Fantasy', 'Adventure', 'Action'];
+  }
 } 

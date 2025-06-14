@@ -69,6 +69,9 @@ export const handler: Handler = async (event) => {
       case 'tiers':
         return await handleTiersEndpoint(event.httpMethod, path, user.id, body);
       
+      case 'reading-status':
+        return await handleReadingStatusEndpoint(event.httpMethod, user.id, body);
+      
       case 'reviews':
         return await handleReviewsEndpoint(event.httpMethod, path, user.id, body);
       
@@ -164,7 +167,7 @@ async function handleTiersEndpoint(method: string, path: string[], userId: strin
 
     case 'POST':
       // Create new tier assignment
-      const { bookId, tier } = body;
+      const { bookId, tier, readingStatus } = body;
       
       if (!bookId || !tier) {
         return {
@@ -196,8 +199,16 @@ async function handleTiersEndpoint(method: string, path: string[], userId: strin
         where: {
           userId_bookId: { userId, bookId }
         },
-        update: { tier },
-        create: { userId, bookId, tier },
+        update: { 
+          tier,
+          ...(readingStatus && { readingStatus })
+        },
+        create: { 
+          userId, 
+          bookId, 
+          tier,
+          readingStatus: readingStatus || 'FINISHED'
+        },
         include: { 
           book: {
             include: {
@@ -308,6 +319,63 @@ async function handleTiersEndpoint(method: string, path: string[], userId: strin
         statusCode: 204,
         headers,
         body: ''
+      };
+
+    default:
+      return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ error: 'Method not allowed' })
+      };
+  }
+}
+
+async function handleReadingStatusEndpoint(method: string, userId: string, body: any) {
+  switch (method) {
+    case 'POST':
+      // Update reading status
+      const { bookId, readingStatus } = body;
+      
+      if (!bookId || !readingStatus) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'bookId and readingStatus are required' })
+        };
+      }
+
+      const updatedTier = await prisma.bookTier.upsert({
+        where: {
+          userId_bookId: { userId, bookId }
+        },
+        update: { readingStatus },
+        create: { 
+          userId, 
+          bookId, 
+          readingStatus
+          // tier is optional and will default to null
+        },
+        include: { 
+          book: {
+            include: {
+              stats: {
+                orderBy: { createdAt: 'desc' },
+                take: 1
+              }
+            }
+          }
+        }
+      });
+
+      const transformedTier = {
+        ...updatedTier,
+        book: updatedTier.book ? transformBookForFrontend(updatedTier.book) : null
+      };
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify(transformedTier)
       };
 
     default:

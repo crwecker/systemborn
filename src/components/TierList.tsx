@@ -182,7 +182,7 @@ const DraggableBookItem: React.FC<DraggableBookItemProps> = ({
         <div className='relative w-full h-full'>
           <SimplifiedBookCard
             book={bookTier.book}
-            tier={bookTier.tier}
+            tier={bookTier.tier || undefined}
             compact={compact}
           />
           <button
@@ -310,12 +310,16 @@ const TierList: React.FC = () => {
     })
   )
 
-  // Separate premium tiers (SSS, SS, S), read tier, and regular tiers
+  // Separate premium tiers (SSS, SS, S) and regular tiers
   const premiumTiers = tierData.filter(t => ['SSS', 'SS', 'S'].includes(t.tier))
-  const readTier = tierData.find(t => t.tier === 'READ')
   const regularTiers = tierData.filter(
-    t => !['SSS', 'SS', 'S', 'READ'].includes(t.tier)
+    t => !['SSS', 'SS', 'S'].includes(t.tier)
   )
+  
+  // Create staging area with books that have READING or FINISHED status but no tier assigned
+  const stagingBooks = bookTiers.filter(bt => {
+    return bt.readingStatus && ['READING', 'FINISHED'].includes(bt.readingStatus) && bt.tier === null
+  })
 
   const handleRemoveFromTier = (tierId: string) => {
     if (window.confirm('Remove this book from your tier list?')) {
@@ -345,11 +349,14 @@ const TierList: React.FC = () => {
 
     // If dropped on another book, get that book's tier
     const overBookTier = bookTiers.find(bt => bt.id === overId)
-    if (overBookTier) {
+    if (overBookTier && overBookTier.tier) {
       targetTier = overBookTier.tier
     } else {
       // If dropped on a tier container, use that tier
-      targetTier = overId as TierLevel
+      // Only assign if overId is a valid TierLevel
+      if (Object.keys(TIER_CONFIG).includes(overId)) {
+        targetTier = overId as TierLevel
+      }
     }
 
     if (!targetTier || targetTier === activeBookTier.tier) return
@@ -462,12 +469,12 @@ const TierList: React.FC = () => {
             </div>
           </div>
 
-          {/* Read but Unranked Collection */}
-          {readTier && (
+          {/* Staging Area - Books with READING or FINISHED status */}
+          {stagingBooks.length > 0 && (
             <div className='bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl p-4 border-2 border-blue-100'>
               <div className='mb-3'>
                 <h2 className='text-xl font-bold text-gray-900 mb-1'>
-                  Read Collection
+                  Staging Area
                 </h2>
                 <div className='flex items-center gap-2 text-xs text-blue-700 bg-blue-100 rounded-lg px-3 py-2'>
                   <svg
@@ -481,89 +488,44 @@ const TierList: React.FC = () => {
                     />
                   </svg>
                   <span>
-                    <strong>Staging Area:</strong> These books are marked as
-                    read and ready to be ranked by dragging them into other
-                    tiers
+                    <strong>Staging Area:</strong> Books you're reading or have finished - drag them into tiers to rank them
                   </span>
                 </div>
               </div>
 
-              <TierDroppable
-                tier='READ'
-                className='border rounded-lg bg-white shadow-sm'>
+              <div className='border rounded-lg bg-white shadow-sm'>
                 <div className='flex items-stretch'>
                   {/* Tier Label Column */}
                   <div className='flex flex-col items-center justify-center p-4 min-w-[120px] border-r border-gray-200'>
-                    <div
-                      className={`px-3 py-2 rounded-lg text-white font-bold text-sm ${TIER_CONFIG.READ.color} mb-2`}>
-                      READ
+                    <div className='px-3 py-2 rounded-lg text-white font-bold text-sm bg-gradient-to-r from-blue-400 to-purple-400 mb-2'>
+                      STAGING
                     </div>
                     <div className='text-xs text-gray-500 text-center'>
-                      {readTier.books.length} book
-                      {readTier.books.length !== 1 ? 's' : ''}
+                      {stagingBooks.length} book
+                      {stagingBooks.length !== 1 ? 's' : ''}
                     </div>
                   </div>
 
                   {/* Books Content Column */}
                   <div className='flex-1 p-4'>
-                    <div
-                      className='min-h-[120px] p-4 rounded-lg bg-blue-50 border-2 border-dashed border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors'
-                      onClick={e => {
-                        // Only trigger search if clicking on the background, not on books
-                        if (
-                          e.target === e.currentTarget ||
-                          (e.target as Element).closest?.('.tier-background')
-                        ) {
-                          handleSearchAdd('READ')
-                        }
-                      }}>
+                    <div className='min-h-[120px] p-4 rounded-lg bg-blue-50 border-2 border-dashed border-blue-200'>
                       <SortableContext
-                        items={readTier.books.map(b => b.id)}
+                        items={stagingBooks.map(b => b.id)}
                         strategy={rectSortingStrategy}>
-                        {readTier.books.length === 0 ? (
-                          <div
-                            className='flex flex-col items-center justify-center h-32 text-blue-400 cursor-pointer hover:bg-blue-100 transition-colors rounded-lg'
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleSearchAdd('READ')
-                            }}>
-                            <div className='text-4xl mb-2'>+</div>
-                            <p>Click to search and mark books as read</p>
-                          </div>
-                        ) : (
-                          <div
-                            className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 cursor-pointer hover:bg-blue-100 rounded p-2 -m-2 transition-colors'
-                            onClick={e => {
-                              // Only trigger search if clicking on the grid background, not on books
-                              if (e.target === e.currentTarget) {
-                                handleSearchAdd('READ')
-                              }
-                            }}>
-                            {readTier.books.map(bookTier => (
-                              <DraggableBookItem
-                                key={bookTier.id}
-                                bookTier={bookTier}
-                                onRemove={handleRemoveFromTier}
-                              />
-                            ))}
-                            <div
-                              className='w-full h-full min-h-[120px] border-2 border-dashed border-blue-300 rounded-lg flex flex-col items-center justify-center text-blue-600 hover:border-blue-400 hover:text-blue-700 hover:bg-blue-50 transition-colors cursor-pointer group'
-                              onClick={e => {
-                                e.stopPropagation()
-                                handleSearchAdd('READ')
-                              }}>
-                              <div className='text-2xl group-hover:scale-110 transition-transform'>
-                                +
-                              </div>
-                              <div className='text-xs mt-1'>Search</div>
-                            </div>
-                          </div>
-                        )}
+                        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3'>
+                          {stagingBooks.map(bookTier => (
+                            <DraggableBookItem
+                              key={bookTier.id}
+                              bookTier={bookTier}
+                              onRemove={handleRemoveFromTier}
+                            />
+                          ))}
+                        </div>
                       </SortableContext>
                     </div>
                   </div>
                 </div>
-              </TierDroppable>
+              </div>
             </div>
           )}
 
@@ -666,7 +628,7 @@ const TierList: React.FC = () => {
             <div className='opacity-80'>
               <SimplifiedBookCard
                 book={activeBookTier.book}
-                tier={activeBookTier.tier}
+                tier={activeBookTier.tier || undefined}
               />
             </div>
           )}
@@ -684,8 +646,7 @@ const TierList: React.FC = () => {
             total - publicly visible to other users)
           </li>
           <li>
-            • <strong>Read Collection:</strong> Books you've marked as read but
-            haven't ranked yet (staging area)
+            • <strong>Staging Area:</strong> Books you're reading or have finished - drag them into tiers to rank them
           </li>
           <li>
             • <strong>Organization Tiers:</strong> Categorize the rest of your

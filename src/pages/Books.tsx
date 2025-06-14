@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { BookCard } from '../components/BookCard'
 import type { Book } from '../types/book'
-import { searchBooks, fetchTrendingBooks, fetchAmazonBooks } from '../services/api'
-import { LITRPG_RELATED_TAGS } from '../../lib/royalroad'
+import { searchBooks, fetchTrendingBooks, fetchAmazonBooks, fetchAvailableTags } from '../services/api'
 
 const SORT_OPTIONS = [
   { value: 'trending', label: 'Trending' },
@@ -22,6 +21,13 @@ export function BooksPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [sourceFilter, setSourceFilter] = useState<'ALL' | 'AMAZON' | 'ROYAL_ROAD'>('ALL')
+
+  // Fetch popular tags
+  const { data: popularTags = [] } = useQuery<string[]>({
+    queryKey: ['popular-tags'],
+    queryFn: fetchAvailableTags,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
 
   // Helper function to get authors from database structure
   const getAuthors = (book: any) => {
@@ -126,7 +132,12 @@ export function BooksPage() {
       // Apply tag filter
       if (selectedTags.length > 0) {
         const bookTags = book.tags || ['LitRPG']
-        return selectedTags.some(tag => bookTags.includes(tag))
+        // ALL selected tags must match (AND logic)
+        return selectedTags.every(tag => 
+          bookTags.some((bookTag: string) => 
+            bookTag.toLowerCase().includes(tag.toLowerCase())
+          )
+        )
       }
       
       return true
@@ -236,7 +247,7 @@ export function BooksPage() {
                 Tags
               </label>
               <div className='flex flex-wrap gap-2'>
-                {LITRPG_RELATED_TAGS.map((tag: string) => (
+                {popularTags.map((tag: string) => (
                   <button
                     key={tag}
                     onClick={() => handleTagClick(tag)}
@@ -256,16 +267,62 @@ export function BooksPage() {
               <label className='block text-sm font-medium text-light-gray mb-2'>
                 Minimum Rating
               </label>
-              <input
-                type='range'
-                min='0'
-                max='5'
-                step='0.5'
-                value={minRating}
-                onChange={e => setMinRating(parseFloat(e.target.value))}
-                className='w-full accent-copper'
-              />
-              <span className='text-sm text-light-gray'>{minRating} stars</span>
+              <div className='flex flex-wrap gap-2'>
+                <button
+                  onClick={() => setMinRating(0)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 0
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  Any Rating
+                </button>
+                <button
+                  onClick={() => setMinRating(3)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 3
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  3+ ★
+                </button>
+                <button
+                  onClick={() => setMinRating(3.5)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 3.5
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  3.5+ ★
+                </button>
+                <button
+                  onClick={() => setMinRating(4)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 4
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  4+ ★
+                </button>
+                <button
+                  onClick={() => setMinRating(4.5)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 4.5
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  4.5+ ★
+                </button>
+                <button
+                  onClick={() => setMinRating(5)}
+                  className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                    minRating === 5
+                      ? 'bg-copper text-dark-blue'
+                      : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                  }`}>
+                  5 ★
+                </button>
+              </div>
             </div>
 
             {/* Sort By */}
@@ -273,16 +330,20 @@ export function BooksPage() {
               <label className='block text-sm font-medium text-light-gray mb-2'>
                 Sort By
               </label>
-              <select
-                value={sortBy}
-                onChange={e => setSortBy(e.target.value)}
-                className='w-full p-2 rounded bg-medium-gray text-light-gray border-slate border focus:border-copper focus:ring-1 focus:ring-copper'>
+              <div className='flex flex-wrap gap-2'>
                 {SORT_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value)}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
+                      sortBy === option.value
+                        ? 'bg-copper text-dark-blue'
+                        : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                    }`}>
                     {option.label}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
           </div>
         </div>
@@ -313,7 +374,7 @@ export function BooksPage() {
                 <span className='text-copper'>from {sourceFilter === 'ROYAL_ROAD' ? 'Royal Road' : 'Amazon'}</span>
               </div>
             )}
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6'>
               {allBooks.map(book => (
                 <BookCard
                   key={book.id}
