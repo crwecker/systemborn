@@ -21,51 +21,7 @@ export function BooksPage() {
   const [minPages, setMinPages] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 300) // 300ms delay
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
-  // Fetch Amazon affiliate books
-  const { data: amazonBooks = [], isLoading: isLoadingAmazon } = useQuery<any[]>({
-    queryKey: ['amazon-books'],
-    queryFn: fetchAmazonBooks,
-  })
-
-  // Fetch books with current filters
-  const { data: books = [], isLoading } = useQuery<Book[]>({
-    queryKey: [
-      'books',
-      selectedTags,
-      minRating,
-      minPages,
-      sortBy,
-      debouncedSearchQuery,
-    ],
-    queryFn: () =>
-      searchBooks({
-        tags: selectedTags,
-        minRating,
-        minPages,
-        sortBy,
-        query: debouncedSearchQuery,
-      }),
-  })
-
-  const handleAuthorClick = (authorName: string) => {
-    window.location.href = `/author/${encodeURIComponent(authorName)}`
-  }
-
-  const handleTagClick = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    )
-  }
+  const [sourceFilter, setSourceFilter] = useState<'ALL' | 'AMAZON' | 'ROYAL_ROAD'>('ALL')
 
   // Helper function to get authors from database structure
   const getAuthors = (book: any) => {
@@ -86,74 +42,124 @@ export function BooksPage() {
     return 'No review available'
   }
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 300) // 300ms delay
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  // Fetch Royal Road books with current filters
+  const { data: royalRoadBooks = [], isLoading: isLoadingRoyalRoad } = useQuery<Book[]>({
+    queryKey: [
+      'books',
+      selectedTags,
+      minRating,
+      minPages,
+      sortBy,
+      debouncedSearchQuery,
+    ],
+    queryFn: () =>
+      searchBooks({
+        tags: selectedTags,
+        minRating,
+        minPages,
+        sortBy,
+        query: debouncedSearchQuery,
+      }),
+  })
+
+  // Fetch Amazon affiliate books
+  const { data: amazonBooks = [], isLoading: isLoadingAmazon } = useQuery<any[]>({
+    queryKey: ['amazon-books'],
+    queryFn: fetchAmazonBooks,
+  })
+
+  // Helper function to normalize Amazon books to Book format
+  const normalizeAmazonBook = (book: any): Book => {
+    return {
+      id: book.id,
+      title: book.title,
+      author: {
+        name: getAuthors(book)
+      },
+      description: book.description,
+      tags: book.tags || ['LitRPG'],
+      image: book.coverUrl || '',
+      url: book.sourceUrl,
+      rating: 0, // Amazon books don't have ratings in our system
+      coverUrl: book.coverUrl || '',
+      contentWarnings: book.contentWarnings || [],
+      stats: {
+        followers: 0,
+        views: { total: 0, average: 0 },
+        pages: 0,
+        favorites: 0,
+        ratings_count: 0,
+        overall_score: 0,
+        style_score: 0,
+        story_score: 0,
+        grammar_score: 0,
+        character_score: 0
+      },
+      source: 'AMAZON' as const
+    }
+  }
+
+  // Filter Amazon books based on search criteria
+  const filteredAmazonBooks = amazonBooks
+    .filter(book => {
+      // Apply search query filter
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase()
+        const title = book.title?.toLowerCase() || ''
+        const author = getAuthors(book)?.toLowerCase() || ''
+        const description = book.description?.toLowerCase() || ''
+        
+        if (!title.includes(query) && !author.includes(query) && !description.includes(query)) {
+          return false
+        }
+      }
+      
+      // Apply tag filter
+      if (selectedTags.length > 0) {
+        const bookTags = book.tags || ['LitRPG']
+        return selectedTags.some(tag => bookTags.includes(tag))
+      }
+      
+      return true
+    })
+    .map(normalizeAmazonBook)
+
+  // Combine and filter by source (Amazon books first)
+  const combinedBooks = [...filteredAmazonBooks, ...royalRoadBooks]
+  const allBooks = combinedBooks.filter(book => {
+    if (sourceFilter === 'ALL') return true
+    if (sourceFilter === 'AMAZON') return book.source === 'AMAZON'
+    if (sourceFilter === 'ROYAL_ROAD') return book.source === 'ROYAL_ROAD' || !book.source
+    return true
+  })
+  
+  const isLoading = isLoadingRoyalRoad || isLoadingAmazon
+
+  const handleAuthorClick = (authorName: string) => {
+    window.location.href = `/author/${encodeURIComponent(authorName)}`
+  }
+
+  const handleTagClick = (tag: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    )
+  }
+
   return (
     <div className='container mx-auto px-4 py-8'>
-      {/* Affiliate Recommendations */}
-      <section className='mb-16'>
-        <h2 className='text-2xl font-bold text-copper'>
-          Recommended Amazon Kindle Books
-        </h2>
-        <div className='text-light-gray text-md mb-8'>
-          If you are just getting into litrpg, these are some of my (and my
-          family's) all time favorites. Clicking on any title will take you to
-          the amazon page and as an Amazon Associate I earn from qualifying
-          purchases.
-        </div>
-
-        {isLoadingAmazon ? (
-          <div className='text-center py-12 text-light-gray'>
-            <div className='animate-pulse'>Loading affiliate recommendations...</div>
-          </div>
-        ) : (
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8'>
-            {amazonBooks.map((book: any) => (
-              <div
-                key={book.id}
-                className='bg-[#1a1a1a] rounded-lg shadow-lg overflow-hidden transition-transform duration-300 hover:scale-[1.02] hover:shadow-xl group flex flex-col sm:flex-row lg:flex-col'>
-                <a
-                  href={book.sourceUrl}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='block w-full'>
-                  <div className='relative sm:w-48 lg:w-full'>
-                    <div className='relative pb-[150%] bg-[#1a1a1a]'>
-                      <img
-                        src={book.coverUrl}
-                        alt={book.title}
-                        className='absolute inset-0 w-full h-full object-contain transition-opacity duration-300 group-hover:opacity-90'
-                      />
-                    </div>
-                  </div>
-                  <div className='p-6 flex flex-col flex-grow'>
-                    <h3 className='text-lg font-bold text-copper mb-3 line-clamp-2 group-hover:text-amber-400 transition-colors duration-300'>
-                      {book.title}
-                    </h3>
-                    <div className='text-sm text-light-gray mb-3'>
-                      by {getAuthors(book)}
-                    </div>
-                    <p className='text-light-gray text-sm leading-relaxed flex-grow mb-4'>
-                      {book.description}
-                    </p>
-                    {getReview(book) && (
-                      <div className='text-copper text-sm italic mb-4 p-3 bg-slate rounded'>
-                        "{getReview(book)}"
-                      </div>
-                    )}
-                    <div className='mt-4 text-xs text-copper opacity-80 font-medium uppercase tracking-wider'>
-                      View on Amazon →
-                    </div>
-                  </div>
-                </a>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Royal Road Books Section */}
-      <section className='mt-16'>
+      {/* Search and Filters */}
+      <section>
         <h2 className='text-2xl font-bold mb-8 text-copper'>
-          Browse Royal Road Books
+          Browse Books
         </h2>
 
         {/* Filters */}
@@ -185,6 +191,42 @@ export function BooksPage() {
                 Searching for: "{debouncedSearchQuery}"
               </div>
             )}
+          </div>
+
+          {/* Source Filter Buttons */}
+          <div className='mb-6'>
+            <label className='block text-sm font-medium text-light-gray mb-2'>
+              Source
+            </label>
+            <div className='flex flex-wrap gap-2'>
+              <button
+                onClick={() => setSourceFilter('ALL')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  sourceFilter === 'ALL'
+                    ? 'bg-copper text-dark-blue'
+                    : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                }`}>
+                All Sources
+              </button>
+              <button
+                onClick={() => setSourceFilter('ROYAL_ROAD')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  sourceFilter === 'ROYAL_ROAD'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-medium-gray text-light-gray hover:bg-blue-600 hover:text-white'
+                }`}>
+                Royal Road
+              </button>
+              <button
+                onClick={() => setSourceFilter('AMAZON')}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  sourceFilter === 'AMAZON'
+                    ? 'bg-orange-600 text-white'
+                    : 'bg-medium-gray text-light-gray hover:bg-orange-600 hover:text-white'
+                }`}>
+                Amazon
+              </button>
+            </div>
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
@@ -258,12 +300,21 @@ export function BooksPage() {
           <>
             {debouncedSearchQuery && (
               <div className='mb-4 text-sm text-light-gray'>
-                Found {books.length} book{books.length !== 1 ? 's' : ''}{' '}
+                Found {allBooks.length} book{allBooks.length !== 1 ? 's' : ''}{' '}
                 matching "{debouncedSearchQuery}"
+                {sourceFilter !== 'ALL' && (
+                  <span className='text-copper'> from {sourceFilter === 'ROYAL_ROAD' ? 'Royal Road' : 'Amazon'}</span>
+                )}
+              </div>
+            )}
+            {!debouncedSearchQuery && sourceFilter !== 'ALL' && (
+              <div className='mb-4 text-sm text-light-gray'>
+                Showing {allBooks.length} book{allBooks.length !== 1 ? 's' : ''}{' '}
+                <span className='text-copper'>from {sourceFilter === 'ROYAL_ROAD' ? 'Royal Road' : 'Amazon'}</span>
               </div>
             )}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
-              {books.map(book => (
+              {allBooks.map(book => (
                 <BookCard
                   key={book.id}
                   book={book}
@@ -271,7 +322,7 @@ export function BooksPage() {
                 />
               ))}
             </div>
-            {books.length === 0 && debouncedSearchQuery && (
+            {allBooks.length === 0 && debouncedSearchQuery && (
               <div className='text-center py-12 text-medium-gray'>
                 No books found matching "{debouncedSearchQuery}". Try adjusting
                 your search terms or filters.

@@ -11,7 +11,8 @@ export interface Book {
   rating: number
   coverUrl: string
   contentWarnings: string[]
-  stats: {
+  source?: 'ROYAL_ROAD' | 'AMAZON'
+  stats?: {
     followers: number
     views: {
       total: number
