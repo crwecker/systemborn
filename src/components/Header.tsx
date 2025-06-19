@@ -45,7 +45,7 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 bg-[#F5F5F7] shadow-md z-50 transition-transform duration-300 ${
+      className={`fixed top-0 left-0 right-0 bg-[#030e2f] shadow-md z-50 transition-transform duration-300 ${
         isVisible ? 'translate-y-0' : '-translate-y-full'
       }`}>
       <div className='container mx-auto px-4'>
@@ -67,21 +67,21 @@ export function Header() {
           <nav className='hidden md:flex items-center space-x-6'>
             <Link
               to='/'
-              className='text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg'>
+              className='text-white hover:text-gray-200 transition-colors text-lg'>
               Explore
             </Link>
             {isLoading ? (
-              <div className='text-[#2B324B]'>Loading...</div>
+              <div className='text-white'>Loading...</div>
             ) : isAuthenticated && user ? (
               <>
                 <Link
                   to='/my-tiers'
-                  className='text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg'>
+                  className='text-white hover:text-gray-200 transition-colors text-lg'>
                   My Tiers
                 </Link>
                 <Link
                   to='/community-favorites'
-                  className='text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg'>
+                  className='text-white hover:text-gray-200 transition-colors text-lg'>
                   Community Favorites
                 </Link>
                 <UserDropdown user={user} onLogout={logout} />
@@ -90,13 +90,13 @@ export function Header() {
               <>
                 <Link
                   to='/signin'
-                  className='text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg'>
+                  className='text-white hover:text-gray-200 transition-colors text-lg'>
                   Sign In
                 </Link>
                 <Link
                   to='/signup'
                   search={{ email: undefined, fromSignin: undefined }}
-                  className='bg-[#2B324B] text-white px-6 py-3 rounded-lg hover:bg-[#1A1F2E] transition-colors text-lg font-medium'>
+                  className='bg-white text-[#2B324B] px-6 py-3 rounded-lg hover:bg-gray-100 transition-colors text-lg font-medium'>
                   Sign Up
                 </Link>
               </>
@@ -107,7 +107,7 @@ export function Header() {
           <div className='md:hidden mobile-menu-container relative'>
             <button
               onClick={toggleMobileMenu}
-              className='text-[#2B324B] hover:text-[#1A1F2E] p-2 transition-colors'
+              className='text-white hover:text-gray-200 p-2 transition-colors'
               aria-label='Toggle mobile menu'>
               {isMobileMenuOpen ? (
                 <svg

@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import {
   assignBookToTier,
   fetchUserBookTiers,
@@ -16,8 +17,28 @@ interface BookCardProps {
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
   const [showBookActions, setShowBookActions] = useState(false)
+  const [showStatusEdit, setShowStatusEdit] = useState(false)
+  const [showTierEdit, setShowTierEdit] = useState(false)
   const { user } = useAuthContext()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setShowBookActions(false)
+        setShowStatusEdit(false)
+        setShowTierEdit(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const { data: userTiers = [] } = useQuery({
     queryKey: ['userBookTiers', user?.id],
@@ -38,6 +59,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userBookTiers'] })
       setShowBookActions(false)
+      setShowTierEdit(false)
+      setShowStatusEdit(false)
     },
   })
 
@@ -80,6 +103,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userBookTiers'] })
       setShowBookActions(false)
+      setShowTierEdit(false)
+      setShowStatusEdit(false)
     },
   })
 
@@ -91,7 +116,9 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
   const isAmazonBook = book.source === 'AMAZON'
 
   return (
-    <div className='bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group'>
+    <div 
+      ref={cardRef}
+      className='bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group'>
       <div className='relative pb-[150%] bg-[#1a1a1a]'>
         {isAmazonBook ? (
           <a
@@ -127,43 +154,150 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
         {user && (
           <div className='absolute top-2 right-2'>
             {existingTier ? (
-              <div className='flex flex-col gap-1'>
-                {/* Show reading status */}
+              <div className='flex flex-col gap-1 items-end'>
+                {/* Show reading status - clickable to edit */}
                 {existingTier?.readingStatus && (
-                  <div
-                    className={`px-2 py-1 rounded text-white text-xs font-bold ${READING_STATUS_CONFIG[existingTier.readingStatus]?.color || 'bg-gray-500'}`}
-                    title={
-                      READING_STATUS_CONFIG[existingTier.readingStatus]?.name ||
-                      'Unknown Status'
-                    }>
-                    {existingTier.readingStatus === 'WANT_TO_READ'
-                      ? 'Want'
-                      : existingTier.readingStatus === 'READING'
-                        ? 'Reading'
-                        : 'Finished'}
+                  <div className='relative'>
+                    <button
+                      onClick={() => {
+                        setShowStatusEdit(!showStatusEdit)
+                        setShowTierEdit(false)
+                      }}
+                      className={`px-2 py-1 rounded text-white text-xs font-bold hover:opacity-80 transition-opacity ${READING_STATUS_CONFIG[existingTier.readingStatus]?.color || 'bg-gray-500'}`}
+                      title={`Click to change - ${READING_STATUS_CONFIG[existingTier.readingStatus]?.name || 'Unknown Status'}`}>
+                      {existingTier.readingStatus === 'WANT_TO_READ'
+                        ? 'Want'
+                        : existingTier.readingStatus === 'READING'
+                          ? 'Reading'
+                          : 'Finished'}
+                    </button>
+                    
+                    {showStatusEdit && (
+                      <div className='absolute top-full right-0 mt-1 bg-slate border border-medium-gray rounded-lg shadow-lg z-50 min-w-[180px]'>
+                        <div className='p-2'>
+                          <div className='text-xs text-light-gray mb-2 font-medium'>
+                            Change Reading Status:
+                          </div>
+                          <div className='grid grid-cols-1 gap-1'>
+                            {Object.entries(READING_STATUS_CONFIG).map(
+                              ([status, config]) => {
+                                const isCurrentStatus = existingTier?.readingStatus === status
+                                
+                                return (
+                                  <button
+                                    key={status}
+                                    onClick={() => {
+                                      handleUpdateReadingStatus(status as ReadingStatus)
+                                      setShowStatusEdit(false)
+                                    }}
+                                    disabled={readingStatusMutation.isPending}
+                                    className={`px-3 py-2 rounded text-xs font-medium transition-colors disabled:opacity-50 text-left ${
+                                      isCurrentStatus
+                                        ? 'bg-copper text-dark-blue'
+                                        : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                                    }`}>
+                                    {config.name}
+                                  </button>
+                                )
+                              }
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-                {/* Show tier if book is reading or finished and has a tier */}
+                
                 {existingTier.readingStatus &&
                   ['READING', 'FINISHED'].includes(
                     existingTier.readingStatus
                   ) &&
                   existingTier.tier && (
-                    <div
-                      className={`px-2 py-1 rounded text-white text-xs font-bold ${TIER_CONFIG[existingTier.tier].color}`}
-                      title={`In ${TIER_CONFIG[existingTier.tier].name}`}>
-                      {existingTier.tier}
+                    <div className='relative'>
+                      <button
+                        onClick={() => {
+                          setShowTierEdit(!showTierEdit)
+                          setShowStatusEdit(false)
+                        }}
+                        className={`px-2 py-1 rounded text-white text-xs font-bold hover:opacity-80 transition-opacity ${TIER_CONFIG[existingTier.tier].color}`}
+                        title={`Click to change tier - In ${TIER_CONFIG[existingTier.tier].name}`}>
+                        {existingTier.tier}
+                      </button>
+                      
+                      {showTierEdit && (
+                        <div className='absolute top-full right-0 mt-1 bg-slate border border-medium-gray rounded-lg shadow-lg z-50 min-w-[200px]'>
+                          <div className='p-2'>
+                            <div className='text-xs text-light-gray mb-2 font-medium'>
+                              Change Tier:
+                            </div>
+                            <div className='grid grid-cols-2 gap-1'>
+                              {Object.entries(TIER_CONFIG).map(
+                                ([tier, config]) => {
+                                  const currentCount = userTiers.filter(
+                                    t => t.tier === tier
+                                  ).length
+                                  const isDisabled = config.maxBooks
+                                    ? currentCount >= config.maxBooks && existingTier?.tier !== tier
+                                    : false
+                                  const isCurrentTier = existingTier?.tier === tier
+
+                                  return (
+                                    <button
+                                      key={tier}
+                                      onClick={() => {
+                                        handleAddToTier(tier as TierLevel)
+                                        setShowTierEdit(false)
+                                      }}
+                                      disabled={
+                                        isDisabled || assignTierMutation.isPending
+                                      }
+                                      className={`px-2 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                        isCurrentTier
+                                          ? 'bg-copper text-dark-blue'
+                                          : isDisabled
+                                            ? 'bg-gray-600 text-gray-400'
+                                            : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
+                                      }`}
+                                      title={
+                                        config.maxBooks
+                                          ? `${currentCount}/${config.maxBooks} used`
+                                          : config.name
+                                      }>
+                                      {tier}
+                                      {config.maxBooks && (
+                                        <span className='text-xs opacity-75 ml-1'>
+                                          ({currentCount}/{config.maxBooks})
+                                        </span>
+                                      )}
+                                    </button>
+                                  )
+                                }
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                {/* Manage button */}
-                <button
-                  onClick={() => setShowBookActions(!showBookActions)}
-                  className='bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100'>
-                  Manage
-                </button>
+                
+                {/* Action button - just "View in My Tiers" for books with tiers */}
+                {existingTier?.tier ? (
+                  <button
+                    onClick={() => navigate({ to: '/my-tiers' })}
+                    className='bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100'>
+                    View in My Tiers
+                  </button>
+                ) : (
+                  // If book has no tier, show "Manage" button
+                  <button
+                    onClick={() => setShowBookActions(!showBookActions)}
+                    className='bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100'>
+                    Manage
+                  </button>
+                )}
               </div>
             ) : (
-              <div className='relative flex flex-col gap-1'>
+              <div className='relative flex flex-col gap-1 items-end'>
                 <button
                   onClick={() => setShowBookActions(!showBookActions)}
                   className='bg-copper text-dark-blue px-2 py-1 rounded text-xs font-medium hover:bg-light-gray transition-colors opacity-0 group-hover:opacity-100'>

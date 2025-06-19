@@ -11,7 +11,7 @@ export default {
         serif: ['Domine', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
       },
       colors: {
-        'dark-blue': '#0a0f1c',
+        'dark-blue': '#030e2f',
         'medium-blue': '#1a2333',
         'light-blue': '#2a3343',
         'copper': '#b87d42',
