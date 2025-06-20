@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BattleStoryConsole } from '../components/BattleStoryConsole'
+import { searchBooks } from '../services/api'
+import type { Book } from '../types/book'
 
 interface RealmBattlePageProps {
   realmId: string
@@ -15,11 +17,7 @@ interface RealmBoss {
   currentHitpoints: number
 }
 
-interface Book {
-  id: string
-  title: string
-  authorName: string
-}
+
 
 interface BattleStats {
   totalDamageToday: number
@@ -88,8 +86,11 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   const queryClient = useQueryClient()
   const [minutesRead, setMinutesRead] = useState('')
   const [selectedBookId, setSelectedBookId] = useState('')
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const [timelineHp, setTimelineHp] = useState<number | null>(null)
   const [isViewingTimeline, setIsViewingTimeline] = useState(false)
+  const [isBookSearchOpen, setIsBookSearchOpen] = useState(false)
+  const [bookSearchQuery, setBookSearchQuery] = useState('')
   
   const realmConfig = REALM_CONFIG[realmId as keyof typeof REALM_CONFIG]
   
@@ -107,15 +108,21 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     }
   })
 
-  // Fetch books for dropdown
-  const { data: books } = useQuery({
-    queryKey: ['books-simple'],
-    queryFn: async (): Promise<Book[]> => {
-      const response = await fetch('/.netlify/functions/api/books?limit=100')
-      if (!response.ok) throw new Error('Failed to fetch books')
-      const data = await response.json()
-      return data.books || []
-    }
+  // Debounced search query for better performance
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(bookSearchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [bookSearchQuery])
+
+  // Search for books when user is actively searching
+  const { data: searchResults = [], isLoading: isSearching } = useQuery({
+    queryKey: ['bookSearch', debouncedSearchQuery],
+    queryFn: () => searchBooks({ query: debouncedSearchQuery, limit: 50 }),
+    enabled: debouncedSearchQuery.length > 2 // Only search when user has typed at least 3 characters
   })
 
   // Fetch battle statistics
@@ -183,6 +190,18 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     }
     
     battleMutation.mutate({ minutes, bookId: selectedBookId })
+  }
+
+  const handleBookSelect = (book: Book) => {
+    setSelectedBook(book)
+    setSelectedBookId(book.id)
+    setIsBookSearchOpen(false)
+    setBookSearchQuery('')
+  }
+
+  const clearBookSelection = () => {
+    setSelectedBook(null)
+    setSelectedBookId('')
   }
 
   // Use timeline HP if viewing a specific point, otherwise use current HP
@@ -347,18 +366,41 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
               <label className="block text-sm font-medium mb-2">
                 Book (Optional)
               </label>
-              <select
-                value={selectedBookId}
-                onChange={(e) => setSelectedBookId(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 rounded-lg text-white"
-              >
-                <option value="">Select a book (optional)</option>
-                {books?.map((book) => (
-                  <option key={book.id} value={book.id}>
-                    {book.title} - {book.authorName}
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                {selectedBook ? (
+                  <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-600">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-white font-medium truncate">
+                        {selectedBook.title}
+                      </div>
+                      <div className="text-gray-400 text-sm truncate">
+                        {selectedBook.author?.name || 'Unknown Author'}
+                      </div>
+                    </div>
+                    <button
+                      onClick={clearBookSelection}
+                      className="ml-2 text-gray-400 hover:text-white transition-colors"
+                      title="Remove book"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setIsBookSearchOpen(true)}
+                    className="w-full p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>Select a book (optional)</span>
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                  </button>
+                )}
+              </div>
             </div>
 
             <button
@@ -412,6 +454,68 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
             }}
           />
         </div>
+
+        {/* Book Search Dropdown */}
+        {isBookSearchOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[60vh] overflow-hidden">
+              <div className="p-4 border-b">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">Select a Book</h3>
+                  <button
+                    onClick={() => setIsBookSearchOpen(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                                 <input
+                   type="text"
+                   value={bookSearchQuery}
+                   onChange={(e) => setBookSearchQuery(e.target.value)}
+                   placeholder="Search books by title or author..."
+                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                   autoFocus
+                 />
+              </div>
+                             <div className="max-h-80 overflow-y-auto p-4">
+                {debouncedSearchQuery.length < 3 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <p>Type at least 3 characters to search</p>
+                  </div>
+                ) : isSearching ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p>Searching all books...</p>
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    <p>No books found matching "{debouncedSearchQuery}"</p>
+                  </div>
+                ) : (
+                  searchResults.map((book: Book) => (
+                    <div
+                      key={book.id}
+                      onClick={() => handleBookSelect(book)}
+                      className="p-3 hover:bg-gray-100 cursor-pointer rounded-lg border-b border-gray-100 last:border-b-0"
+                    >
+                                             <div className="font-medium text-gray-900">{book.title || 'Untitled'}</div>
+                       <div className="text-sm text-gray-600">{book.author?.name || 'Unknown Author'}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -34,7 +34,7 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
     <div className='relative' ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className='flex items-center gap-2 text-[#2B324B] hover:text-[#1A1F2E] transition-colors text-lg font-medium'>
+        className='flex items-center gap-2 text-gray-100 hover:text-white transition-colors text-lg font-medium'>
         <span>
           {user.firstName} {user.lastName}
         </span>
