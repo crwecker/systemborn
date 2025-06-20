@@ -68,6 +68,11 @@ export function Header() {
             <Link
               to='/'
               className='text-white hover:text-gray-200 transition-colors text-lg'>
+              Map
+            </Link>
+            <Link
+              to='/books'
+              className='text-white hover:text-gray-200 transition-colors text-lg'>
               Explore
             </Link>
             {isLoading ? (
@@ -143,6 +148,12 @@ export function Header() {
               <div className='absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50'>
                 <Link
                   to='/'
+                  className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
+                  onClick={closeMobileMenu}>
+                  Map
+                </Link>
+                <Link
+                  to='/books'
                   className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
                   onClick={closeMobileMenu}>
                   Explore

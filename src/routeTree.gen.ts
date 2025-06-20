@@ -17,9 +17,11 @@ import { Route as SigninImport } from './routes/signin'
 import { Route as MyTiersImport } from './routes/my-tiers'
 import { Route as MyReviewsImport } from './routes/my-reviews'
 import { Route as CommunityFavoritesImport } from './routes/community-favorites'
+import { Route as BooksImport } from './routes/books'
 import { Route as AuthImport } from './routes/auth'
 import { Route as AddBookImport } from './routes/add-book'
 import { Route as IndexImport } from './routes/index'
+import { Route as RealmRealmIdImport } from './routes/realm.$realmId'
 
 // Create/Update Routes
 
@@ -59,6 +61,12 @@ const CommunityFavoritesRoute = CommunityFavoritesImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const BooksRoute = BooksImport.update({
+  id: '/books',
+  path: '/books',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const AuthRoute = AuthImport.update({
   id: '/auth',
   path: '/auth',
@@ -74,6 +82,12 @@ const AddBookRoute = AddBookImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const RealmRealmIdRoute = RealmRealmIdImport.update({
+  id: '/realm/$realmId',
+  path: '/realm/$realmId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -100,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthImport
+      parentRoute: typeof rootRoute
+    }
+    '/books': {
+      id: '/books'
+      path: '/books'
+      fullPath: '/books'
+      preLoaderRoute: typeof BooksImport
       parentRoute: typeof rootRoute
     }
     '/community-favorites': {
@@ -144,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyImport
       parentRoute: typeof rootRoute
     }
+    '/realm/$realmId': {
+      id: '/realm/$realmId'
+      path: '/realm/$realmId'
+      fullPath: '/realm/$realmId'
+      preLoaderRoute: typeof RealmRealmIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -153,24 +181,28 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
+  '/books': typeof BooksRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
+  '/books': typeof BooksRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
 export interface FileRoutesById {
@@ -178,12 +210,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
+  '/books': typeof BooksRoute
   '/community-favorites': typeof CommunityFavoritesRoute
   '/my-reviews': typeof MyReviewsRoute
   '/my-tiers': typeof MyTiersRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
 export interface FileRouteTypes {
@@ -192,34 +226,40 @@ export interface FileRouteTypes {
     | '/'
     | '/add-book'
     | '/auth'
+    | '/books'
     | '/community-favorites'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/realm/$realmId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/add-book'
     | '/auth'
+    | '/books'
     | '/community-favorites'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/realm/$realmId'
   id:
     | '__root__'
     | '/'
     | '/add-book'
     | '/auth'
+    | '/books'
     | '/community-favorites'
     | '/my-reviews'
     | '/my-tiers'
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/realm/$realmId'
   fileRoutesById: FileRoutesById
 }
 
@@ -227,24 +267,28 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AddBookRoute: typeof AddBookRoute
   AuthRoute: typeof AuthRoute
+  BooksRoute: typeof BooksRoute
   CommunityFavoritesRoute: typeof CommunityFavoritesRoute
   MyReviewsRoute: typeof MyReviewsRoute
   MyTiersRoute: typeof MyTiersRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
+  RealmRealmIdRoute: typeof RealmRealmIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AddBookRoute: AddBookRoute,
   AuthRoute: AuthRoute,
+  BooksRoute: BooksRoute,
   CommunityFavoritesRoute: CommunityFavoritesRoute,
   MyReviewsRoute: MyReviewsRoute,
   MyTiersRoute: MyTiersRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
+  RealmRealmIdRoute: RealmRealmIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -260,12 +304,14 @@ export const routeTree = rootRoute
         "/",
         "/add-book",
         "/auth",
+        "/books",
         "/community-favorites",
         "/my-reviews",
         "/my-tiers",
         "/signin",
         "/signup",
-        "/verify"
+        "/verify",
+        "/realm/$realmId"
       ]
     },
     "/": {
@@ -276,6 +322,9 @@ export const routeTree = rootRoute
     },
     "/auth": {
       "filePath": "auth.tsx"
+    },
+    "/books": {
+      "filePath": "books.tsx"
     },
     "/community-favorites": {
       "filePath": "community-favorites.tsx"
@@ -294,6 +343,9 @@ export const routeTree = rootRoute
     },
     "/verify": {
       "filePath": "verify.tsx"
+    },
+    "/realm/$realmId": {
+      "filePath": "realm.$realmId.tsx"
     }
   }
 }

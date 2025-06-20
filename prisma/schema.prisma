@@ -31,6 +31,7 @@ model Book {
   bookTiers       BookTier[]
   bookReviews     BookReview[]
   bookContributors BookContributor[]
+  battleActivities BattleActivity[]
 }
 
 model BookStats {
@@ -69,6 +70,7 @@ model User {
   magicLinks    MagicLink[]
   bookTiers     BookTier[]
   bookReviews   BookReview[]
+  battleActivities BattleActivity[]
 }
 
 model MagicLink {
@@ -157,4 +159,54 @@ enum ReadingStatus {
   WANT_TO_READ
   READING
   FINISHED
+}
+
+model RealmBoss {
+  id            String   @id @default(cuid())
+  realm         Realm    @unique
+  name          String
+  maxHitpoints  Int      @default(10000)
+  currentHitpoints Int   @default(10000)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  battles       BattleActivity[]
+  storyEntries  BattleStory[]
+}
+
+model BattleActivity {
+  id          String    @id @default(cuid())
+  userId      String?
+  realmBossId String
+  minutesRead Int
+  bookId      String?
+  damage      Int       @default(0)
+  createdAt   DateTime  @default(now())
+  user        User?     @relation(fields: [userId], references: [id])
+  realmBoss   RealmBoss @relation(fields: [realmBossId], references: [id])
+  book        Book?     @relation(fields: [bookId], references: [id])
+}
+
+model BattleStory {
+  id          String    @id @default(cuid())
+  realmBossId String
+  entryType   StoryEntryType
+  content     String
+  metadata    Json?     // Store additional data like damage, user info, etc.
+  createdAt   DateTime  @default(now())
+  realmBoss   RealmBoss @relation(fields: [realmBossId], references: [id])
+}
+
+enum Realm {
+  XIANXIA
+  GAMELIT
+  APOCALYPSE
+  ISEKAI
+}
+
+enum StoryEntryType {
+  BOSS_INTRODUCTION
+  BATTLE_ACTION
+  BOSS_DEFEAT
+  BOSS_RESPAWN
+  MILESTONE
 }
