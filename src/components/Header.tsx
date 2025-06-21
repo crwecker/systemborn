@@ -3,10 +3,19 @@ import { Link } from '@tanstack/react-router'
 import { useAuthContext } from '../contexts/AuthContext'
 import { UserDropdown } from './UserDropdown'
 
+const REALMS = [
+  { id: 'xianxia', name: 'Xianxia (Cultivation)', path: '/realm/xianxia' },
+  { id: 'gamelit', name: 'GameLit', path: '/realm/gamelit' },
+  { id: 'apocalypse', name: 'LitRPG Apocalypse', path: '/realm/apocalypse' },  
+  { id: 'isekai', name: 'Isekai / Rebirth', path: '/realm/isekai' },
+  { id: 'academy', name: 'LitRPG Academy', path: '/books' }
+]
+
 export function Header() {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isRealmsDropdownOpen, setIsRealmsDropdownOpen] = useState(false)
   const { user, isLoading, isAuthenticated, logout } = useAuthContext()
 
   useEffect(() => {
@@ -22,18 +31,21 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu and realms dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement
       if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
         setIsMobileMenuOpen(false)
       }
+      if (isRealmsDropdownOpen && !target.closest('.realms-dropdown-container')) {
+        setIsRealmsDropdownOpen(false)
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [isMobileMenuOpen])
+  }, [isMobileMenuOpen, isRealmsDropdownOpen])
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -70,6 +82,39 @@ export function Header() {
               className='text-white hover:text-gray-200 transition-colors text-lg'>
               Map
             </Link>
+            
+            {/* Realms Dropdown */}
+            <div className='realms-dropdown-container relative'>
+              <button
+                onClick={() => setIsRealmsDropdownOpen(!isRealmsDropdownOpen)}
+                className='text-white hover:text-gray-200 transition-colors text-lg flex items-center space-x-1'>
+                <span>Realms</span>
+                <svg 
+                  className={`w-4 h-4 transition-transform ${isRealmsDropdownOpen ? 'rotate-180' : ''}`}
+                  fill='none' 
+                  stroke='currentColor' 
+                  viewBox='0 0 24 24'
+                >
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                </svg>
+              </button>
+              
+              {isRealmsDropdownOpen && (
+                <div className='absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50'>
+                  {REALMS.map((realm) => (
+                    <Link
+                      key={realm.id}
+                      to={realm.path}
+                      className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors text-base'
+                      onClick={() => setIsRealmsDropdownOpen(false)}
+                    >
+                      {realm.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             <Link
               to='/books'
               className='text-white hover:text-gray-200 transition-colors text-lg'>
@@ -152,9 +197,24 @@ export function Header() {
                   onClick={closeMobileMenu}>
                   Map
                 </Link>
+                
+                {/* Realms section in mobile menu */}
+                <div className='px-4 py-2 text-sm font-medium text-gray-500 border-b border-gray-100'>
+                  Realms
+                </div>
+                {REALMS.map((realm) => (
+                  <Link
+                    key={realm.id}
+                    to={realm.path}
+                    className='block px-6 py-2 text-[#2B324B] hover:bg-gray-50 transition-colors text-sm'
+                    onClick={closeMobileMenu}>
+                    {realm.name}
+                  </Link>
+                ))}
+                
                 <Link
                   to='/books'
-                  className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
+                  className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2'
                   onClick={closeMobileMenu}>
                   Books
                 </Link>

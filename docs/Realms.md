@@ -56,6 +56,16 @@ This palette captures the ethereal, cross-world tone of isekai:
     - *Cycle Rewind*: Revives with new moves after being “defeated.”
     - *Fate Severance*: Targets the reader’s “destiny,” disrupting progress or buffs.
 
+### **"Seraphen, Herald of the Forgotten Realms"**
+
+- **Backstory**: Once a mortal soul reincarnated across countless worlds, Seraphen eventually gained the favor of a cosmic entity and ascended as its chosen Herald. His duty: to guard the gates between dimensions — but over millennia, he grew jealous of those given new lives. Now, Seraphen traps reborn souls in an eternal limbo, claiming they’ve had “enough chances.”
+- **Appearance**: A radiant figure clad in shimmering robes that change depending on the realm’s energy. His lower half fades into ethereal stardust. He has no face — instead, a rotating halo of masks (each with a different expression: rage, sorrow, serenity, joy). Giant celestial wings shimmer behind him, stitched together from memory-fragments of other worlds.
+- **Abilities**:
+    - *Gate of Echoes*: Summons alternate versions of the reader’s previous "runs" to fight them.
+    - *Karma Collapse*: Reduces or corrupts earned boons if the reader has been “revived” too many times (i.e., penalties after pauses/failures).
+    - *Memory Sever*: Temporarily disables progress tracking or weakens power-ups, simulating amnesia.
+- **Personality**: Dignified, tragic, and absolutely convinced he’s the only one wise enough to protect the multiverse from chaos.
+
 # LitRPG Apocalypse Realm
 
 ### 🎨 **Color Palette**
