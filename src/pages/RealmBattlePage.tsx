@@ -17,8 +17,6 @@ interface RealmBoss {
   currentHitpoints: number
 }
 
-
-
 interface BattleStats {
   totalDamageToday: number
   totalMinutesToday: number
@@ -210,252 +208,209 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${realmConfig.bgGradient} text-white`}>
-      <div className="container mx-auto px-4 py-8 pt-36">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-white drop-shadow-lg">{realmConfig.name}</h1>
-          <p className="text-xl opacity-90 mb-2">{realmConfig.description}</p>
-          <p className="text-lg" style={{ color: realmConfig.accent }}>Face the mighty {realmConfig.boss}!</p>
+      <div className="container mx-auto px-4 py-4">
+        {/* Compact Header */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold mb-1 text-white drop-shadow-lg">{realmConfig.name}</h1>
+          <p className="text-sm opacity-90 mb-1">{realmConfig.description}</p>
         </div>
 
-        {/* Collaborative Battle Info */}
-        {battleStats && (
-          <div className="max-w-4xl mx-auto mb-8">
-            <div 
-              className="rounded-lg p-6 border-2"
-              style={{ 
-                backgroundColor: `${realmConfig.primary}40`,
-                borderColor: realmConfig.accent
-              }}
-            >
-              <h2 
-                className="text-2xl font-bold text-center mb-4"
-                style={{ color: realmConfig.accent }}
-              >
-                🌟 Community Battle Progress - Today 🌟
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div className="bg-black bg-opacity-30 rounded-lg p-4">
-                  <div className="text-2xl font-bold" style={{ color: realmConfig.accent }}>
-                    {(battleStats.totalDamageToday || 0).toLocaleString()}
-                  </div>
-                  <div className="text-sm opacity-75">Total Damage Dealt</div>
-                </div>
-                
-                <div className="bg-black bg-opacity-30 rounded-lg p-4">
-                  <div className="text-2xl font-bold" style={{ color: realmConfig.accent }}>
-                    {battleStats.uniqueContributors || 0}
-                  </div>
-                  <div className="text-sm opacity-75">Heroes Contributing</div>
-                </div>
-                
-                <div className="bg-black bg-opacity-30 rounded-lg p-4">
-                  <div className="text-2xl font-bold" style={{ color: realmConfig.accent }}>
-                    {Math.round((battleStats.totalMinutesToday || 0) / 60)} hrs
-                  </div>
-                  <div className="text-sm opacity-75">Reading Time Combined</div>
-                </div>
-              </div>
-
-              {battleStats.recentBattles && battleStats.recentBattles.length > 0 && (
-                <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2 text-center" style={{ color: realmConfig.accent }}>
-                    Recent Battle Activity
-                  </h3>
-                  <div className="max-h-40 overflow-y-auto space-y-1">
-                    {battleStats.recentBattles.slice(0, 5).map((battle, index) => (
-                      <div key={index} className="text-sm opacity-80 text-center">
-                        <span className="font-medium">{battle.user}</span> dealt{' '}
-                        <span style={{ color: realmConfig.accent }}>{battle.damage} damage</span>
-                        {battle.book && <span className="opacity-60"> reading "{battle.book}"</span>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Realm Image */}
-        <div className="flex justify-center mb-8">
-          <img 
-            src={realmConfig.image} 
-            alt={realmConfig.name}
-            className="max-w-md rounded-lg shadow-2xl"
-          />
-        </div>
-
-        {/* Boss HP Bar */}
-        {realmBoss && (
-          <div className="max-w-2xl mx-auto mb-8">
-            <div 
-              className="rounded-lg p-6 border-2"
-              style={{ 
-                backgroundColor: `${realmConfig.primary}80`,
-                borderColor: realmConfig.accent
-              }}
-            >
-              <h2 
-                className="text-2xl font-bold text-center mb-4"
-                style={{ color: realmConfig.accent }}
-              >
-                {realmConfig.boss}
-              </h2>
-              <div className="bg-gray-900 rounded-full h-8 mb-2 overflow-hidden border">
-                <div 
-                  className="h-full transition-all duration-1000 ease-out"
-                  style={{ 
-                    width: `${hpPercentage}%`,
-                    background: `linear-gradient(90deg, #dc2626, ${realmConfig.accent})`
-                  }}
-                />
-              </div>
-              <div className="flex justify-between text-sm text-white">
-                <span>HP: {displayHp.toLocaleString()}</span>
-                <span>Max: {(realmBoss.maxHitpoints || 0).toLocaleString()}</span>
-              </div>
-              {isViewingTimeline && (
-                <div className="text-center mt-2">
-                  <p className="text-blue-400 text-sm">📍 Viewing historical battle state</p>
-                </div>
-              )}
-              {displayHp <= 0 && (
-                <div className="text-center mt-4">
-                  <p className="text-yellow-400 text-xl font-bold">🎉 BOSS DEFEATED! 🎉</p>
-                  <p className="text-sm opacity-75">The boss will respawn soon...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Battle Interface */}
-        <div 
-          className="max-w-md mx-auto rounded-lg p-6 border-2"
-          style={{ 
-            backgroundColor: `${realmConfig.primary}60`,
-            borderColor: realmConfig.accent
-          }}
-        >
-          <h3 
-            className="text-xl font-bold mb-4 text-center"
-            style={{ color: realmConfig.accent }}
-          >
-            Battle the Boss!
-          </h3>
+        {/* Dashboard Grid Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
           
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Minutes Read Today
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="300"
-                value={minutesRead}
-                onChange={(e) => setMinutesRead(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 rounded-lg text-white"
-                placeholder="How many minutes did you read?"
-              />
-            </div>
+          {/* Left Column: Boss & Battle Interface */}
+          <div className="xl:col-span-1 space-y-4">
+            
+                         {/* Boss Card */}
+             {realmBoss && (
+               <div 
+                 className="rounded-lg border-2 overflow-hidden relative"
+                 style={{ 
+                   backgroundColor: `${realmConfig.primary}80`,
+                   borderColor: realmConfig.accent
+                 }}
+               >
+                 {/* Boss Image */}
+                 <div className="relative">
+                   <img 
+                     src={realmConfig.image} 
+                     alt={realmConfig.name}
+                     className="w-full aspect-square object-cover"
+                   />
+                   
+                   {/* Overlay gradient for better text visibility */}
+                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                   
+                   {/* Boss name overlay */}
+                   <div className="absolute top-4 left-4 right-4">
+                     <h2 
+                       className="text-xl font-bold text-white drop-shadow-lg"
+                       style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}
+                     >
+                       {realmConfig.boss}
+                     </h2>
+                     {isViewingTimeline && (
+                       <p className="text-blue-300 text-sm drop-shadow-lg">📍 Historical view</p>
+                     )}
+                   </div>
+                   
+                   {/* HP Bar Overlay */}
+                   <div className="absolute bottom-4 left-4 right-4">
+                     <div className="bg-black/50 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                       <div className="bg-gray-900 rounded-full h-6 mb-2 overflow-hidden border border-gray-600">
+                         <div 
+                           className="h-full transition-all duration-1000 ease-out"
+                           style={{ 
+                             width: `${hpPercentage}%`,
+                             background: `linear-gradient(90deg, #dc2626, ${realmConfig.accent})`
+                           }}
+                         />
+                       </div>
+                       <div className="flex justify-between text-xs text-white">
+                         <span className="font-medium">{displayHp.toLocaleString()} HP</span>
+                         <span className="font-bold" style={{ color: realmConfig.accent }}>
+                           {((hpPercentage || 0)).toFixed(1)}%
+                         </span>
+                         <span className="opacity-75">Max: {(realmBoss.maxHitpoints || 0).toLocaleString()}</span>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 {displayHp <= 0 && (
+                   <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                     <div className="text-center">
+                       <p className="text-yellow-400 text-2xl font-bold mb-2">🎉 DEFEATED! 🎉</p>
+                       <p className="text-white text-sm opacity-75">The boss will respawn soon...</p>
+                     </div>
+                   </div>
+                 )}
+               </div>
+             )}
 
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Book (Optional)
-              </label>
-              <div className="space-y-2">
-                {selectedBook ? (
-                  <div className="flex items-center justify-between p-3 bg-gray-800 rounded-lg border border-gray-600">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-medium truncate">
-                        {selectedBook.title}
+            {/* Battle Interface Card */}
+            <div 
+              className="rounded-lg p-4 border-2"
+              style={{ 
+                backgroundColor: `${realmConfig.primary}60`,
+                borderColor: realmConfig.accent
+              }}
+            >
+              <h3 
+                className="text-lg font-bold mb-3 text-center"
+                style={{ color: realmConfig.accent }}
+              >
+                ⚔️ Battle Interface
+              </h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Minutes Read</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="300"
+                    value={minutesRead}
+                    onChange={(e) => setMinutesRead(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-800 rounded-lg text-white text-sm"
+                    placeholder="Minutes read today"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium mb-1">Book (Optional)</label>
+                  {selectedBook ? (
+                    <div className="flex items-center justify-between p-2 bg-gray-800 rounded-lg border border-gray-600">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-sm font-medium truncate">
+                          {selectedBook.title}
+                        </div>
+                        <div className="text-gray-400 text-xs truncate">
+                          {selectedBook.author?.name || 'Unknown Author'}
+                        </div>
                       </div>
-                      <div className="text-gray-400 text-sm truncate">
-                        {selectedBook.author?.name || 'Unknown Author'}
-                      </div>
+                      <button
+                        onClick={clearBookSelection}
+                        className="ml-2 text-gray-400 hover:text-white transition-colors"
+                        title="Remove book"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
                     </div>
+                  ) : (
                     <button
-                      onClick={clearBookSelection}
-                      className="ml-2 text-gray-400 hover:text-white transition-colors"
-                      title="Remove book"
+                      onClick={() => setIsBookSearchOpen(true)}
+                      className="w-full p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500 text-sm"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <div className="flex items-center justify-between">
+                        <span>Select book</span>
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
                     </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setIsBookSearchOpen(true)}
-                    className="w-full p-3 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>Select a book (optional)</span>
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleBattle}
+                  disabled={!minutesRead || parseInt(minutesRead) <= 0 || battleMutation.isPending}
+                  className={`w-full py-2 px-4 rounded-lg font-bold transition-all duration-200 border-2 text-white text-sm
+                    ${minutesRead && parseInt(minutesRead) > 0 
+                      ? 'hover:opacity-80' 
+                      : 'opacity-50 cursor-not-allowed'
+                    }`}
+                  style={{
+                    backgroundColor: minutesRead && parseInt(minutesRead) > 0 ? realmConfig.accent : '#4b5563',
+                    borderColor: minutesRead && parseInt(minutesRead) > 0 ? realmConfig.accent : '#6b7280'
+                  }}
+                >
+                  {battleMutation.isPending ? 'Attacking...' : `Deal ${minutesRead || 0} Damage!`}
+                </button>
+              </div>
+
+              <div className="mt-3 text-center text-xs opacity-75">
+                <p>1 minute = 1 damage point</p>
+                {user ? (
+                  dailyLimits && (
+                    <div className="mt-2 space-y-1">
+                      <p>{dailyLimits.remainingMinutes}/500 minutes remaining</p>
+                      <div className="w-full bg-gray-800 rounded-full h-1">
+                        <div 
+                          className="h-1 rounded-full transition-all duration-300"
+                          style={{ 
+                            width: `${(dailyLimits.usedMinutes / dailyLimits.dailyLimit) * 100}%`,
+                            backgroundColor: realmConfig.accent
+                          }}
+                        />
+                      </div>
                     </div>
-                  </button>
+                  )
+                ) : (
+                  <p className="mt-2">Sign in to track contributions!</p>
                 )}
               </div>
             </div>
 
-            <button
-              onClick={handleBattle}
-              disabled={!minutesRead || parseInt(minutesRead) <= 0 || battleMutation.isPending}
-              className={`w-full py-3 px-4 rounded-lg font-bold transition-all duration-200 border-2 text-white
-                ${minutesRead && parseInt(minutesRead) > 0 
-                  ? 'hover:opacity-80' 
-                  : 'opacity-50 cursor-not-allowed'
-                }`}
-              style={{
-                backgroundColor: minutesRead && parseInt(minutesRead) > 0 ? realmConfig.accent : '#4b5563',
-                borderColor: minutesRead && parseInt(minutesRead) > 0 ? realmConfig.accent : '#6b7280'
+
+          </div>
+
+          {/* Right Column: Battle Chronicle */}
+          <div className="xl:col-span-2">
+            <BattleStoryConsole 
+              realmId={realmId} 
+              realmConfig={realmConfig}
+              onTimelineChange={(hp: number, isViewing: boolean) => {
+                setTimelineHp(hp)
+                setIsViewingTimeline(isViewing)
               }}
-            >
-              {battleMutation.isPending ? 'Attacking...' : `Deal ${minutesRead || 0} Damage!`}
-            </button>
-          </div>
-
-          <div className="mt-4 text-center text-sm opacity-75">
-            <p>Each minute read = 1 damage point!</p>
-            {user ? (
-              dailyLimits && (
-                <div className="mt-2 space-y-1">
-                  <p>Daily limit: {dailyLimits.remainingMinutes} of 500 minutes remaining</p>
-                  <div className="w-full bg-gray-800 rounded-full h-2">
-                    <div 
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{ 
-                        width: `${(dailyLimits.usedMinutes / dailyLimits.dailyLimit) * 100}%`,
-                        backgroundColor: realmConfig.accent
-                      }}
-                    />
-                  </div>
-                </div>
-              )
-            ) : (
-              <p className="mt-2">Sign in to track your contributions and unlock daily progress!</p>
-            )}
+            />
           </div>
         </div>
 
-        {/* Battle Story Console */}
-        <div className="max-w-4xl mx-auto mt-8">
-          <BattleStoryConsole 
-            realmId={realmId} 
-            realmConfig={realmConfig}
-            onTimelineChange={(hp: number, isViewing: boolean) => {
-              setTimelineHp(hp)
-              setIsViewingTimeline(isViewing)
-            }}
-          />
-        </div>
-
-        {/* Book Search Dropdown */}
+        {/* Book Search Modal */}
         {isBookSearchOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-md w-full max-h-[60vh] overflow-hidden">
@@ -471,16 +426,16 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                     </svg>
                   </button>
                 </div>
-                                 <input
-                   type="text"
-                   value={bookSearchQuery}
-                   onChange={(e) => setBookSearchQuery(e.target.value)}
-                   placeholder="Search books by title or author..."
-                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
-                   autoFocus
-                 />
+                <input
+                  type="text"
+                  value={bookSearchQuery}
+                  onChange={(e) => setBookSearchQuery(e.target.value)}
+                  placeholder="Search books by title or author..."
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                  autoFocus
+                />
               </div>
-                             <div className="max-h-80 overflow-y-auto p-4">
+              <div className="max-h-80 overflow-y-auto p-4">
                 {debouncedSearchQuery.length < 3 ? (
                   <div className="text-center py-8 text-gray-500">
                     <svg className="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -507,8 +462,8 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                       onClick={() => handleBookSelect(book)}
                       className="p-3 hover:bg-gray-100 cursor-pointer rounded-lg border-b border-gray-100 last:border-b-0"
                     >
-                                             <div className="font-medium text-gray-900">{book.title || 'Untitled'}</div>
-                       <div className="text-sm text-gray-600">{book.author?.name || 'Unknown Author'}</div>
+                      <div className="font-medium text-gray-900">{book.title || 'Untitled'}</div>
+                      <div className="text-sm text-gray-600">{book.author?.name || 'Unknown Author'}</div>
                     </div>
                   ))
                 )}

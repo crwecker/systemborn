@@ -28,6 +28,19 @@ interface BattleStoryConsoleProps {
   onTimelineChange?: (hp: number, isViewing: boolean) => void
 }
 
+interface BattleStats {
+  totalDamageToday: number
+  totalMinutesToday: number
+  uniqueContributors: number
+  recentBattles: Array<{
+    damage: number
+    minutesRead: number
+    user: string
+    book: string | null
+    createdAt: string
+  }>
+}
+
 interface TimelineEntry {
   entry: BattleStoryEntry
   hpAtThisPoint: number
@@ -47,6 +60,17 @@ export function BattleStoryConsole({ realmId, realmConfig, onTimelineChange }: B
       return response.json()
     },
     refetchInterval: 15000 // Refresh every 15 seconds
+  })
+
+  // Fetch battle statistics
+  const { data: battleStats } = useQuery({
+    queryKey: ['battleStats', realmId],
+    queryFn: async (): Promise<BattleStats> => {
+      const response = await fetch(`/.netlify/functions/api/realms/boss/${realmId}/stats`)
+      if (!response.ok) throw new Error('Failed to fetch battle stats')
+      return response.json()
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
   })
 
   // Calculate HP at each point in the battle
@@ -172,59 +196,90 @@ export function BattleStoryConsole({ realmId, realmConfig, onTimelineChange }: B
     >
       {/* Console Header */}
       <div 
-        className="p-4 border-b-2 flex items-center justify-between"
+        className="border-b-2"
         style={{ borderColor: realmConfig.accent }}
       >
-        <div className="flex items-center space-x-3">
-          <div 
-            className="w-3 h-3 rounded-full bg-red-500 cursor-pointer"
-            onClick={() => setAutoScroll(!autoScroll)}
-            title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
-          />
-          <div className="w-3 h-3 rounded-full bg-yellow-500" />
-          <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span 
-            className="ml-4 font-mono text-lg font-bold"
-            style={{ color: realmConfig.accent }}
-          >
-            BATTLE CHRONICLE - {storyData?.boss?.realm || realmId.toUpperCase()}
-          </span>
-        </div>
-        <div className="flex items-center space-x-3">
-          {selectedEntryIndex !== null && (
-            <button
-              onClick={() => {
-                setSelectedEntryIndex(null)
-                setAutoScroll(true)
-                if (onTimelineChange) {
-                  onTimelineChange(0, false)
-                }
-              }}
-              className="text-xs px-2 py-1 rounded border"
-              style={{ 
-                borderColor: realmConfig.accent,
-                color: realmConfig.accent
-              }}
+        {/* Title Bar */}
+        <div className="p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div 
+              className="w-3 h-3 rounded-full bg-red-500 cursor-pointer"
+              onClick={() => setAutoScroll(!autoScroll)}
+              title={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
+            />
+            <div className="w-3 h-3 rounded-full bg-yellow-500" />
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span 
+              className="ml-4 font-mono text-lg font-bold"
+              style={{ color: realmConfig.accent }}
             >
-              Return to Live
-            </button>
-          )}
-          <div className="text-sm opacity-75">
-            {selectedEntryIndex !== null ? 
-              `📍 Point ${selectedEntryIndex + 1}/${timelineEntries.length}` :
-              autoScroll ? "🔄 Live" : "⏸️ Paused"
-            }
+              BATTLE CHRONICLE - {storyData?.boss?.realm || realmId.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex items-center space-x-3">
+            {selectedEntryIndex !== null && (
+              <button
+                onClick={() => {
+                  setSelectedEntryIndex(null)
+                  setAutoScroll(true)
+                  if (onTimelineChange) {
+                    onTimelineChange(0, false)
+                  }
+                }}
+                className="text-xs px-2 py-1 rounded border"
+                style={{ 
+                  borderColor: realmConfig.accent,
+                  color: realmConfig.accent
+                }}
+              >
+                Return to Live
+              </button>
+            )}
+            <div className="text-sm opacity-75">
+              {selectedEntryIndex !== null ? 
+                `📍 Point ${selectedEntryIndex + 1}/${timelineEntries.length}` :
+                autoScroll ? "🔄 Live" : "⏸️ Paused"
+              }
+            </div>
           </div>
         </div>
+
+        {/* Daily Progress Stats */}
+        {battleStats && (
+          <div 
+            className="px-4 pb-3 border-t"
+            style={{ borderColor: `${realmConfig.accent}40` }}
+          >
+            <div className="flex items-center justify-center space-x-6 text-xs">
+              <div className="flex items-center space-x-1">
+                <span className="opacity-60">📊 TODAY:</span>
+                <span style={{ color: realmConfig.accent }} className="font-bold">
+                  {(battleStats.totalDamageToday || 0).toLocaleString()} DMG
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="opacity-60">👥</span>
+                <span style={{ color: realmConfig.accent }} className="font-bold">
+                  {battleStats.uniqueContributors || 0} HEROES
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="opacity-60">📚</span>
+                <span style={{ color: realmConfig.accent }} className="font-bold">
+                  {Math.round((battleStats.totalMinutesToday || 0) / 60)}H READ
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Chronicle Content */}
       <div 
         ref={scrollRef}
-        className="overflow-y-auto p-4 font-mono text-sm leading-relaxed space-y-3"
+        className="overflow-y-auto p-4 font-mono text-sm leading-relaxed space-y-3 min-h-[400px] max-h-[80vh]"
         onScroll={handleScroll}
         style={{ 
-          height: '400px',
           backgroundColor: '#0a0a0a',
           scrollbarWidth: 'thin',
           scrollbarColor: `${realmConfig.accent} transparent`

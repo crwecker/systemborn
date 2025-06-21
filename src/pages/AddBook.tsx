@@ -292,7 +292,7 @@ export function AddBook() {
 
   if (viewMode === 'success') {
     return (
-      <div className='min-h-screen bg-dark-blue text-white p-8 pt-32'>
+      <div className='min-h-screen bg-dark-blue text-white p-8'>
         <div className='max-w-4xl mx-auto bg-slate p-8 rounded-lg shadow-lg'>
           {csvResults ? (
             // CSV Upload Results
@@ -382,7 +382,7 @@ export function AddBook() {
   }
 
   return (
-    <div className='min-h-screen bg-dark-blue text-white p-8 pt-32'>
+    <div className='min-h-screen bg-dark-blue text-white p-8'>
       <div className='max-w-4xl mx-auto bg-slate p-8 rounded-lg shadow-lg'>
         <h1 className='text-3xl font-bold mb-6 text-copper'>Add New Books</h1>
         <p className='text-light-gray mb-8'>

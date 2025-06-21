@@ -20,7 +20,9 @@ export const Route = createRootRoute({
       <AuthProvider>
         <div className='min-h-screen bg-dark-blue'>
           <Header />
-          <Outlet />
+          <main className='pt-32'>
+            <Outlet />
+          </main>
         </div>
       </AuthProvider>
       {import.meta.env.DEV && (

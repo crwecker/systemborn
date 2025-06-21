@@ -73,7 +73,7 @@ export function Header() {
             <Link
               to='/books'
               className='text-white hover:text-gray-200 transition-colors text-lg'>
-              Explore
+              Books
             </Link>
             {isLoading ? (
               <div className='text-white'>Loading...</div>
@@ -156,7 +156,7 @@ export function Header() {
                   to='/books'
                   className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
                   onClick={closeMobileMenu}>
-                  Explore
+                  Books
                 </Link>
                 {isLoading ? (
                   <div className='px-4 py-2 text-[#2B324B]'>Loading...</div>

@@ -66,7 +66,7 @@ export function Verify() {
   }, [search.token, navigate, refreshAuth])
 
   return (
-    <div className='min-h-screen bg-dark-blue text-white p-8 pt-32'>
+    <div className='min-h-screen bg-dark-blue text-white p-8'>
       <div className='max-w-md mx-auto bg-slate p-8 rounded-lg shadow-lg text-center'>
         {status === 'verifying' && (
           <>
