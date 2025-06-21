@@ -10,7 +10,7 @@ export const Route = createRoute({
 function Index() {
   return (
     <div 
-      className='min-h-screen flex items-center justify-center p-4 relative'
+      className='min-h-screen relative'
       style={{
         backgroundImage: 'url(/assets/images/starry_background.jpg)',
         backgroundSize: 'cover',
@@ -22,7 +22,7 @@ function Index() {
       <div className='absolute inset-0 bg-black bg-opacity-40' />
       
       {/* Content */}
-      <div className='relative z-10 max-w-6xl w-full'>
+      <div className='relative z-10 max-w-6xl w-full mx-auto px-4 pt-8'>
         
         {/* Welcome Text */}
         <div className='text-center mb-12'>
@@ -30,7 +30,7 @@ function Index() {
             Welcome to the LitRPG Academy
           </h1>
           <p className='text-xl text-gray-200 drop-shadow-lg'>
-            Choose your realm and begin your adventure
+            Find books, read, battle, and level up in the LitRPG Academy!
           </p>
         </div>
 
@@ -54,11 +54,6 @@ function Index() {
                     alt='Xianxia Realm'
                     className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-3'>
-                    <span className='text-white font-semibold text-base drop-shadow-lg'>
-                      Xianxia
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -74,11 +69,6 @@ function Index() {
                     alt='Apocalypse Realm'
                     className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-3'>
-                    <span className='text-white font-semibold text-base drop-shadow-lg'>
-                      Apocalypse
-                    </span>
-                  </div>
                 </Link>
               </div>
             </div>
@@ -96,11 +86,6 @@ function Index() {
                     alt='LitRPG Academy'
                     className='w-48 h-48 xl:w-56 xl:h-56 2xl:w-64 2xl:h-64 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-3'>
-                    <span className='text-white font-bold text-xl xl:text-2xl drop-shadow-lg'>
-                      LitRPG Academy
-                    </span>
-                  </div>
                 </Link>
               </div>
             </div>
@@ -119,11 +104,6 @@ function Index() {
                     alt='GameLit Realm'
                     className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-3'>
-                    <span className='text-white font-semibold text-base drop-shadow-lg'>
-                      GameLit
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -139,11 +119,6 @@ function Index() {
                     alt='Isekai Realm'
                     className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-3'>
-                    <span className='text-white font-semibold text-base drop-shadow-lg'>
-                      Isekai
-                    </span>
-                  </div>
                 </Link>
               </div>
             </div>
@@ -164,11 +139,6 @@ function Index() {
                   alt='LitRPG Academy'
                   className='w-40 h-40 object-contain drop-shadow-xl mx-auto'
                 />
-                <div className='text-center mt-2'>
-                  <span className='text-white font-bold text-lg drop-shadow-lg'>
-                    LitRPG Academy
-                  </span>
-                </div>
               </Link>
             </div>
 
@@ -187,11 +157,6 @@ function Index() {
                     alt='Xianxia Realm'
                     className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-2'>
-                    <span className='text-white font-semibold text-sm drop-shadow-lg'>
-                      Xianxia
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -207,11 +172,6 @@ function Index() {
                     alt='GameLit Realm'
                     className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-2'>
-                    <span className='text-white font-semibold text-sm drop-shadow-lg'>
-                      GameLit
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -227,11 +187,6 @@ function Index() {
                     alt='Isekai Realm'
                     className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-2'>
-                    <span className='text-white font-semibold text-sm drop-shadow-lg'>
-                      Isekai
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -247,11 +202,6 @@ function Index() {
                     alt='Apocalypse Realm'
                     className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
                   />
-                  <div className='text-center mt-2'>
-                    <span className='text-white font-semibold text-sm drop-shadow-lg'>
-                      Apocalypse
-                    </span>
-                  </div>
                 </Link>
               </div>
 
@@ -264,10 +214,10 @@ function Index() {
         {/* Instructions */}
         <div className='text-center mt-16'>
           <p className='text-gray-300 text-lg drop-shadow-lg'>
-            Click on any realm to enter its battle arena
+            Visit the Academy
           </p>
           <p className='text-gray-400 text-sm mt-2 drop-shadow-lg'>
-            Or visit the Academy to explore our complete book database
+            Or click on any realm to enter its battle arena
           </p>
         </div>
 

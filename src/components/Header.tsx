@@ -4,11 +4,11 @@ import { useAuthContext } from '../contexts/AuthContext'
 import { UserDropdown } from './UserDropdown'
 
 const REALMS = [
+  { id: 'academy', name: 'LitRPG Academy', path: '/books' },
   { id: 'xianxia', name: 'Xianxia (Cultivation)', path: '/realm/xianxia' },
   { id: 'gamelit', name: 'GameLit', path: '/realm/gamelit' },
   { id: 'apocalypse', name: 'LitRPG Apocalypse', path: '/realm/apocalypse' },  
-  { id: 'isekai', name: 'Isekai / Rebirth', path: '/realm/isekai' },
-  { id: 'academy', name: 'LitRPG Academy', path: '/books' }
+  { id: 'isekai', name: 'Isekai / Rebirth', path: '/realm/isekai' }
 ]
 
 export function Header() {
