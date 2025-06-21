@@ -22,6 +22,7 @@ import { Route as AuthImport } from './routes/auth'
 import { Route as AddBookImport } from './routes/add-book'
 import { Route as IndexImport } from './routes/index'
 import { Route as RealmRealmIdImport } from './routes/realm.$realmId'
+import { Route as BookBookIdImport } from './routes/book.$bookId'
 
 // Create/Update Routes
 
@@ -88,6 +89,12 @@ const IndexRoute = IndexImport.update({
 const RealmRealmIdRoute = RealmRealmIdImport.update({
   id: '/realm/$realmId',
   path: '/realm/$realmId',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const BookBookIdRoute = BookBookIdImport.update({
+  id: '/book/$bookId',
+  path: '/book/$bookId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -165,6 +172,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerifyImport
       parentRoute: typeof rootRoute
     }
+    '/book/$bookId': {
+      id: '/book/$bookId'
+      path: '/book/$bookId'
+      fullPath: '/book/$bookId'
+      preLoaderRoute: typeof BookBookIdImport
+      parentRoute: typeof rootRoute
+    }
     '/realm/$realmId': {
       id: '/realm/$realmId'
       path: '/realm/$realmId'
@@ -188,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/book/$bookId': typeof BookBookIdRoute
   '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
@@ -202,6 +217,7 @@ export interface FileRoutesByTo {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/book/$bookId': typeof BookBookIdRoute
   '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
@@ -217,6 +233,7 @@ export interface FileRoutesById {
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/verify': typeof VerifyRoute
+  '/book/$bookId': typeof BookBookIdRoute
   '/realm/$realmId': typeof RealmRealmIdRoute
 }
 
@@ -233,6 +250,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/book/$bookId'
     | '/realm/$realmId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -246,6 +264,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/book/$bookId'
     | '/realm/$realmId'
   id:
     | '__root__'
@@ -259,6 +278,7 @@ export interface FileRouteTypes {
     | '/signin'
     | '/signup'
     | '/verify'
+    | '/book/$bookId'
     | '/realm/$realmId'
   fileRoutesById: FileRoutesById
 }
@@ -274,6 +294,7 @@ export interface RootRouteChildren {
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   VerifyRoute: typeof VerifyRoute
+  BookBookIdRoute: typeof BookBookIdRoute
   RealmRealmIdRoute: typeof RealmRealmIdRoute
 }
 
@@ -288,6 +309,7 @@ const rootRouteChildren: RootRouteChildren = {
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   VerifyRoute: VerifyRoute,
+  BookBookIdRoute: BookBookIdRoute,
   RealmRealmIdRoute: RealmRealmIdRoute,
 }
 
@@ -311,6 +333,7 @@ export const routeTree = rootRoute
         "/signin",
         "/signup",
         "/verify",
+        "/book/$bookId",
         "/realm/$realmId"
       ]
     },
@@ -343,6 +366,9 @@ export const routeTree = rootRoute
     },
     "/verify": {
       "filePath": "verify.tsx"
+    },
+    "/book/$bookId": {
+      "filePath": "book.$bookId.tsx"
     },
     "/realm/$realmId": {
       "filePath": "realm.$realmId.tsx"

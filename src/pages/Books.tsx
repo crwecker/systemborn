@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Book } from '../types/book'
-import { searchBooks, fetchAmazonBooks, fetchAvailableTags } from '../services/api'
+import { searchBooks, fetchAmazonBooks, fetchAvailableTags, fetchAllTags } from '../services/api'
 import { BookFiltersComponent, type BookFilters } from '../components/BookFilters'
 import { BookResults } from '../components/BookResults'
+
+interface BooksPageProps {
+  initialFilters?: Partial<BookFilters>
+}
 
 // Helper functions
 const getAuthors = (book: any) => {
@@ -87,6 +91,13 @@ const useBookData = (filters: BookFilters & { debouncedSearchQuery: string }) =>
     staleTime: 5 * 60 * 1000,
   })
 
+  // Fetch all tags using the new endpoint
+  const { data: allTags = [] } = useQuery<string[]>({
+    queryKey: ['all-tags'],
+    queryFn: fetchAllTags,
+    staleTime: 5 * 60 * 1000,
+  })
+
   const { data: royalRoadBooks = [], isLoading: isLoadingRoyalRoad } = useQuery<Book[]>({
     queryKey: ['books', filters.selectedTags, filters.minRating, filters.sortBy, filters.debouncedSearchQuery],
     queryFn: () => searchBooks({
@@ -116,22 +127,24 @@ const useBookData = (filters: BookFilters & { debouncedSearchQuery: string }) =>
 
   return {
     popularTags,
+    allTags,
     books: processedBooks,
     isLoading: isLoadingRoyalRoad || isLoadingAmazon
   }
 }
 
-export function BooksPage() {
+export function BooksPage({ initialFilters }: BooksPageProps = {}) {
   const [filters, setFilters] = useState<BookFilters>({
     selectedTags: [],
-    sortBy: 'trending',
+    sortBy: 'followers',
     minRating: 0,
     searchQuery: '',
-    sourceFilter: 'ALL'
+    sourceFilter: 'ALL',
+    ...initialFilters
   })
 
   const debouncedSearchQuery = useDebounced(filters.searchQuery, 300)
-  const { popularTags, books, isLoading } = useBookData({ ...filters, debouncedSearchQuery })
+  const { popularTags, allTags, books, isLoading } = useBookData({ ...filters, debouncedSearchQuery })
 
   const handleFiltersChange = (updates: Partial<BookFilters>) => {
     setFilters(prev => ({ ...prev, ...updates }))
@@ -143,12 +156,11 @@ export function BooksPage() {
 
   return (
     <div className='container mx-auto px-4 py-8'>
-      <h2 className='text-2xl font-bold mb-8 text-copper'>Browse Books</h2>
-      
       <BookFiltersComponent
         filters={filters}
         onFiltersChange={handleFiltersChange}
         popularTags={popularTags}
+        allTags={allTags}
         debouncedSearchQuery={debouncedSearchQuery}
       />
       

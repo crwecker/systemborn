@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import type { User } from '../services/auth'
 
 interface UserDropdownProps {
@@ -57,9 +58,15 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
           <div className='px-4 py-2 text-sm text-gray-600 border-b'>
             {user.email}
           </div>
+          <Link
+            to='/my-tiers'
+            onClick={() => setIsOpen(false)}
+            className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'>
+            My Tiers
+          </Link>
           <button
             onClick={handleLogout}
-            className='w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors'>
+            className='w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100'>
             Log Out
           </button>
         </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BattleStoryConsole } from '../components/BattleStoryConsole'
+import { BookSwimlane } from '../components/BookSwimlane'
 import { searchBooks } from '../services/api'
 import type { Book } from '../types/book'
 
@@ -471,6 +472,14 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
             </div>
           </div>
         )}
+        
+        {/* Book Swimlane */}
+        <BookSwimlane
+          realmId={realmId}
+          realmName={realmConfig.name}
+          realmColor={realmConfig.primary}
+          realmAccent={realmConfig.accent}
+        />
       </div>
     </div>
   )

@@ -117,18 +117,27 @@ export function Header() {
             
             <Link
               to='/books'
-              className='text-white hover:text-gray-200 transition-colors text-lg'>
-              Books
+              className='text-white hover:text-gray-200 transition-colors text-lg flex items-center'
+              title='Search Books'>
+              <svg 
+                className='w-5 h-5' 
+                fill='none' 
+                stroke='currentColor' 
+                viewBox='0 0 24 24'
+                xmlns='http://www.w3.org/2000/svg'
+              >
+                <path 
+                  strokeLinecap='round' 
+                  strokeLinejoin='round' 
+                  strokeWidth={2} 
+                  d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' 
+                />
+              </svg>
             </Link>
             {isLoading ? (
               <div className='text-white'>Loading...</div>
             ) : isAuthenticated && user ? (
               <>
-                <Link
-                  to='/my-tiers'
-                  className='text-white hover:text-gray-200 transition-colors text-lg'>
-                  My Tiers
-                </Link>
                 <Link
                   to='/community-favorites'
                   className='text-white hover:text-gray-200 transition-colors text-lg'>
@@ -214,9 +223,24 @@ export function Header() {
                 
                 <Link
                   to='/books'
-                  className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2'
-                  onClick={closeMobileMenu}>
-                  Books
+                  className='flex items-center px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2'
+                  onClick={closeMobileMenu}
+                  title='Search Books'>
+                  <svg 
+                    className='w-5 h-5 mr-3' 
+                    fill='none' 
+                    stroke='currentColor' 
+                    viewBox='0 0 24 24'
+                    xmlns='http://www.w3.org/2000/svg'
+                  >
+                    <path 
+                      strokeLinecap='round' 
+                      strokeLinejoin='round' 
+                      strokeWidth={2} 
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' 
+                    />
+                  </svg>
+                  Search Books
                 </Link>
                 {isLoading ? (
                   <div className='px-4 py-2 text-[#2B324B]'>Loading...</div>
@@ -226,12 +250,6 @@ export function Header() {
                       {user.firstName} {user.lastName}
                       <div className='text-xs text-gray-500'>{user.email}</div>
                     </div>
-                    <Link
-                      to='/my-tiers'
-                      className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
-                      onClick={closeMobileMenu}>
-                      My Tiers
-                    </Link>
                     <Link
                       to='/community-favorites'
                       className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'

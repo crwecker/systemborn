@@ -9,7 +9,8 @@ import {
   getSimilarBooks,
   getAuthorBooks,
   getPopularTags,
-  setPrismaInstance
+  setPrismaInstance,
+  getAllTags,
 } from '../../lib/royalroad';
 
 // Set the Prisma instance for the service
@@ -194,6 +195,14 @@ export const handler: Handler = async (event) => {
           statusCode: 200,
           headers,
           body: JSON.stringify(popularTags)
+        };
+
+      case 'all-tags':
+        const allTags = await getAllTags();
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify(allTags)
         };
 
       case 'books':

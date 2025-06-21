@@ -1026,4 +1026,33 @@ export async function getPopularTags(limit: number = 12): Promise<string[]> {
     // Fallback to some common tags if database query fails
     return ['LitRPG', 'Progression', 'GameLit', 'Fantasy', 'Adventure', 'Action'];
   }
+}
+
+// Get all unique tags from the database
+export async function getAllTags(): Promise<string[]> {
+  try {
+    // Get all books with their tags
+    const books = await prisma.book.findMany({
+      select: { tags: true }
+    });
+
+    // Create a map to track unique tags and preserve original case
+    const uniqueTags: Record<string, string> = {};
+    
+    books.forEach(book => {
+      book.tags.forEach(tag => {
+        const lowerTag = tag.toLowerCase();
+        if (!uniqueTags[lowerTag]) {
+          uniqueTags[lowerTag] = tag; // Keep the first occurrence's case
+        }
+      });
+    });
+
+    // Return all unique tags sorted alphabetically
+    return Object.values(uniqueTags).sort();
+  } catch (error) {
+    console.error('Error fetching all tags:', error);
+    // Fallback to some common tags if database query fails
+    return ['LitRPG', 'Progression', 'GameLit', 'Fantasy', 'Adventure', 'Action'];
+  }
 } 

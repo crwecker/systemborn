@@ -21,7 +21,7 @@ export function Banner() {
   }, [])
 
   return (
-    <div className='w-full relative pt-32 flex flex-col items-center bg-dark-blue'>
+    <div className='w-full relative flex flex-col items-center bg-dark-blue'>
       <img
         src={
           isWideScreen

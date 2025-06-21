@@ -174,6 +174,19 @@ export async function fetchAvailableTags(): Promise<string[]> {
   }
 }
 
+export async function fetchAllTags(): Promise<string[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/all-tags`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch all tags')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching all tags:', error)
+    throw error
+  }
+}
+
 // Book Tiers API functions
 import type { BookTier, BookReview, TierLevel, ReadingStatus } from '../types/book'
 
@@ -300,14 +313,14 @@ export async function fetchUserBookReviews(
 
 export async function fetchBookReviews(bookId: string): Promise<BookReview[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/books/${bookId}/reviews`)
+    const response = await fetch(`${API_BASE_URL}/books/reviews/${bookId}`)
     if (!response.ok) {
       throw new Error('Failed to fetch book reviews')
     }
     return await response.json()
   } catch (error) {
     console.error('Error fetching book reviews:', error)
-    throw error
+    return [] // Return empty array on error to prevent crashes
   }
 }
 
@@ -322,7 +335,8 @@ export async function createBookReview(
       body: JSON.stringify({ bookId, review }),
     })
     if (!response.ok) {
-      throw new Error('Failed to create book review')
+      const errorData = await response.text()
+      throw new Error(`Failed to create book review: ${errorData}`)
     }
     return await response.json()
   } catch (error) {
