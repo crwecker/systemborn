@@ -1,6 +1,19 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  DndContext,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+  rectIntersection,
+} from '@dnd-kit/core'
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import { useDraggable, useDroppable } from '@dnd-kit/core'
+import { updateBookTier } from '../services/api'
+import { CSS } from '@dnd-kit/utilities'
 import { 
   fetchBookDetails, 
   fetchSimilarBooks, 
@@ -16,15 +29,304 @@ import { useAuthContext } from '../contexts/AuthContext'
 import type { Book, TierLevel, ReadingStatus, BookTier, BookReview } from '../types/book'
 import { TIER_CONFIG, READING_STATUS_CONFIG } from '../types/book'
 
+// Draggable Book Poster Component
+interface DraggableBookPosterProps {
+  book: Book
+  bookId: string
+}
+
+const DraggableBookPoster: React.FC<DraggableBookPosterProps> = ({ book, bookId }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({ id: `book-${bookId}` })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <div className="relative group">
+        <div className="w-16 h-24 bg-slate rounded overflow-hidden shadow-md hover:shadow-lg transition-shadow">
+          <img
+            src={book.coverUrl || '/placeholder-cover.jpg'}
+            alt={`Cover for ${book.title}`}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              const parent = target.parentElement
+              if (parent) {
+                parent.innerHTML = `<div class="w-full h-full bg-gradient-to-b from-slate-600 to-slate-800 flex items-center justify-center text-[8px] text-copper font-bold text-center px-1 leading-tight">${book.title?.slice(0, 15) || 'Book'}</div>`
+              }
+            }}
+          />
+        </div>
+        {/* Drag hint */}
+        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-medium-gray opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Drag to tier
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Droppable Tier Button Component
+interface DroppableTierButtonProps {
+  tier: TierLevel
+  config: { name: string; maxBooks?: number; color: string }
+  currentCount: number
+  isDisabled: boolean
+  isCurrentTier: boolean
+  tierBooks: BookTier[]
+  showBookPosters: boolean
+  onClick: () => void
+  isPending: boolean
+  navigate: any
+}
+
+const DroppableTierButton: React.FC<DroppableTierButtonProps> = ({
+  tier,
+  config,
+  currentCount,
+  isDisabled,
+  isCurrentTier,
+  tierBooks,
+  showBookPosters,
+  onClick,
+  isPending,
+  navigate
+}) => {
+  const { setNodeRef, isOver } = useDroppable({ id: tier })
+
+  return (
+    <div ref={setNodeRef} className="relative">
+      <button
+        onClick={onClick}
+        disabled={isDisabled || isPending}
+        className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
+          isCurrentTier
+            ? 'ring-2 ring-copper/70 shadow-lg transform scale-102'
+            : isDisabled
+              ? 'bg-gray-700/50 text-gray-500'
+              : 'hover:transform hover:scale-101 hover:shadow-md'
+        } ${config.color} ${isOver ? 'ring-2 ring-blue-400 ring-opacity-70' : ''}`}
+        title={config.maxBooks ? `${currentCount}/${config.maxBooks} used - ${config.name}` : config.name}
+      >
+        {/* Left side - Tier label and name */}
+        <div className="flex items-center gap-3">
+          <div className="text-white font-bold text-lg min-w-[3rem] text-center bg-black/20 rounded px-2 py-1">
+            {tier}
+          </div>
+          <div className="text-white font-medium">
+            {config.name}
+          </div>
+        </div>
+        
+        {/* Right side - Status and count */}
+        <div className="flex items-center gap-2">
+          {isCurrentTier && (
+            <div className="bg-copper text-dark-blue px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+              ✓ CURRENT
+            </div>
+          )}
+          {config.maxBooks && (
+            <div className="bg-black/30 text-white px-2 py-1 rounded text-xs">
+              {currentCount}/{config.maxBooks}
+            </div>
+          )}
+          {!isCurrentTier && !isDisabled && (
+            <div className="text-white/70 text-xs">
+              Click to assign
+            </div>
+          )}
+        </div>
+      </button>
+      
+      {/* Small book posters for all tiers */}
+      {showBookPosters && (
+        <div className="mt-2 px-3">
+          <div className="relative">
+            <div 
+              className="flex gap-1 overflow-x-auto pb-2 tier-books-scroll"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#d4a574 #475569'
+              }}
+            >
+              {tierBooks.map((tierBook) => (
+                <DraggableTierBookPoster
+                  key={tierBook.id}
+                  tierBook={tierBook}
+                  navigate={navigate}
+                />
+              ))}
+            </div>
+            {/* Scroll indicator for many books */}
+            {tierBooks.length > 6 && (
+              <div className="absolute right-0 top-0 bottom-2 w-4 bg-gradient-to-l from-slate-800/80 to-transparent pointer-events-none flex items-center justify-end pr-1">
+                <div className="text-copper text-xs">→</div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Draggable Tier Book Poster Component
+interface DraggableTierBookPosterProps {
+  tierBook: BookTier
+  navigate: any
+}
+
+const DraggableTierBookPoster: React.FC<DraggableTierBookPosterProps> = ({ tierBook, navigate }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({ id: `tier-book-${tierBook.id}` })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`relative group flex-shrink-0 cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''}`}
+    >
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          navigate({ to: '/book/$bookId', params: { bookId: tierBook.bookId } })
+        }}
+        className="w-8 h-12 bg-slate rounded overflow-hidden shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-copper"
+      >
+        <img
+          src={tierBook.book?.coverUrl || '/placeholder-cover.jpg'}
+          alt={tierBook.book?.title || 'Book cover'}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement
+            target.style.display = 'none'
+            const parent = target.parentElement
+            if (parent) {
+              parent.innerHTML = `<div class="w-full h-full bg-gradient-to-b from-slate-600 to-slate-800 flex items-center justify-center text-[6px] text-copper font-bold text-center px-1 leading-tight">${tierBook.book?.title?.slice(0, 20) || 'Book'}</div>`
+            }
+          }}
+        />
+      </button>
+      {/* Tooltip on hover */}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+        {tierBook.book?.title}
+      </div>
+    </div>
+  )
+}
+
 export function BookDetailPage() {
   const { bookId } = useParams({ from: '/book/$bookId' })
   const navigate = useNavigate()
   const { user } = useAuthContext()
   const queryClient = useQueryClient()
+
+  // Scroll to top when component mounts or bookId changes
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [bookId])
+
+  // Store the current page in navigation history when component mounts
+  useEffect(() => {
+    // Get the previous page from sessionStorage
+    const navigationHistory = JSON.parse(sessionStorage.getItem('navigationHistory') || '[]')
+    
+    const currentPath = window.location.pathname
+    
+    // Only add to history if it's different from the last entry
+    const lastEntry = navigationHistory[navigationHistory.length - 1]
+    if (!lastEntry || lastEntry.path !== currentPath) {
+      const currentPage = {
+        path: currentPath,
+        timestamp: Date.now()
+      }
+      
+      navigationHistory.push(currentPage)
+      
+      // Keep only the last 10 pages to avoid memory issues
+      if (navigationHistory.length > 10) {
+        navigationHistory.shift()
+      }
+      
+      sessionStorage.setItem('navigationHistory', JSON.stringify(navigationHistory))
+    }
+  }, [bookId])
+
+  const handleGoBack = () => {
+    const navigationHistory = JSON.parse(sessionStorage.getItem('navigationHistory') || '[]')
+    const currentPath = window.location.pathname
+    
+    // Find the most recent page that's different from current
+    let previousPage = null
+    for (let i = navigationHistory.length - 2; i >= 0; i--) {
+      if (navigationHistory[i].path !== currentPath) {
+        previousPage = navigationHistory[i]
+        break
+      }
+    }
+    
+    // If we found a different previous page, go back
+    if (previousPage) {
+      window.history.back()
+    } else {
+      navigate({ to: '/books' })
+    }
+  }
   
   const [reviewText, setReviewText] = useState('')
   const [editingReview, setEditingReview] = useState<BookReview | null>(null)
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 15, // Require more movement to start drag
+        delay: 100,   // Small delay to prevent accidental drags
+      },
+    }),
+    useSensor(KeyboardSensor)
+  )
+
+  // Custom collision detection that only triggers on actual overlap
+  const customCollisionDetection = (args: any) => {
+    // First try rectangle intersection (requires actual overlap)
+    const intersectionCollisions = rectIntersection(args)
+    
+    if (intersectionCollisions.length > 0) {
+      // Return the first intersection collision
+      return intersectionCollisions
+    }
+    
+    // If no intersections, return empty array (no collision)
+    return []
+  }
 
   // Fetch book details
   const { data: book, isLoading: bookLoading, error: bookError } = useQuery({
@@ -48,7 +350,7 @@ export function BookDetailPage() {
   })
 
   // Fetch book reviews
-  const { data: reviews = [], error: reviewsError } = useQuery({
+  const { data: reviews = [] } = useQuery({
     queryKey: ['bookReviews', bookId],
     queryFn: () => fetchBookReviews(bookId),
     enabled: !!bookId,
@@ -69,6 +371,14 @@ export function BookDetailPage() {
 
   const updateStatusMutation = useMutation({
     mutationFn: (readingStatus: ReadingStatus) => updateReadingStatus(bookId, readingStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userBookTiers'] })
+    },
+  })
+
+  const updateTierMutation = useMutation({
+    mutationFn: ({ tierId, tier }: { tierId: string; tier: TierLevel }) =>
+      updateBookTier(tierId, tier),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userBookTiers'] })
     },
@@ -147,6 +457,77 @@ export function BookDetailPage() {
     }
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    const activeId = active.id as string
+
+    // Cancel if not dropped over a valid tier (no over means dropped in empty space)
+    if (!over) {
+      return
+    }
+
+    const overId = over.id as string
+
+    // Only proceed if dropped specifically on a tier button
+    if (!Object.keys(TIER_CONFIG).includes(overId)) {
+      return
+    }
+
+    const targetTier = overId as TierLevel
+
+    // Handle dragging the current book (not yet in tiers)
+    if (activeId === `book-${bookId}`) {
+      // Don't assign to same tier
+      if (existingTier?.tier === targetTier) {
+        return
+      }
+
+      // Check tier limits
+      const tierConfig = TIER_CONFIG[targetTier]
+      const currentBooksInTier = userTiers.filter(userTier => userTier.tier === targetTier).length
+
+      if (tierConfig.maxBooks && currentBooksInTier >= tierConfig.maxBooks) {
+        alert(`Tier ${targetTier} is full! Maximum ${tierConfig.maxBooks} books allowed.`)
+        return
+      }
+
+      assignTierMutation.mutate({ tier: targetTier, readingStatus: 'FINISHED' })
+      return
+    }
+
+    // Handle dragging existing tier books
+    if (activeId.startsWith('tier-book-')) {
+      const tierId = activeId.replace('tier-book-', '')
+      const draggedBookTier = userTiers.find(bt => bt.id === tierId)
+      
+      if (!draggedBookTier) {
+        return
+      }
+
+      // Don't move to same tier
+      if (draggedBookTier.tier === targetTier) {
+        return
+      }
+
+      // Check tier limits for target tier
+      const tierConfig = TIER_CONFIG[targetTier]
+      const currentBooksInTier = userTiers.filter(userTier => userTier.tier === targetTier).length
+
+      if (tierConfig.maxBooks && currentBooksInTier >= tierConfig.maxBooks) {
+        alert(`Tier ${targetTier} is full! Maximum ${tierConfig.maxBooks} books allowed.`)
+        return
+      }
+
+      updateTierMutation.mutate({ tierId, tier: targetTier })
+    }
+  }
+
   const isAmazonBook = book?.source === 'AMAZON'
 
   if (bookLoading) {
@@ -172,14 +553,20 @@ export function BookDetailPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={customCollisionDetection}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
       {/* Header with back button */}
       <div className="mb-6">
         <button
-          onClick={() => navigate({ to: '/books' })}
+          onClick={handleGoBack}
           className="flex items-center gap-2 text-light-gray hover:text-copper transition-colors mb-4"
         >
-          ← Back to Books
+          ← Back
         </button>
       </div>
 
@@ -238,6 +625,14 @@ export function BookDetailPage() {
             {/* Book actions */}
             {user && (
               <div className="space-y-4">
+                {/* Draggable Book Poster */}
+                <div className="bg-slate/50 rounded-lg p-4 border border-copper/20">
+                  <div className="text-sm font-medium text-light-gray mb-3 text-center">📖 Drag to Assign</div>
+                  <div className="flex justify-center">
+                    <DraggableBookPoster book={book} bookId={bookId} />
+                  </div>
+                </div>
+
                 {/* Tier Assignment */}
                 <div className="bg-slate/50 rounded-lg p-4 border border-copper/20">
                   <div>
@@ -247,90 +642,25 @@ export function BookDetailPage() {
                     <div className="space-y-2">
                       {Object.entries(TIER_CONFIG).map(([tier, config]) => {
                         const currentCount = userTiers.filter(userTier => userTier.tier === tier).length
-                        const isDisabled = config.maxBooks && currentCount >= config.maxBooks && existingTier?.tier !== tier
+                        const isDisabled = Boolean(config.maxBooks && currentCount >= config.maxBooks && existingTier?.tier !== tier)
                         const isCurrentTier = existingTier?.tier === tier
                         const tierBooks = userTiers.filter(userTier => userTier.tier === tier && userTier.book)
-                        const showBookPosters = ['SSS', 'SS', 'S'].includes(tier) && tierBooks.length > 0
+                        const showBookPosters = tierBooks.length > 0
                         
                         return (
-                          <div key={tier} className="relative">
-                            <button
-                              onClick={() => handleAddToTier(tier as TierLevel)}
-                              disabled={isDisabled || assignTierMutation.isPending}
-                              className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                isCurrentTier
-                                  ? 'ring-2 ring-copper/70 shadow-lg transform scale-102'
-                                  : isDisabled
-                                    ? 'bg-gray-700/50 text-gray-500'
-                                    : 'hover:transform hover:scale-101 hover:shadow-md'
-                              } ${config.color}`}
-                              title={config.maxBooks ? `${currentCount}/${config.maxBooks} used - ${config.name}` : config.name}
-                            >
-                              {/* Left side - Tier label and name */}
-                              <div className="flex items-center gap-3">
-                                <div className="text-white font-bold text-lg min-w-[3rem] text-center bg-black/20 rounded px-2 py-1">
-                                  {tier}
-                                </div>
-                                <div className="text-white font-medium">
-                                  {config.name}
-                                </div>
-                              </div>
-                              
-                              {/* Right side - Status and count */}
-                              <div className="flex items-center gap-2">
-                                {isCurrentTier && (
-                                  <div className="bg-copper text-dark-blue px-3 py-1 rounded-full text-xs font-bold shadow-lg">
-                                    ✓ CURRENT
-                                  </div>
-                                )}
-                                {config.maxBooks && (
-                                  <div className="bg-black/30 text-white px-2 py-1 rounded text-xs">
-                                    {currentCount}/{config.maxBooks}
-                                  </div>
-                                )}
-                                {!isCurrentTier && !isDisabled && (
-                                  <div className="text-white/70 text-xs">
-                                    Click to assign
-                                  </div>
-                                )}
-                              </div>
-                            </button>
-                            
-                            {/* Small book posters for SSS, SS, S tiers */}
-                            {showBookPosters && (
-                              <div className="mt-2 flex gap-1 px-3">
-                                {tierBooks.map((tierBook) => (
-                                  <div key={tierBook.id} className="relative group">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        navigate({ to: '/book/$bookId', params: { bookId: tierBook.bookId } })
-                                      }}
-                                      className="w-8 h-12 bg-slate rounded overflow-hidden shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-copper"
-                                    >
-                                      <img
-                                        src={tierBook.book?.coverUrl || '/placeholder-cover.jpg'}
-                                        alt={tierBook.book?.title || 'Book cover'}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                          const target = e.target as HTMLImageElement
-                                          target.style.display = 'none'
-                                          const parent = target.parentElement
-                                          if (parent) {
-                                            parent.innerHTML = `<div class="w-full h-full bg-gradient-to-b from-slate-600 to-slate-800 flex items-center justify-center text-[6px] text-copper font-bold text-center px-1 leading-tight">${tierBook.book?.title?.slice(0, 20) || 'Book'}</div>`
-                                          }
-                                        }}
-                                      />
-                                    </button>
-                                    {/* Tooltip on hover */}
-                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
-                                      {tierBook.book?.title}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                          <DroppableTierButton
+                            key={tier}
+                            tier={tier as TierLevel}
+                            config={config}
+                            currentCount={currentCount}
+                            isDisabled={isDisabled}
+                            isCurrentTier={isCurrentTier}
+                            tierBooks={tierBooks}
+                            showBookPosters={showBookPosters}
+                            onClick={() => handleAddToTier(tier as TierLevel)}
+                            isPending={assignTierMutation.isPending}
+                            navigate={navigate}
+                          />
                         )
                       })}
                     </div>
@@ -681,6 +1011,95 @@ export function BookDetailPage() {
           )}
         </div>
       </div>
+      
+      {/* Drag Overlay */}
+      <DragOverlay dropAnimation={null}>
+        {activeId && (() => {
+          // Handle current book drag
+          if (activeId === `book-${bookId}` && book) {
+            return (
+              <div 
+                className="bg-slate rounded overflow-hidden shadow-lg"
+                style={{ 
+                  width: '64px', 
+                  height: '96px',
+                  flexShrink: 0,
+                  flexGrow: 0,
+                  position: 'relative'
+                }}
+              >
+                <img
+                  src={book.coverUrl || '/placeholder-cover.jpg'}
+                  alt={`Cover for ${book.title}`}
+                  style={{ 
+                    width: '64px', 
+                    height: '96px', 
+                    objectFit: 'cover',
+                    display: 'block',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0
+                  }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                    const parent = target.parentElement
+                    if (parent) {
+                      parent.innerHTML = `<div style="width: 64px; height: 96px; background: linear-gradient(to bottom, #475569, #334155); display: flex; align-items: center; justify-content: center; font-size: 8px; color: #d4a574; font-weight: bold; text-align: center; padding: 4px; line-height: 1.2; position: absolute; top: 0; left: 0;">${book.title?.slice(0, 15) || 'Book'}</div>`
+                    }
+                  }}
+                />
+              </div>
+            )
+          }
+          
+          // Handle tier book drag
+          if (activeId.startsWith('tier-book-')) {
+            const tierId = activeId.replace('tier-book-', '')
+            const draggedBookTier = userTiers.find(bt => bt.id === tierId)
+            
+            if (draggedBookTier?.book) {
+              return (
+                <div 
+                  className="bg-slate rounded overflow-hidden shadow-lg"
+                  style={{ 
+                    width: '32px', 
+                    height: '48px',
+                    flexShrink: 0,
+                    flexGrow: 0,
+                    position: 'relative'
+                  }}
+                >
+                  <img
+                    src={draggedBookTier.book.coverUrl || '/placeholder-cover.jpg'}
+                    alt={`Cover for ${draggedBookTier.book.title}`}
+                    style={{ 
+                      width: '32px', 
+                      height: '48px', 
+                      objectFit: 'cover',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0
+                    }}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      const parent = target.parentElement
+                      if (parent) {
+                        parent.innerHTML = `<div style="width: 32px; height: 48px; background: linear-gradient(to bottom, #475569, #334155); display: flex; align-items: center; justify-content: center; font-size: 6px; color: #d4a574; font-weight: bold; text-align: center; padding: 2px; line-height: 1.2; position: absolute; top: 0; left: 0;">${draggedBookTier.book?.title?.slice(0, 10) || 'Book'}</div>`
+                      }
+                    }}
+                  />
+                </div>
+              )
+            }
+          }
+          
+          return null
+        })()}
+      </DragOverlay>
     </div>
+    </DndContext>
   )
 } 

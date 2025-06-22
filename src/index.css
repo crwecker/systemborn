@@ -36,6 +36,25 @@
   background: #6b7280;
 }
 
+/* Tier books horizontal scrollbar */
+.tier-books-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tier-books-scroll::-webkit-scrollbar-track {
+  background: #475569;
+  border-radius: 2px;
+}
+
+.tier-books-scroll::-webkit-scrollbar-thumb {
+  background: #d4a574;
+  border-radius: 2px;
+}
+
+.tier-books-scroll::-webkit-scrollbar-thumb:hover {
+  background: #e5b887;
+}
+
 /* Text clamp utilities */
 .line-clamp-1 {
   display: -webkit-box;
