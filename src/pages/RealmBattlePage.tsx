@@ -3,7 +3,8 @@ import { useAuth } from '../hooks/useAuth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { BattleStoryConsole } from '../components/BattleStoryConsole'
 import { BookSwimlane } from '../components/BookSwimlane'
-import { searchBooks } from '../services/api'
+import { TopTierSwimlane } from '../components/TopTierSwimlane'
+import { searchBooks, fetchAllTags } from '../services/api'
 import type { Book } from '../types/book'
 
 interface RealmBattlePageProps {
@@ -80,6 +81,14 @@ const REALM_CONFIG = {
   }
 }
 
+// Map realm IDs to search terms that will be used to find matching tags
+const REALM_SEARCH_TERMS = {
+  xianxia: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
+  gamelit: ['gamelit', 'litrpg', 'game', 'rpg', 'system', 'level'],
+  apocalypse: ['apocalypse', 'post-apocalyptic', 'zombie', 'survival', 'end', 'disaster'],
+  isekai: ['isekai', 'reincarnation', 'transmigration', 'rebirth', 'another world', 'transported']
+}
+
 export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
@@ -92,6 +101,31 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   const [bookSearchQuery, setBookSearchQuery] = useState('')
   
   const realmConfig = REALM_CONFIG[realmId as keyof typeof REALM_CONFIG]
+
+  // Fetch all available tags from the database
+  const { data: allTags = [] } = useQuery({
+    queryKey: ['all-tags'],
+    queryFn: fetchAllTags,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
+
+  // Find matching tags for this realm based on search terms
+  const getRealmTags = (realmId: string, allTags: string[]): string[] => {
+    const searchTerms = REALM_SEARCH_TERMS[realmId as keyof typeof REALM_SEARCH_TERMS] || []
+    
+    const matchingTags = allTags.filter(tag => {
+      const lowerTag = tag.toLowerCase()
+      return searchTerms.some(term => 
+        lowerTag.includes(term.toLowerCase()) || 
+        term.toLowerCase().includes(lowerTag)
+      )
+    })
+
+    // If no matching tags found, fallback to LitRPG
+    return matchingTags.length > 0 ? matchingTags : ['LitRPG']
+  }
+
+  const realmTags = getRealmTags(realmId, allTags)
   
   if (!realmConfig) {
     return <div>Realm not found</div>
@@ -479,6 +513,15 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
           realmName={realmConfig.name}
           realmColor={realmConfig.primary}
           realmAccent={realmConfig.accent}
+        />
+        
+        {/* Top Tier Swimlane */}
+        <TopTierSwimlane
+          realmId={realmId}
+          realmName={realmConfig.name}
+          realmColor={realmConfig.primary}
+          realmAccent={realmConfig.accent}
+          realmTags={realmTags}
         />
       </div>
     </div>

@@ -187,6 +187,39 @@ export async function fetchAllTags(): Promise<string[]> {
   }
 }
 
+// Interface for top tier books with user information
+export interface TopTierBook {
+  book: Book
+  tierAssignments: {
+    tier: TierLevel
+    userCount: number
+    users: Array<{
+      id: string
+      name: string
+    }>
+  }[]
+}
+
+export async function fetchTopTierBooks(tags: string[]): Promise<TopTierBook[]> {
+  try {
+    const searchParams = new URLSearchParams()
+    if (tags?.length) {
+      tags.forEach(tag => searchParams.append('tags', tag))
+    }
+    
+    const response = await fetch(`${USER_API_BASE_URL}/top-tier-books?${searchParams}`, {
+      headers: getAuthHeaders(),
+    })
+    if (!response.ok) {
+      throw new Error('Failed to fetch top tier books')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching top tier books:', error)
+    throw error
+  }
+}
+
 // Book Tiers API functions
 import type { BookTier, BookReview, TierLevel, ReadingStatus } from '../types/book'
 

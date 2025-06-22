@@ -85,6 +85,16 @@ export const handler: Handler = async (event) => {
           body: JSON.stringify({ error: 'Method not allowed' })
         };
       
+      case 'top-tier-books':
+        if (event.httpMethod === 'GET') {
+          return await getTopTierBooks(params);
+        }
+        return {
+          statusCode: 405,
+          headers,
+          body: JSON.stringify({ error: 'Method not allowed' })
+        };
+      
       case 'users':
         if (subEndpoint === user.id || subEndpoint === 'me') {
           if (path[2] === 'tiers') {
@@ -706,4 +716,124 @@ async function getCommunityFavorites() {
     headers,
     body: JSON.stringify(communityData)
   };
+}
+
+async function getTopTierBooks(params: any) {
+  try {
+    // Parse tags from query parameters
+    const tags = params.tags ? (Array.isArray(params.tags) ? params.tags : [params.tags]) : [];
+    
+    // Get all books that are in SSS, SS, or S tiers (no tag filtering initially)
+    const topTierBooks = await prisma.book.findMany({
+      where: {
+        bookTiers: {
+          some: {
+            tier: { in: ['SSS', 'SS', 'S'] }
+          }
+        }
+      },
+      include: {
+        stats: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        },
+        bookTiers: {
+          where: {
+            tier: { in: ['SSS', 'SS', 'S'] }
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { bookTiers: { _count: 'desc' } }, // Books with more tier assignments first
+      ],
+      take: 50 // Get more books initially so we can filter and still have enough
+    });
+
+    // Transform the data to match the frontend interface
+    const transformedBooks = topTierBooks.map(book => {
+      // Group tier assignments by tier level
+      const tierGroups: { [key: string]: { tier: string; userCount: number; users: Array<{ id: string; name: string }> } } = {};
+      
+      book.bookTiers.forEach(tierAssignment => {
+        const tier = tierAssignment.tier;
+        if (!tier) return; // Skip if tier is null
+        
+        if (!tierGroups[tier]) {
+          tierGroups[tier] = {
+            tier,
+            userCount: 0,
+            users: []
+          };
+        }
+        
+        tierGroups[tier].userCount++;
+        tierGroups[tier].users.push({
+          id: tierAssignment.user.id,
+          name: `${tierAssignment.user.firstName} ${tierAssignment.user.lastName.charAt(0)}.`
+        });
+      });
+
+      return {
+        book: transformBookForFrontend(book),
+        tierAssignments: Object.values(tierGroups).sort((a, b) => {
+          // Sort by tier priority: SSS > SS > S
+          const tierOrder = { 'SSS': 0, 'SS': 1, 'S': 2 };
+          return tierOrder[a.tier as keyof typeof tierOrder] - tierOrder[b.tier as keyof typeof tierOrder];
+        })
+      };
+    });
+
+    // Filter and prioritize books based on tags if provided
+    let filteredBooks = transformedBooks;
+    if (tags.length > 0) {
+      // Separate books that match tags from those that don't
+      const matchingBooks = transformedBooks.filter(item => {
+        const bookTags = item.book.tags || [];
+        return tags.some(tag => 
+          bookTags.some(bookTag => 
+            bookTag.toLowerCase().includes(tag.toLowerCase()) || 
+            tag.toLowerCase().includes(bookTag.toLowerCase())
+          )
+        );
+      });
+      
+      const nonMatchingBooks = transformedBooks.filter(item => {
+        const bookTags = item.book.tags || [];
+        return !tags.some(tag => 
+          bookTags.some(bookTag => 
+            bookTag.toLowerCase().includes(tag.toLowerCase()) || 
+            tag.toLowerCase().includes(bookTag.toLowerCase())
+          )
+        );
+      });
+      
+      // Prioritize matching books, but include non-matching ones if we need more
+      filteredBooks = [...matchingBooks, ...nonMatchingBooks].slice(0, 20);
+    } else {
+      // If no tags provided, just take the first 20
+      filteredBooks = transformedBooks.slice(0, 20);
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(filteredBooks)
+    };
+  } catch (error) {
+    console.error('Error fetching top tier books:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: 'Failed to fetch top tier books' })
+    };
+  }
 } 
