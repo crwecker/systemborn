@@ -48,7 +48,7 @@ function Index() {
                   <img
                     src='/assets/images/xianxia/xianxia_realm_icon.png'
                     alt='Xianxia Realm'
-                    className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
+                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -62,7 +62,7 @@ function Index() {
                   <img
                     src='/assets/images/apocalypse/apocalypse_realm_icon.png'
                     alt='Apocalypse Realm'
-                    className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
+                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -73,12 +73,12 @@ function Index() {
               {/* Central LitRPG Academy Icon */}
               <div className='text-center'>
                 <Link
-                  to='/books'
+                  to='/academy'
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                   <img
                     src='/assets/images/litrpgacademy_realm_icon.png'
                     alt='LitRPG Academy'
-                    className='w-48 h-48 xl:w-56 xl:h-56 2xl:w-64 2xl:h-64 object-contain drop-shadow-xl mx-auto'
+                    className='w-96 h-96 xl:w-96 xl:h-96 2xl:w-96 2xl:h-96 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -95,7 +95,7 @@ function Index() {
                   <img
                     src='/assets/images/gamelit/gamelit_realm_icon.png'
                     alt='GameLit Realm'
-                    className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
+                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -109,7 +109,7 @@ function Index() {
                   <img
                     src='/assets/images/isekai/isekai_realm_icon.png'
                     alt='Isekai Realm'
-                    className='w-32 h-32 xl:w-36 xl:h-36 object-contain drop-shadow-xl mx-auto'
+                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -121,7 +121,7 @@ function Index() {
             {/* Central LitRPG Academy Icon */}
             <div className='text-center mb-8'>
               <Link
-                to='/books'
+                to='/academy'
                 className='inline-block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                 <img
                   src='/assets/images/litrpgacademy_realm_icon.png'

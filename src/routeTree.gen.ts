@@ -20,6 +20,7 @@ import { Route as CommunityFavoritesImport } from './routes/community-favorites'
 import { Route as BooksImport } from './routes/books'
 import { Route as AuthImport } from './routes/auth'
 import { Route as AddBookImport } from './routes/add-book'
+import { Route as AcademyImport } from './routes/academy'
 import { Route as IndexImport } from './routes/index'
 import { Route as RealmRealmIdImport } from './routes/realm.$realmId'
 import { Route as BookBookIdImport } from './routes/book.$bookId'
@@ -80,6 +81,12 @@ const AddBookRoute = AddBookImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AcademyRoute = AcademyImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
@@ -107,6 +114,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyImport
       parentRoute: typeof rootRoute
     }
     '/add-book': {
@@ -193,6 +207,7 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/academy': typeof AcademyRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/books': typeof BooksRoute
@@ -208,6 +223,7 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/academy': typeof AcademyRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/books': typeof BooksRoute
@@ -224,6 +240,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/academy': typeof AcademyRoute
   '/add-book': typeof AddBookRoute
   '/auth': typeof AuthRoute
   '/books': typeof BooksRoute
@@ -241,6 +258,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/academy'
     | '/add-book'
     | '/auth'
     | '/books'
@@ -255,6 +273,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/academy'
     | '/add-book'
     | '/auth'
     | '/books'
@@ -269,6 +288,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/academy'
     | '/add-book'
     | '/auth'
     | '/books'
@@ -285,6 +305,7 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcademyRoute: typeof AcademyRoute
   AddBookRoute: typeof AddBookRoute
   AuthRoute: typeof AuthRoute
   BooksRoute: typeof BooksRoute
@@ -300,6 +321,7 @@ export interface RootRouteChildren {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcademyRoute: AcademyRoute,
   AddBookRoute: AddBookRoute,
   AuthRoute: AuthRoute,
   BooksRoute: BooksRoute,
@@ -324,6 +346,7 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/academy",
         "/add-book",
         "/auth",
         "/books",
@@ -339,6 +362,9 @@ export const routeTree = rootRoute
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/academy": {
+      "filePath": "academy.tsx"
     },
     "/add-book": {
       "filePath": "add-book.tsx"

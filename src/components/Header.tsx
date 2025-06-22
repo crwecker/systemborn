@@ -83,6 +83,12 @@ export function Header() {
               Map
             </Link>
             
+            <Link
+              to='/academy'
+              className='text-white hover:text-gray-200 transition-colors text-lg'>
+              Academy
+            </Link>
+            
             {/* Realms Dropdown */}
             <div className='realms-dropdown-container relative'>
               <button
@@ -137,14 +143,7 @@ export function Header() {
             {isLoading ? (
               <div className='text-white'>Loading...</div>
             ) : isAuthenticated && user ? (
-              <>
-                <Link
-                  to='/community-favorites'
-                  className='text-white hover:text-gray-200 transition-colors text-lg'>
-                  Community Favorites
-                </Link>
-                <UserDropdown user={user} onLogout={logout} />
-              </>
+              <UserDropdown user={user} onLogout={logout} />
             ) : (
               <>
                 <Link
@@ -207,6 +206,13 @@ export function Header() {
                   Map
                 </Link>
                 
+                <Link
+                  to='/academy'
+                  className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
+                  onClick={closeMobileMenu}>
+                  Academy
+                </Link>
+                
                 {/* Realms section in mobile menu */}
                 <div className='px-4 py-2 text-sm font-medium text-gray-500 border-b border-gray-100'>
                   Realms
@@ -251,10 +257,16 @@ export function Header() {
                       <div className='text-xs text-gray-500'>{user.email}</div>
                     </div>
                     <Link
+                      to='/my-tiers'
+                      className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
+                      onClick={closeMobileMenu}>
+                      My Tiers
+                    </Link>
+                    <Link
                       to='/community-favorites'
                       className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
                       onClick={closeMobileMenu}>
-                      Community Favorites
+                      Community Tiers
                     </Link>
                     <button
                       onClick={() => {
