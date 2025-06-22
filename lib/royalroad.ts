@@ -196,6 +196,7 @@ export async function getPopularBooks(): Promise<Book[]> {
           rating: parseRating(element),
           coverUrl: imageElement?.getAttribute("src") || "",
           contentWarnings,
+          source: 'ROYAL_ROAD',
           stats: {
             followers: 0,
             pages: 0,
@@ -340,6 +341,7 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
           rating: parseRating(element),
           coverUrl: element.querySelector("img[data-type='cover']")?.getAttribute("src") || "",
           contentWarnings,
+          source: 'ROYAL_ROAD',
           stats: parseStats(bookRoot)
         };
 
@@ -398,6 +400,7 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
         rating: existingBook.stats[0]?.rating || 0,
         coverUrl: existingBook.coverUrl || "",
         contentWarnings: existingBook.contentWarnings || [],
+        source: existingBook.source as 'ROYAL_ROAD' | 'AMAZON',
         stats: {
           followers: existingBook.stats[0]?.followers || 0,
           views: {
@@ -446,6 +449,7 @@ export async function fetchBookDetails(bookId: string): Promise<Book> {
       rating,
       coverUrl: coverElement?.getAttribute("src") || "",
       contentWarnings,
+      source: 'ROYAL_ROAD',
       stats
     };
 
@@ -483,7 +487,7 @@ export async function updateBookStats(bookId: string): Promise<void> {
     await prisma.bookStats.create({
       data: {
         ...dbStats,
-        bookId: bookId,
+        bookId: book.id,
       },
     });
   } catch (error) {
@@ -521,6 +525,7 @@ export async function getBooksByTags(tags: string[]): Promise<Book[]> {
     rating: book.stats[0]?.rating || 0,
     coverUrl: book.coverUrl || "",
     contentWarnings: book.contentWarnings || [],
+    source: book.source as 'ROYAL_ROAD' | 'AMAZON',
     stats: {
       followers: book.stats[0]?.followers || 0,
       views: {
@@ -627,6 +632,7 @@ export async function getLitRPGBooks(): Promise<Book[]> {
     rating: book.stats?.[0]?.rating || 0,
     coverUrl: book.coverUrl || "",
     contentWarnings: book.contentWarnings || [],
+    source: book.source as 'ROYAL_ROAD' | 'AMAZON',
     stats: {
       followers: book.stats?.[0]?.followers || 0,
       views: {
@@ -697,6 +703,7 @@ function createBookFromDb(dbBook: any): Book {
     rating: dbBook.stats?.[0]?.rating || 0,
     coverUrl: dbBook.coverUrl || "",
     contentWarnings: dbBook.contentWarnings || [],
+    source: dbBook.source as 'ROYAL_ROAD' | 'AMAZON',
     stats: {
       followers: dbBook.stats?.[0]?.followers || 0,
       views: {

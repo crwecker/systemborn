@@ -62,6 +62,10 @@ export interface BookReview {
   bookId: string
   review: string
   book?: Book
+  user?: {
+    firstName: string
+    lastName: string
+  }
   createdAt: string
   updatedAt: string
 }

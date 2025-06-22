@@ -100,7 +100,16 @@ export function BookDetailPage() {
     },
   })
 
+
+
   const handleAddToTier = (tier: TierLevel) => {
+    // If clicking on the current tier, remove from tier but keep in finished state
+    if (existingTier?.tier === tier) {
+      // Use updateReadingStatus to set tier to null while keeping FINISHED status
+      updateStatusMutation.mutate('FINISHED')
+      return
+    }
+
     const tierConfig = TIER_CONFIG[tier]
     const currentBooksInTier = userTiers.filter(userTier => userTier.tier === tier).length
 
@@ -182,116 +191,170 @@ export function BookDetailPage() {
             {/* Book cover */}
             <div className="relative mb-6">
               <div className="aspect-[2/3] bg-slate rounded-lg overflow-hidden">
-                {isAmazonBook ? (
-                  <a href={book.url} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={book.coverUrl || '/placeholder-cover.jpg'}
-                      alt={`Cover for ${book.title}`}
-                      className="w-full h-full object-cover hover:opacity-90 transition-opacity"
-                    />
-                  </a>
-                ) : (
+                <a href={book.url} target="_blank" rel="noopener noreferrer">
                   <img
                     src={book.coverUrl || '/placeholder-cover.jpg'}
                     alt={`Cover for ${book.title}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover hover:opacity-90 transition-opacity"
                   />
-                )}
+                </a>
               </div>
-              
+            </div>
 
+            {/* Source Link - Always show for both Amazon and Royal Road */}
+            <div className="mb-6">
+              <a
+                href={book.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`block w-full px-4 py-3 text-white text-center rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+                  isAmazonBook 
+                    ? 'bg-orange-600 hover:bg-orange-700' 
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isAmazonBook ? (
+                  <>
+                    📚 View on Amazon
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    📖 Read on Royal Road
+                  </>
+                )}
+              </a>
+              
+              {/* Amazon affiliate disclaimer */}
+              {isAmazonBook && (
+                <div className="mt-2 text-xs text-copper opacity-80 text-center">
+                  As an Amazon Associate I earn from qualifying purchases
+                </div>
+              )}
             </div>
 
             {/* Book actions */}
             {user && (
-              <div className="space-y-3">
-                {/* Current status display */}
-                {existingTier && (
-                  <div className="space-y-2">
-                    {existingTier.readingStatus && (
-                      <div className={`px-3 py-2 rounded text-center text-white text-sm font-medium ${
-                        READING_STATUS_CONFIG[existingTier.readingStatus]?.color || 'bg-gray-500'
-                      }`}>
-                        {READING_STATUS_CONFIG[existingTier.readingStatus]?.name || 'Unknown Status'}
-                      </div>
-                    )}
+              <div className="space-y-4">
+                {/* Tier Assignment */}
+                <div className="bg-slate/50 rounded-lg p-4 border border-copper/20">
+                  <div>
+                    <div className="text-sm font-medium text-light-gray mb-3">⭐ Assign to Tier</div>
                     
-                    {existingTier.tier && (
-                      <div className={`px-3 py-2 rounded text-center text-white text-sm font-bold ${
-                        TIER_CONFIG[existingTier.tier].color
-                      }`}>
-                        {TIER_CONFIG[existingTier.tier].name}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Action buttons */}
-                <div className="space-y-2">
-                  <div className="text-xs text-light-gray mb-2 font-medium">Reading Status:</div>
-                  <div className="grid gap-2">
-                    {Object.entries(READING_STATUS_CONFIG).map(([status, config]) => (
-                      <button
-                        key={status}
-                        onClick={() => handleUpdateStatus(status as ReadingStatus)}
-                        disabled={updateStatusMutation.isPending}
-                        className={`px-3 py-2 rounded text-sm font-medium transition-colors disabled:opacity-50 ${
-                          existingTier?.readingStatus === status
-                            ? 'bg-copper text-dark-blue'
-                            : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
-                        }`}
-                      >
-                        {config.name}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Tier assignment */}
-                  {existingTier?.readingStatus && ['READING', 'FINISHED'].includes(existingTier.readingStatus) && (
-                    <>
-                      <div className="text-xs text-light-gray mb-2 font-medium border-t border-medium-gray pt-3">
-                        Assign to Tier:
-                      </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {Object.entries(TIER_CONFIG).map(([tier, config]) => {
-                          const currentCount = userTiers.filter(userTier => userTier.tier === tier).length
-                          const isDisabled = config.maxBooks && currentCount >= config.maxBooks && existingTier?.tier !== tier
-                          const isCurrentTier = existingTier?.tier === tier
-
-                          return (
+                    {/* Tier List Display */}
+                    <div className="space-y-2">
+                      {Object.entries(TIER_CONFIG).map(([tier, config]) => {
+                        const currentCount = userTiers.filter(userTier => userTier.tier === tier).length
+                        const isDisabled = config.maxBooks && currentCount >= config.maxBooks && existingTier?.tier !== tier
+                        const isCurrentTier = existingTier?.tier === tier
+                        const tierBooks = userTiers.filter(userTier => userTier.tier === tier && userTier.book)
+                        const showBookPosters = ['SSS', 'SS', 'S'].includes(tier) && tierBooks.length > 0
+                        
+                        return (
+                          <div key={tier} className="relative">
                             <button
-                              key={tier}
                               onClick={() => handleAddToTier(tier as TierLevel)}
                               disabled={isDisabled || assignTierMutation.isPending}
-                              className={`px-2 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                              className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed ${
                                 isCurrentTier
-                                  ? 'bg-copper text-dark-blue'
+                                  ? 'ring-2 ring-copper/70 shadow-lg transform scale-102'
                                   : isDisabled
-                                    ? 'bg-gray-600 text-gray-400'
-                                    : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
-                              }`}
-                              title={config.maxBooks ? `${currentCount}/${config.maxBooks} used` : config.name}
+                                    ? 'bg-gray-700/50 text-gray-500'
+                                    : 'hover:transform hover:scale-101 hover:shadow-md'
+                              } ${config.color}`}
+                              title={config.maxBooks ? `${currentCount}/${config.maxBooks} used - ${config.name}` : config.name}
                             >
-                              {tier}
+                              {/* Left side - Tier label and name */}
+                              <div className="flex items-center gap-3">
+                                <div className="text-white font-bold text-lg min-w-[3rem] text-center bg-black/20 rounded px-2 py-1">
+                                  {tier}
+                                </div>
+                                <div className="text-white font-medium">
+                                  {config.name}
+                                </div>
+                              </div>
+                              
+                              {/* Right side - Status and count */}
+                              <div className="flex items-center gap-2">
+                                {isCurrentTier && (
+                                  <div className="bg-copper text-dark-blue px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+                                    ✓ CURRENT
+                                  </div>
+                                )}
+                                {config.maxBooks && (
+                                  <div className="bg-black/30 text-white px-2 py-1 rounded text-xs">
+                                    {currentCount}/{config.maxBooks}
+                                  </div>
+                                )}
+                                {!isCurrentTier && !isDisabled && (
+                                  <div className="text-white/70 text-xs">
+                                    Click to assign
+                                  </div>
+                                )}
+                              </div>
                             </button>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
+                            
+                            {/* Small book posters for SSS, SS, S tiers */}
+                            {showBookPosters && (
+                              <div className="mt-2 flex gap-1 px-3">
+                                {tierBooks.map((tierBook) => (
+                                  <div key={tierBook.id} className="relative group">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        navigate({ to: '/book/$bookId', params: { bookId: tierBook.bookId } })
+                                      }}
+                                      className="w-8 h-12 bg-slate rounded overflow-hidden shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-copper"
+                                    >
+                                      <img
+                                        src={tierBook.book?.coverUrl || '/placeholder-cover.jpg'}
+                                        alt={tierBook.book?.title || 'Book cover'}
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                          const target = e.target as HTMLImageElement
+                                          target.style.display = 'none'
+                                          const parent = target.parentElement
+                                          if (parent) {
+                                            parent.innerHTML = `<div class="w-full h-full bg-gradient-to-b from-slate-600 to-slate-800 flex items-center justify-center text-[6px] text-copper font-bold text-center px-1 leading-tight">${tierBook.book?.title?.slice(0, 20) || 'Book'}</div>`
+                                          }
+                                        }}
+                                      />
+                                    </button>
+                                    {/* Tooltip on hover */}
+                                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                                      {tierBook.book?.title}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                    
+                    <div className="text-xs text-medium-gray mt-3 text-center">
+                      💡 Higher tiers (SSS, SS, S) are more exclusive with limited slots
+                    </div>
+                    
+                    {/* View My Tiers Link */}
+                    <div className="mt-4 pt-3 border-t border-copper/20">
+                      <button
+                        onClick={() => navigate({ to: '/my-tiers' })}
+                        className="w-full px-3 py-2 text-copper hover:text-light-gray text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 00-2-2M9 5v2a2 2 0 002 2h2a2 2 0 002-2V5" />
+                        </svg>
+                        View My Tiers
+                      </button>
+                    </div>
+                                      </div>
                 </div>
 
-                {/* External link for Amazon books */}
-                {isAmazonBook && (
-                  <a
-                    href={book.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full px-4 py-2 bg-orange-600 text-white text-center rounded font-medium hover:bg-orange-700 transition-colors"
-                  >
-                    View on Amazon →
-                  </a>
-                )}
+
               </div>
             )}
 
@@ -399,6 +462,29 @@ export function BookDetailPage() {
                 {book.description}
               </p>
             </div>
+
+            {/* Reading Status Section */}
+            {user && (
+              <div className="mt-6 pt-6 border-t border-medium-gray">
+                <h3 className="text-light-gray font-medium mb-3">📚 Reading Status</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(READING_STATUS_CONFIG).map(([status, config]) => (
+                    <button
+                      key={status}
+                      onClick={() => handleUpdateStatus(status as ReadingStatus)}
+                      disabled={updateStatusMutation.isPending}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 ${
+                        existingTier?.readingStatus === status
+                          ? 'bg-copper text-dark-blue shadow-lg transform scale-105'
+                          : 'bg-slate text-light-gray hover:bg-medium-gray hover:text-dark-blue hover:transform hover:scale-102'
+                      }`}
+                    >
+                      {config.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Detailed stats for Royal Road books with ratings */}
             {!isAmazonBook && book.stats && book.rating > 0 && (
@@ -522,7 +608,12 @@ export function BookDetailPage() {
                   <div key={review.id} className="p-4 bg-slate rounded-lg">
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div className="font-medium text-light-gray">Anonymous User</div>
+                        <div className="font-medium text-light-gray">
+                          {review.user 
+                            ? `${review.user.firstName} ${review.user.lastName.charAt(0)}.`
+                            : 'Anonymous User'
+                          }
+                        </div>
                         <div className="text-sm text-medium-gray">
                           {new Date(review.createdAt).toLocaleDateString()}
                         </div>
