@@ -64,7 +64,6 @@ const REALM_CONFIGS = {
 
 export function AcademyPage() {
   const { user } = useAuth()
-  const [selectedRealm, setSelectedRealm] = useState<string>('xianxia')
 
   // Mock user stats - in real app these would come from API
   const [userStats, setUserStats] = useState({
@@ -92,25 +91,26 @@ export function AcademyPage() {
   const renderXianxiaStats = () => {
     const stats = userStats.xianxia
     return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-yellow-400">Cultivation Progress</h3>
-        <div className="bg-black/30 rounded-lg p-4">
-          <div className="text-lg font-semibold text-emerald-300">
-            {stats.currentStage} - Level {stats.currentLevel}
+      <div className="bg-black/30 rounded-lg p-4 border border-emerald-500/30">
+        <div className="flex items-center space-x-3 mb-3">
+          <img src="/assets/images/xianxia/xianxia_realm_icon.png" alt="Xianxia" className="w-8 h-8" />
+          <h3 className="text-lg font-bold text-yellow-400">Xianxia Cultivation</h3>
+        </div>
+        <div className="text-sm font-semibold text-emerald-300">
+          {stats.currentStage} - Level {stats.currentLevel}
+        </div>
+        <div className="text-xs text-gray-300 mt-1">
+          Current Realm: {stats.currentRealm.charAt(0).toUpperCase() + stats.currentRealm.slice(1)}
+        </div>
+        <div className="mt-2">
+          <div className="bg-gray-800 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-emerald-500 to-yellow-400 h-2 rounded-full"
+              style={{ width: `${(stats.currentLevel / 9) * 100}%` }}
+            />
           </div>
-          <div className="text-sm text-gray-300 mt-1">
-            Current Realm: {stats.currentRealm.charAt(0).toUpperCase() + stats.currentRealm.slice(1)}
-          </div>
-          <div className="mt-3">
-            <div className="bg-gray-800 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-emerald-500 to-yellow-400 h-3 rounded-full"
-                style={{ width: `${(stats.currentLevel / 9) * 100}%` }}
-              />
-            </div>
-            <div className="text-xs text-gray-400 mt-1">
-              Progress to next level
-            </div>
+          <div className="text-xs text-gray-400 mt-1">
+            Progress to next level
           </div>
         </div>
       </div>
@@ -120,22 +120,23 @@ export function AcademyPage() {
   const renderGamelitStats = () => {
     const stats = userStats.gamelit
     return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-cyan-400">Character Stats</h3>
-        <div className="bg-black/30 rounded-lg p-4">
-          <div className="text-2xl font-bold text-cyan-300">
-            Level {stats.level}
+      <div className="bg-black/30 rounded-lg p-4 border border-cyan-500/30">
+        <div className="flex items-center space-x-3 mb-3">
+          <img src="/assets/images/gamelit/gamelit_realm_icon.png" alt="GameLit" className="w-8 h-8" />
+          <h3 className="text-lg font-bold text-cyan-400">GameLit Character</h3>
+        </div>
+        <div className="text-lg font-bold text-cyan-300">
+          Level {stats.level}
+        </div>
+        <div className="mt-2">
+          <div className="bg-gray-800 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-2 rounded-full"
+              style={{ width: `${(stats.experience / stats.experienceToNext) * 100}%` }}
+            />
           </div>
-          <div className="mt-3">
-            <div className="bg-gray-800 rounded-full h-3">
-              <div 
-                className="bg-gradient-to-r from-indigo-500 to-cyan-400 h-3 rounded-full"
-                style={{ width: `${(stats.experience / stats.experienceToNext) * 100}%` }}
-              />
-            </div>
-            <div className="text-xs text-gray-400 mt-1">
-              {stats.experience} / {stats.experienceToNext} XP
-            </div>
+          <div className="text-xs text-gray-400 mt-1">
+            {stats.experience} / {stats.experienceToNext} XP
           </div>
         </div>
       </div>
@@ -145,18 +146,19 @@ export function AcademyPage() {
   const renderIsekaiStats = () => {
     const stats = userStats.isekai
     return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-purple-400">Reincarnation Status</h3>
-        <div className="bg-black/30 rounded-lg p-4">
-          <div className="text-lg font-semibold text-purple-300">
-            Life #{stats.reincarnations + 1}: {stats.currentLife}
-          </div>
-          <div className="text-sm text-gray-300 mt-1">
-            Life Level: {stats.lifeLevel}
-          </div>
-          <div className="text-xs text-gray-400 mt-2">
-            Previous Reincarnations: {stats.reincarnations}
-          </div>
+      <div className="bg-black/30 rounded-lg p-4 border border-purple-500/30">
+        <div className="flex items-center space-x-3 mb-3">
+          <img src="/assets/images/isekai/isekai_realm_icon.png" alt="Isekai" className="w-8 h-8" />
+          <h3 className="text-lg font-bold text-purple-400">Isekai Lives</h3>
+        </div>
+        <div className="text-sm font-semibold text-purple-300">
+          Life #{stats.reincarnations + 1}: {stats.currentLife}
+        </div>
+        <div className="text-xs text-gray-300 mt-1">
+          Life Level: {stats.lifeLevel}
+        </div>
+        <div className="text-xs text-gray-400 mt-1">
+          Previous Reincarnations: {stats.reincarnations}
         </div>
       </div>
     )
@@ -165,33 +167,24 @@ export function AcademyPage() {
   const renderApocalypseStats = () => {
     const stats = userStats.apocalypse
     return (
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold text-orange-400">Survival Stats</h3>
-        <div className="bg-black/30 rounded-lg p-4">
-          <div className="text-lg font-semibold text-orange-300">
-            Day {stats.survivalDays}
-          </div>
-          <div className="grid grid-cols-4 gap-2 mt-3 text-sm">
-            {Object.entries(stats.stats).map(([stat, value]) => (
-              <div key={stat} className="text-center">
-                <div className="text-gray-400">{stat}</div>
-                <div className="text-white font-bold">{value}</div>
-              </div>
-            ))}
-          </div>
+      <div className="bg-black/30 rounded-lg p-4 border border-orange-500/30">
+        <div className="flex items-center space-x-3 mb-3">
+          <img src="/assets/images/apocalypse/apocalypse_realm_icon.png" alt="Apocalypse" className="w-8 h-8" />
+          <h3 className="text-lg font-bold text-orange-400">Apocalypse Survival</h3>
+        </div>
+        <div className="text-sm font-semibold text-orange-300 mb-2">
+          Day {stats.survivalDays}
+        </div>
+        <div className="grid grid-cols-4 gap-1 text-xs">
+          {Object.entries(stats.stats).map(([stat, value]) => (
+            <div key={stat} className="text-center">
+              <div className="text-gray-400">{stat}</div>
+              <div className="text-white font-bold">{value}</div>
+            </div>
+          ))}
         </div>
       </div>
     )
-  }
-
-  const renderRealmStats = () => {
-    switch (selectedRealm) {
-      case 'xianxia': return renderXianxiaStats()
-      case 'gamelit': return renderGamelitStats()
-      case 'isekai': return renderIsekaiStats()
-      case 'apocalypse': return renderApocalypseStats()
-      default: return null
-    }
   }
 
   return (
@@ -218,44 +211,25 @@ export function AcademyPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* Left Column: Realm Selection */}
-          <div className="lg:col-span-1">
+          {/* Left Column: All Realm Progress */}
+          <div className="lg:col-span-2">
             <div className="bg-slate-800/50 rounded-lg border border-slate-700 p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Select Realm</h2>
-              <div className="space-y-3">
-                {Object.entries(REALM_CONFIGS).map(([realmId, config]) => (
-                  <button
-                    key={realmId}
-                    onClick={() => setSelectedRealm(realmId)}
-                    className={`w-full p-4 rounded-lg border-2 transition-all duration-200 ${
-                      selectedRealm === realmId
-                        ? 'border-amber-400 bg-amber-400/10'
-                        : 'border-slate-600 bg-slate-700/30 hover:border-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={config.icon}
-                        alt={config.name}
-                        className="w-12 h-12 object-contain"
-                      />
-                      <div className="text-left">
-                        <div className="text-white font-semibold">{config.name}</div>
-                        <div className="text-gray-400 text-sm">{config.description}</div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <h2 className="text-2xl font-bold text-white mb-2">Your Progress Across All Realms</h2>
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-3 mb-6">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-400">ℹ️</span>
+                  <p className="text-blue-200 text-sm">
+                    <strong>Note:</strong> This is example data. Actual progress tracking based on your reading activity is coming soon!
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
-
-          {/* Middle Column: Stats Display */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/50 rounded-lg border border-slate-700 p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Your Progress</h2>
               {user ? (
-                renderRealmStats()
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderXianxiaStats()}
+                  {renderGamelitStats()}
+                  {renderIsekaiStats()}
+                  {renderApocalypseStats()}
+                </div>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-400 mb-4">Sign in to track your progress!</p>
@@ -273,54 +247,52 @@ export function AcademyPage() {
           {/* Right Column: Realm Portals */}
           <div className="lg:col-span-1">
             <div className="bg-slate-800/50 rounded-lg border border-slate-700 p-6">
-              <h2 className="text-2xl font-bold text-white mb-4">Realm Portals</h2>
-              <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-white mb-6">Realm Portals</h2>
+              
+              {/* Realm Icons Grid */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
                 {Object.entries(REALM_CONFIGS).map(([realmId, config]) => (
                   <Link
                     key={realmId}
                     to="/realm/$realmId"
                     params={{ realmId }}
-                    className="block p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50 transition-all duration-200 group"
+                    className="group"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <img
-                          src={config.icon}
-                          alt={config.name}
-                          className="w-10 h-10 object-contain group-hover:scale-110 transition-transform"
-                        />
-                        <div className="absolute -inset-1 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-full blur-sm" />
-                      </div>
-                      <div>
-                        <div className="text-white font-semibold">Enter {config.name}</div>
-                        <div className="text-gray-400 text-sm">Battle realm bosses</div>
-                      </div>
-                      <div className="ml-auto text-gray-500 group-hover:text-white transition-colors">
-                        →
+                    <div className="relative">
+                      <img
+                        src={config.icon}
+                        alt={config.name}
+                        className="w-full aspect-square object-contain group-hover:scale-110 transition-all duration-300 group-hover:drop-shadow-2xl"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+                      <div className="absolute bottom-2 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="text-white text-sm font-semibold drop-shadow-lg">
+                          Enter Realm
+                        </div>
                       </div>
                     </div>
                   </Link>
                 ))}
-                
-                {/* Books Portal */}
-                <Link
-                  to="/books"
-                  className="block p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50 transition-all duration-200 group"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <span className="text-white text-xl">📚</span>
-                    </div>
-                    <div>
-                      <div className="text-white font-semibold">Library</div>
-                      <div className="text-gray-400 text-sm">Browse all books</div>
-                    </div>
-                    <div className="ml-auto text-gray-500 group-hover:text-white transition-colors">
-                      →
-                    </div>
-                  </div>
-                </Link>
               </div>
+              
+              {/* Books Portal */}
+              <Link
+                to="/books"
+                className="block p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50 transition-all duration-200 group"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span className="text-white text-xl">📚</span>
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold">Library</div>
+                    <div className="text-gray-400 text-sm">Browse all books</div>
+                  </div>
+                  <div className="ml-auto text-gray-500 group-hover:text-white transition-colors">
+                    →
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
