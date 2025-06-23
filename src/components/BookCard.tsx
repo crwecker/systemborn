@@ -46,7 +46,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
                 const titleDiv = e.currentTarget.parentElement?.querySelector('.title-fallback') as HTMLElement
                 if (titleDiv) titleDiv.style.display = 'flex'
               }}
-            />
+          />
           ) : null}
           <div 
             className={`title-fallback absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-slate to-dark-blue ${book.coverUrl ? 'hidden' : 'flex'}`}
@@ -64,7 +64,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
         {user && existingTier?.tier && (
           <div className='absolute top-2 right-2'>
             <div className={`px-2 py-1 rounded text-white text-xs font-bold ${TIER_CONFIG[existingTier.tier].color}`}>
-              {existingTier.tier}
+                        {existingTier.tier}
             </div>
           </div>
         )}
@@ -77,14 +77,14 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
         onClick={() => navigate({ to: '/book/$bookId', params: { bookId: book.id } })}
       >
         <div className='flex items-center justify-between mb-2'>
-          <button
+        <button
             onClick={(e) => {
               e.stopPropagation()
               onAuthorClick?.(book.author.name)
             }}
             className='text-light-gray hover:text-copper transition-colors duration-200'>
-            by {book.author.name}
-          </button>
+          by {book.author.name}
+        </button>
           
           {/* Source Badge */}
           <div className='flex-shrink-0'>
@@ -106,19 +106,6 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
             <span>{book.stats?.pages || 0} pages</span>
           </div>
         )}
-
-        <div className='flex flex-wrap gap-1 mb-3'>
-          {book.tags.map(tag => (
-            <span
-              key={tag}
-              className='px-2 py-1 bg-slate text-light-gray text-sm rounded'>
-              {tag}
-            </span>
-          ))}
-        </div>
-        <p className='text-medium-gray text-sm line-clamp-3'>
-          {book.description}
-        </p>
 
         {/* Only show stats for Royal Road books */}
         {!isAmazonBook && (
