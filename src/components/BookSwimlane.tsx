@@ -14,7 +14,7 @@ interface BookSwimlaneProps {
 const REALM_SEARCH_TERMS = {
   xianxia: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
   gamelit: ['gamelit', 'litrpg', 'game', 'rpg', 'system', 'level'],
-  apocalypse: ['apocalypse', 'post-apocalyptic', 'zombie', 'survival', 'end', 'disaster'],
+  apocalypse: ['apocalypse', 'post-apocalyptic', 'post apocalyptic', 'dystopia', 'zombie', 'survival', 'end', 'disaster'],
   isekai: ['isekai', 'reincarnation', 'transmigration', 'rebirth', 'another world', 'transported']
 }
 
@@ -38,8 +38,21 @@ export function BookSwimlane({ realmId, realmName, realmColor, realmAccent }: Bo
       )
     })
 
+    // Filter out tags that don't belong in this realm (specifically for apocalypse)
+    const filteredTags = matchingTags.filter(tag => {
+      const lowerTag = tag.toLowerCase()
+      
+      // For apocalypse realm, exclude tags that are clearly not apocalyptic
+      if (realmId === 'apocalypse') {
+        const excludedTerms = ['gender', 'bender', 'romance', 'harem', 'slice of life']
+        return !excludedTerms.some(excluded => lowerTag.includes(excluded))
+      }
+      
+      return true
+    })
+
     // If no matching tags found, fallback to LitRPG
-    return matchingTags.length > 0 ? matchingTags : ['LitRPG']
+    return filteredTags.length > 0 ? filteredTags : ['LitRPG']
   }
 
   const realmTags = getRealmTags(realmId, allTags)
