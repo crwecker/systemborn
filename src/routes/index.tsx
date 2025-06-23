@@ -21,18 +21,13 @@ function Index() {
       {/* Dark overlay for better contrast */}
       <div className='absolute inset-0 bg-black bg-opacity-40' />
 
+      {/* Banner at the top */}
+      <div className='relative z-10'>
+        <Banner />
+      </div>
+
       {/* Content */}
       <div className='relative z-10 max-w-6xl w-full mx-auto px-4 pt-8'>
-        {/* Welcome Text */}
-        <div className='text-center mb-12'>
-          <h1 className='text-5xl font-bold text-white mb-4 drop-shadow-2xl'>
-            Welcome to the LitRPG Academy
-          </h1>
-          <p className='text-xl text-gray-200 drop-shadow-lg'>
-            Find books, read, battle, and level up in the LitRPG Academy!
-          </p>
-        </div>
-
         {/* Realm Icons Layout */}
         <div className='w-full max-w-4xl mx-auto'>
           {/* Desktop Layout - Responsive Grid */}
@@ -75,11 +70,17 @@ function Index() {
                 <Link
                   to='/academy'
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
-                  <img
-                    src='/assets/images/litrpgacademy_realm_icon.png'
-                    alt='LitRPG Academy'
-                    className='w-96 h-96 xl:w-96 xl:h-96 2xl:w-96 2xl:h-96 object-contain drop-shadow-xl mx-auto'
-                  />
+                  <>
+                    <img
+                      src='/assets/images/litrpgacademy_realm_icon.png'
+                      alt='LitRPG Academy'
+                      className='w-96 h-96 xl:w-96 xl:h-96 2xl:w-96 2xl:h-96 object-contain drop-shadow-xl mx-auto'
+                    />
+                    <p className='text-xl text-gray-200 drop-shadow-lg mt-[-50px]'>
+                      Find books, read, battle, and level up in the LitRPG
+                      Academy!
+                    </p>
+                  </>
                 </Link>
               </div>
             </div>
@@ -191,18 +192,7 @@ function Index() {
             </div>
           </div>
         </div>
-
-        {/* Instructions */}
-        <div className='text-center mt-16 mb-64'>
-          <p className='text-gray-300 text-lg drop-shadow-lg'>
-            Click on the Academy
-          </p>
-          <p className='text-gray-400 text-sm mt-2 drop-shadow-lg'>
-            Or click on any realm to enter its battle arena
-          </p>
-        </div>
       </div>
-      <Banner />
     </div>
   )
 }

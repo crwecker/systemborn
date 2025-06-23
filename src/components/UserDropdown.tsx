@@ -7,6 +7,13 @@ interface UserDropdownProps {
   onLogout: () => void
 }
 
+const REALMS = [
+  { id: 'xianxia', name: 'Xianxia Realm' },
+  { id: 'gamelit', name: 'GameLit Realm' },
+  { id: 'apocalypse', name: 'Apocalypse Realm' },
+  { id: 'isekai', name: 'Isekai Realm' },
+]
+
 export function UserDropdown({ user, onLogout }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -58,6 +65,24 @@ export function UserDropdown({ user, onLogout }: UserDropdownProps) {
           <div className='px-4 py-2 text-sm text-gray-600 border-b'>
             {user.email}
           </div>
+          
+          {/* Realms Section */}
+          <div className='py-1 border-b border-gray-100'>
+            <div className='px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide'>
+              Realms
+            </div>
+            {REALMS.map((realm) => (
+              <Link
+                key={realm.id}
+                to="/realm/$realmId"
+                params={{ realmId: realm.id }}
+                onClick={() => setIsOpen(false)}
+                className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors'>
+                {realm.name}
+              </Link>
+            ))}
+          </div>
+          
           <Link
             to='/my-tiers'
             onClick={() => setIsOpen(false)}
