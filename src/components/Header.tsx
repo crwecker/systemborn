@@ -29,7 +29,6 @@ export function Header() {
       if (isMobileMenuOpen && !target.closest('.mobile-menu-container')) {
         setIsMobileMenuOpen(false)
       }
-
     }
 
     document.addEventListener('mousedown', handleClickOutside)
@@ -71,29 +70,28 @@ export function Header() {
               className='text-white hover:text-gray-200 transition-colors text-lg'>
               Map
             </Link>
-            
+
             <Link
               to='/academy'
               className='text-white hover:text-gray-200 transition-colors text-lg'>
               Academy
             </Link>
-            
+
             <Link
               to='/books'
               className='text-white hover:text-gray-200 transition-colors text-lg flex items-center space-x-2'
               title='Search Books'>
-              <svg 
-                className='w-5 h-5' 
-                fill='none' 
-                stroke='currentColor' 
+              <svg
+                className='w-5 h-5'
+                fill='none'
+                stroke='currentColor'
                 viewBox='0 0 24 24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path 
-                  strokeLinecap='round' 
-                  strokeLinejoin='round' 
-                  strokeWidth={2} 
-                  d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' 
+                xmlns='http://www.w3.org/2000/svg'>
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
                 />
               </svg>
               <span>Books</span>
@@ -163,31 +161,30 @@ export function Header() {
                   onClick={closeMobileMenu}>
                   Map
                 </Link>
-                
+
                 <Link
                   to='/academy'
                   className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'
                   onClick={closeMobileMenu}>
                   Academy
                 </Link>
-                
+
                 <Link
                   to='/books'
                   className='flex items-center px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2'
                   onClick={closeMobileMenu}
                   title='Search Books'>
-                  <svg 
-                    className='w-5 h-5 mr-3' 
-                    fill='none' 
-                    stroke='currentColor' 
+                  <svg
+                    className='w-5 h-5 mr-3'
+                    fill='none'
+                    stroke='currentColor'
                     viewBox='0 0 24 24'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path 
-                      strokeLinecap='round' 
-                      strokeLinejoin='round' 
-                      strokeWidth={2} 
-                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' 
+                    xmlns='http://www.w3.org/2000/svg'>
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                      d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
                     />
                   </svg>
                   Books
@@ -200,42 +197,42 @@ export function Header() {
                       {user.firstName} {user.lastName}
                       <div className='text-xs text-gray-500'>{user.email}</div>
                     </div>
-                    
+
                     {/* Realms section in mobile menu */}
                     <div className='py-1 border-b border-gray-100'>
                       <div className='px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide'>
                         Realms
                       </div>
                       <Link
-                        to="/realm/$realmId"
+                        to='/realm/$realmId'
                         params={{ realmId: 'xianxia' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
                         Xianxia Realm
                       </Link>
                       <Link
-                        to="/realm/$realmId"
+                        to='/realm/$realmId'
                         params={{ realmId: 'gamelit' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
                         GameLit Realm
                       </Link>
                       <Link
-                        to="/realm/$realmId"
+                        to='/realm/$realmId'
                         params={{ realmId: 'apocalypse' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
                         Apocalypse Realm
                       </Link>
                       <Link
-                        to="/realm/$realmId"
+                        to='/realm/$realmId'
                         params={{ realmId: 'isekai' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
                         Isekai Realm
                       </Link>
                     </div>
-                    
+
                     <Link
                       to='/my-tiers'
                       className='block px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors'

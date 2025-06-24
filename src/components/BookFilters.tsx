@@ -25,7 +25,7 @@ const SOURCE_OPTIONS = [
   { value: 'AMAZON', label: 'Amazon', color: 'bg-orange-600' },
 ] as const
 
-export type SourceFilter = typeof SOURCE_OPTIONS[number]['value']
+export type SourceFilter = (typeof SOURCE_OPTIONS)[number]['value']
 
 export interface BookFilters {
   selectedTags: string[]
@@ -43,10 +43,16 @@ interface BookFiltersProps {
   debouncedSearchQuery: string
 }
 
-export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, allTags, debouncedSearchQuery }: BookFiltersProps) => {
+export const BookFiltersComponent = ({
+  filters,
+  onFiltersChange,
+  popularTags,
+  allTags,
+  debouncedSearchQuery,
+}: BookFiltersProps) => {
   const [showAllTags, setShowAllTags] = useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
-  
+
   const handleTagClick = (tag: string) => {
     const newTags = filters.selectedTags.includes(tag)
       ? filters.selectedTags.filter(t => t !== tag)
@@ -69,7 +75,9 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
     <div className='mb-8 bg-slate p-6 rounded-lg shadow'>
       {/* Search Input */}
       <div className='mb-6'>
-        <label className='block text-sm font-medium text-light-gray mb-2'>Search Books</label>
+        <label className='block text-sm font-medium text-light-gray mb-2'>
+          Search Books
+        </label>
         <div className='relative'>
           <input
             type='text'
@@ -96,11 +104,13 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
 
       {/* Source Filter */}
       <div className='mb-6'>
-        <label className='block text-sm font-medium text-light-gray mb-2'>Source</label>
+        <label className='block text-sm font-medium text-light-gray mb-2'>
+          Source
+        </label>
         <FilterButtons
           options={SOURCE_OPTIONS}
           currentValue={filters.sourceFilter}
-          onChange={(value) => onFiltersChange({ sourceFilter: value })}
+          onChange={value => onFiltersChange({ sourceFilter: value })}
           className='gap-2'
         />
       </div>
@@ -109,31 +119,50 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
         {/* Tags */}
         <div>
           <div className='flex items-center justify-between mb-2'>
-            <label className='block text-sm font-medium text-light-gray'>Tags</label>
+            <label className='block text-sm font-medium text-light-gray'>
+              Tags
+            </label>
             {otherTags.length > 0 && (
               <button
                 onClick={() => setShowAllTags(!showAllTags)}
-                className='text-xs text-copper hover:text-amber-400 transition-colors flex items-center gap-1'
-              >
+                className='text-xs text-copper hover:text-amber-400 transition-colors flex items-center gap-1'>
                 {showAllTags ? (
                   <>
                     Show Less
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                    <svg
+                      className='w-3 h-3'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'>
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M5 15l7-7 7 7'
+                      />
                     </svg>
                   </>
                 ) : (
                   <>
                     Show All ({allTags.length})
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className='w-3 h-3'
+                      fill='none'
+                      stroke='currentColor'
+                      viewBox='0 0 24 24'>
+                      <path
+                        strokeLinecap='round'
+                        strokeLinejoin='round'
+                        strokeWidth={2}
+                        d='M19 9l-7 7-7-7'
+                      />
                     </svg>
                   </>
                 )}
               </button>
             )}
           </div>
-          
+
           <div className='flex flex-wrap gap-2 max-h-40 overflow-y-auto'>
             {!showAllTags && (
               <>
@@ -152,7 +181,7 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
                 ))}
               </>
             )}
-            
+
             {showAllTags && (
               <>
                 {/* Popular tags section */}
@@ -177,7 +206,7 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
                     </div>
                   </div>
                 )}
-                
+
                 {/* All other tags section */}
                 {otherTags.length > 0 && (
                   <div className='w-full'>
@@ -207,24 +236,28 @@ export const BookFiltersComponent = ({ filters, onFiltersChange, popularTags, al
 
         {/* Rating Filter */}
         <div>
-          <label className='block text-sm font-medium text-light-gray mb-2'>Minimum Rating</label>
+          <label className='block text-sm font-medium text-light-gray mb-2'>
+            Minimum Rating
+          </label>
           <FilterButtons
             options={RATING_OPTIONS}
             currentValue={filters.minRating}
-            onChange={(value) => onFiltersChange({ minRating: value })}
+            onChange={value => onFiltersChange({ minRating: value })}
           />
         </div>
 
         {/* Sort Options */}
         <div>
-          <label className='block text-sm font-medium text-light-gray mb-2'>Sort By</label>
+          <label className='block text-sm font-medium text-light-gray mb-2'>
+            Sort By
+          </label>
           <FilterButtons
             options={SORT_OPTIONS}
             currentValue={filters.sortBy}
-            onChange={(value) => onFiltersChange({ sortBy: value })}
+            onChange={value => onFiltersChange({ sortBy: value })}
           />
         </div>
       </div>
     </div>
   )
-} 
+}

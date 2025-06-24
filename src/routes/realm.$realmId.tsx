@@ -10,6 +10,6 @@ export const Route = createRoute({
 
 function RealmBattle() {
   const { realmId } = Route.useParams()
-  
+
   return <RealmBattlePage realmId={realmId} />
-} 
+}

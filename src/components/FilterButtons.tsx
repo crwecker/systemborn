@@ -5,7 +5,12 @@ interface FilterButtonProps {
   className?: string
 }
 
-export const FilterButtons = ({ options, currentValue, onChange, className = '' }: FilterButtonProps) => (
+export const FilterButtons = ({
+  options,
+  currentValue,
+  onChange,
+  className = '',
+}: FilterButtonProps) => (
   <div className={`flex flex-wrap gap-2 ${className}`}>
     {options.map(option => (
       <button
@@ -13,11 +18,13 @@ export const FilterButtons = ({ options, currentValue, onChange, className = '' 
         onClick={() => onChange(option.value)}
         className={`px-3 py-1 rounded-full text-sm transition-colors duration-200 ${
           currentValue === option.value
-            ? option.color ? `${option.color} text-white` : 'bg-copper text-dark-blue'
+            ? option.color
+              ? `${option.color} text-white`
+              : 'bg-copper text-dark-blue'
             : 'bg-medium-gray text-light-gray hover:bg-light-gray hover:text-dark-blue'
         }`}>
         {option.label}
       </button>
     ))}
   </div>
-) 
+)

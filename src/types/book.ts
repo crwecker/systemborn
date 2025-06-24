@@ -29,21 +29,9 @@ export interface Book {
   }
 }
 
-export type TierLevel =
-  | 'SSS'
-  | 'SS'
-  | 'S'
-  | 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'F'
+export type TierLevel = 'SSS' | 'SS' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
 
-export type ReadingStatus =
-  | 'WANT_TO_READ'
-  | 'READING'
-  | 'FINISHED'
+export type ReadingStatus = 'WANT_TO_READ' | 'READING' | 'FINISHED'
 
 export interface BookTier {
   id: string

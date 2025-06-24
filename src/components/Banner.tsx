@@ -40,9 +40,9 @@ export function Banner() {
         to='/signup'
         search={{ email: undefined, fromSignin: undefined }}
         className='absolute bottom-8 px-8 py-3 bg-blue-500 text-white rounded-lg font-semibold 
-          transition-all duration-300 hover:bg-blue-600
-          animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.5)]
-          hover:shadow-[0_0_25px_rgba(59,130,246,0.8)]'>
+            transition-all duration-300 hover:bg-blue-600
+            animate-pulse shadow-[0_0_15px_rgba(59,130,246,0.5)]
+            hover:shadow-[0_0_25px_rgba(59,130,246,0.8)]'>
         Start Your Journey
       </Link>
     </div>

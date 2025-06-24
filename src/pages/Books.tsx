@@ -1,8 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { Book } from '../types/book'
-import { searchBooks, fetchAmazonBooks, fetchAvailableTags, fetchAllTags } from '../services/api'
-import { BookFiltersComponent, type BookFilters } from '../components/BookFilters'
+import {
+  searchBooks,
+  fetchAmazonBooks,
+  fetchAvailableTags,
+  fetchAllTags,
+} from '../services/api'
+import {
+  BookFiltersComponent,
+  type BookFilters,
+} from '../components/BookFilters'
 import { BookResults } from '../components/BookResults'
 
 interface BooksPageProps {
@@ -41,35 +49,45 @@ const normalizeAmazonBook = (book: any): Book => ({
     style_score: 0,
     story_score: 0,
     grammar_score: 0,
-    character_score: 0
+    character_score: 0,
   },
-  source: 'AMAZON' as const
+  source: 'AMAZON' as const,
 })
 
-const filterAmazonBooks = (books: any[], searchQuery: string, selectedTags: string[]) => {
-  return books.filter(book => {
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      const title = book.title?.toLowerCase() || ''
-      const author = getAuthors(book)?.toLowerCase() || ''
-      const description = book.description?.toLowerCase() || ''
-      
-      if (!title.includes(query) && !author.includes(query) && !description.includes(query)) {
-        return false
+const filterAmazonBooks = (
+  books: any[],
+  searchQuery: string,
+  selectedTags: string[]
+) => {
+  return books
+    .filter(book => {
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        const title = book.title?.toLowerCase() || ''
+        const author = getAuthors(book)?.toLowerCase() || ''
+        const description = book.description?.toLowerCase() || ''
+
+        if (
+          !title.includes(query) &&
+          !author.includes(query) &&
+          !description.includes(query)
+        ) {
+          return false
+        }
       }
-    }
-    
-    if (selectedTags.length > 0) {
-      const bookTags = book.tags || ['LitRPG']
-      return selectedTags.every(tag => 
-        bookTags.some((bookTag: string) => 
-          bookTag.toLowerCase().includes(tag.toLowerCase())
+
+      if (selectedTags.length > 0) {
+        const bookTags = book.tags || ['LitRPG']
+        return selectedTags.every(tag =>
+          bookTags.some((bookTag: string) =>
+            bookTag.toLowerCase().includes(tag.toLowerCase())
+          )
         )
-      )
-    }
-    
-    return true
-  }).map(normalizeAmazonBook)
+      }
+
+      return true
+    })
+    .map(normalizeAmazonBook)
 }
 
 // Custom hooks
@@ -84,7 +102,9 @@ const useDebounced = (value: string, delay: number) => {
   return debouncedValue
 }
 
-const useBookData = (filters: BookFilters & { debouncedSearchQuery: string }) => {
+const useBookData = (
+  filters: BookFilters & { debouncedSearchQuery: string }
+) => {
   const { data: popularTags = [] } = useQuery<string[]>({
     queryKey: ['popular-tags'],
     queryFn: fetchAvailableTags,
@@ -98,29 +118,45 @@ const useBookData = (filters: BookFilters & { debouncedSearchQuery: string }) =>
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data: royalRoadBooks = [], isLoading: isLoadingRoyalRoad } = useQuery<Book[]>({
-    queryKey: ['books', filters.selectedTags, filters.minRating, filters.sortBy, filters.debouncedSearchQuery],
-    queryFn: () => searchBooks({
-      tags: filters.selectedTags,
-      minRating: filters.minRating,
-      sortBy: filters.sortBy,
-      query: filters.debouncedSearchQuery,
-    }),
+  const { data: royalRoadBooks = [], isLoading: isLoadingRoyalRoad } = useQuery<
+    Book[]
+  >({
+    queryKey: [
+      'books',
+      filters.selectedTags,
+      filters.minRating,
+      filters.sortBy,
+      filters.debouncedSearchQuery,
+    ],
+    queryFn: () =>
+      searchBooks({
+        tags: filters.selectedTags,
+        minRating: filters.minRating,
+        sortBy: filters.sortBy,
+        query: filters.debouncedSearchQuery,
+      }),
   })
 
-  const { data: amazonBooks = [], isLoading: isLoadingAmazon } = useQuery<any[]>({
+  const { data: amazonBooks = [], isLoading: isLoadingAmazon } = useQuery<
+    any[]
+  >({
     queryKey: ['amazon-books'],
     queryFn: fetchAmazonBooks,
   })
 
   const processedBooks = (() => {
-    const filteredAmazonBooks = filterAmazonBooks(amazonBooks, filters.debouncedSearchQuery, filters.selectedTags)
+    const filteredAmazonBooks = filterAmazonBooks(
+      amazonBooks,
+      filters.debouncedSearchQuery,
+      filters.selectedTags
+    )
     const combinedBooks = [...filteredAmazonBooks, ...royalRoadBooks]
-    
+
     return combinedBooks.filter(book => {
       if (filters.sourceFilter === 'ALL') return true
       if (filters.sourceFilter === 'AMAZON') return book.source === 'AMAZON'
-      if (filters.sourceFilter === 'ROYAL_ROAD') return book.source === 'ROYAL_ROAD' || !book.source
+      if (filters.sourceFilter === 'ROYAL_ROAD')
+        return book.source === 'ROYAL_ROAD' || !book.source
       return true
     })
   })()
@@ -129,7 +165,7 @@ const useBookData = (filters: BookFilters & { debouncedSearchQuery: string }) =>
     popularTags,
     allTags,
     books: processedBooks,
-    isLoading: isLoadingRoyalRoad || isLoadingAmazon
+    isLoading: isLoadingRoyalRoad || isLoadingAmazon,
   }
 }
 
@@ -140,11 +176,14 @@ export function BooksPage({ initialFilters }: BooksPageProps = {}) {
     minRating: 0,
     searchQuery: '',
     sourceFilter: 'ALL',
-    ...initialFilters
+    ...initialFilters,
   })
 
   const debouncedSearchQuery = useDebounced(filters.searchQuery, 300)
-  const { popularTags, allTags, books, isLoading } = useBookData({ ...filters, debouncedSearchQuery })
+  const { popularTags, allTags, books, isLoading } = useBookData({
+    ...filters,
+    debouncedSearchQuery,
+  })
 
   const handleFiltersChange = (updates: Partial<BookFilters>) => {
     setFilters(prev => ({ ...prev, ...updates }))
@@ -163,7 +202,7 @@ export function BooksPage({ initialFilters }: BooksPageProps = {}) {
         allTags={allTags}
         debouncedSearchQuery={debouncedSearchQuery}
       />
-      
+
       <BookResults
         books={books}
         isLoading={isLoading}

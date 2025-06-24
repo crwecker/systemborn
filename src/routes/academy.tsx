@@ -10,4 +10,4 @@ export const Route = createRoute({
 
 function Academy() {
   return <AcademyPage />
-} 
+}

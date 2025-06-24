@@ -200,16 +200,21 @@ export interface TopTierBook {
   }[]
 }
 
-export async function fetchTopTierBooks(tags: string[]): Promise<TopTierBook[]> {
+export async function fetchTopTierBooks(
+  tags: string[]
+): Promise<TopTierBook[]> {
   try {
     const searchParams = new URLSearchParams()
     if (tags?.length) {
       tags.forEach(tag => searchParams.append('tags', tag))
     }
-    
-    const response = await fetch(`${USER_API_BASE_URL}/top-tier-books?${searchParams}`, {
-      headers: getAuthHeaders(),
-    })
+
+    const response = await fetch(
+      `${USER_API_BASE_URL}/top-tier-books?${searchParams}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    )
     if (!response.ok) {
       throw new Error('Failed to fetch top tier books')
     }
@@ -221,7 +226,12 @@ export async function fetchTopTierBooks(tags: string[]): Promise<TopTierBook[]> 
 }
 
 // Book Tiers API functions
-import type { BookTier, BookReview, TierLevel, ReadingStatus } from '../types/book'
+import type {
+  BookTier,
+  BookReview,
+  TierLevel,
+  ReadingStatus,
+} from '../types/book'
 
 // Helper function to get auth headers
 function getAuthHeaders() {

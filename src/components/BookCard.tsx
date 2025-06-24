@@ -28,64 +28,68 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
   const isAmazonBook = book.source === 'AMAZON'
 
   return (
-    <div 
-      className='bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group'>
+    <div className='bg-[#1a1a1a] rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-200 hover:-translate-y-1 relative group'>
       <div className='relative pb-[150%] bg-[#1a1a1a]'>
         <div
           className='absolute inset-0 cursor-pointer'
-          onClick={() => navigate({ to: '/book/$bookId', params: { bookId: book.id } })}
-        >
+          onClick={() =>
+            navigate({ to: '/book/$bookId', params: { bookId: book.id } })
+          }>
           {book.coverUrl ? (
             <img
               src={book.coverUrl}
               alt={`Cover for ${book.title}`}
               className='absolute inset-0 w-full h-full object-contain hover:opacity-90 transition-opacity'
-              onError={(e) => {
+              onError={e => {
                 // Hide the broken image and show the title fallback
                 e.currentTarget.style.display = 'none'
-                const titleDiv = e.currentTarget.parentElement?.querySelector('.title-fallback') as HTMLElement
+                const titleDiv = e.currentTarget.parentElement?.querySelector(
+                  '.title-fallback'
+                ) as HTMLElement
                 if (titleDiv) titleDiv.style.display = 'flex'
               }}
-          />
+            />
           ) : null}
-          <div 
+          <div
             className={`title-fallback absolute inset-0 flex items-center justify-center p-4 bg-gradient-to-br from-slate to-dark-blue ${book.coverUrl ? 'hidden' : 'flex'}`}
-            style={{ display: book.coverUrl ? 'none' : 'flex' }}
-          >
+            style={{ display: book.coverUrl ? 'none' : 'flex' }}>
             <h3 className='text-copper text-lg font-serif text-center leading-tight'>
               {book.title}
             </h3>
           </div>
         </div>
 
-
-
         {/* Current Tier Badge Only */}
         {user && existingTier?.tier && (
           <div className='absolute top-2 right-2'>
-            <div className={`px-2 py-1 rounded text-white text-xs font-bold ${TIER_CONFIG[existingTier.tier].color}`}>
-                        {existingTier.tier}
+            <div
+              className={`px-2 py-1 rounded text-white text-xs font-bold ${TIER_CONFIG[existingTier.tier].color}`}>
+              {existingTier.tier}
             </div>
           </div>
         )}
-
-
       </div>
 
-      <div 
+      <div
         className='p-4 cursor-pointer'
-        onClick={() => navigate({ to: '/book/$bookId', params: { bookId: book.id } })}
-      >
+        onClick={() =>
+          navigate({ to: '/book/$bookId', params: { bookId: book.id } })
+        }>
+        <div>
+          <h3 className='text-copper text-lg font-serif text-center line-clamp-2'>
+            {book.title}
+          </h3>
+        </div>
         <div className='flex items-center justify-between mb-2'>
-        <button
-            onClick={(e) => {
+          <button
+            onClick={e => {
               e.stopPropagation()
               onAuthorClick?.(book.author.name)
             }}
             className='text-light-gray hover:text-copper transition-colors duration-200'>
-          by {book.author.name}
-        </button>
-          
+            by {book.author.name}
+          </button>
+
           {/* Source Badge */}
           <div className='flex-shrink-0'>
             <span
@@ -119,13 +123,20 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
           </div>
         )}
 
-
-
         {/* Tier management hint */}
         {user && !isAmazonBook && (
           <div className='mt-3 text-xs text-medium-gray opacity-60 flex items-center justify-center gap-1'>
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className='w-3 h-3'
+              fill='none'
+              stroke='currentColor'
+              viewBox='0 0 24 24'>
+              <path
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth={2}
+                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+              />
             </svg>
             Click for full tier management
           </div>

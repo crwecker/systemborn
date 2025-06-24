@@ -10,7 +10,7 @@ const SOURCE_OPTIONS = [
 
 const PAGE_SIZE_OPTIONS = [25, 50, 100, 200]
 
-type SourceFilter = typeof SOURCE_OPTIONS[number]['value']
+type SourceFilter = (typeof SOURCE_OPTIONS)[number]['value']
 
 interface BookResultsProps {
   books: Book[]
@@ -27,12 +27,16 @@ interface PaginationNavigationProps {
 }
 
 // Reusable pagination navigation component
-const PaginationNavigation = ({ currentPage, totalPages, onPageChange }: PaginationNavigationProps) => {
+const PaginationNavigation = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: PaginationNavigationProps) => {
   // Generate page numbers to show
   const generatePageNumbers = () => {
     const delta = 2 // Number of pages to show on each side of current page
     const pages: (number | string)[] = []
-    
+
     // Always show first page
     if (currentPage > delta + 2) {
       pages.push(1)
@@ -40,12 +44,16 @@ const PaginationNavigation = ({ currentPage, totalPages, onPageChange }: Paginat
         pages.push('...')
       }
     }
-    
+
     // Show pages around current page
-    for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+    for (
+      let i = Math.max(1, currentPage - delta);
+      i <= Math.min(totalPages, currentPage + delta);
+      i++
+    ) {
       pages.push(i)
     }
-    
+
     // Always show last page
     if (currentPage < totalPages - delta - 1) {
       if (currentPage < totalPages - delta - 2) {
@@ -53,7 +61,7 @@ const PaginationNavigation = ({ currentPage, totalPages, onPageChange }: Paginat
       }
       pages.push(totalPages)
     }
-    
+
     return pages
   }
 
@@ -64,40 +72,43 @@ const PaginationNavigation = ({ currentPage, totalPages, onPageChange }: Paginat
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage <= 1}
-        className='px-4 py-2 bg-dark-blue text-light-gray border border-slate rounded hover:bg-slate disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-      >
+        className='px-4 py-2 bg-dark-blue text-light-gray border border-slate rounded hover:bg-slate disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
         Previous
       </button>
-      
+
       {generatePageNumbers().map((page, index) => (
         <button
           key={`${page}-${index}`}
           onClick={() => typeof page === 'number' && onPageChange(page)}
           disabled={page === '...' || page === currentPage}
           className={`px-3 py-2 border border-slate rounded transition-colors ${
-            page === currentPage 
-              ? 'bg-copper text-dark-blue font-semibold' 
+            page === currentPage
+              ? 'bg-copper text-dark-blue font-semibold'
               : page === '...'
-              ? 'bg-transparent text-light-gray cursor-default'
-              : 'bg-dark-blue text-light-gray hover:bg-slate'
-          }`}
-        >
+                ? 'bg-transparent text-light-gray cursor-default'
+                : 'bg-dark-blue text-light-gray hover:bg-slate'
+          }`}>
           {page}
         </button>
       ))}
-      
+
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage >= totalPages}
-        className='px-4 py-2 bg-dark-blue text-light-gray border border-slate rounded hover:bg-slate disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-      >
+        className='px-4 py-2 bg-dark-blue text-light-gray border border-slate rounded hover:bg-slate disabled:opacity-50 disabled:cursor-not-allowed transition-colors'>
         Next
       </button>
     </div>
   )
 }
 
-export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilter, onAuthorClick }: BookResultsProps) => {
+export const BookResults = ({
+  books,
+  isLoading,
+  debouncedSearchQuery,
+  sourceFilter,
+  onAuthorClick,
+}: BookResultsProps) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
 
@@ -110,7 +121,9 @@ export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilt
     return (
       <div className='text-center py-12 text-light-gray'>
         <div className='animate-pulse'>
-          {debouncedSearchQuery ? `Searching for "${debouncedSearchQuery}"...` : 'Loading books...'}
+          {debouncedSearchQuery
+            ? `Searching for "${debouncedSearchQuery}"...`
+            : 'Loading books...'}
         </div>
       </div>
     )
@@ -140,9 +153,8 @@ export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilt
           {debouncedSearchQuery && `matching "${debouncedSearchQuery}"`}
           {sourceFilter !== 'ALL' && (
             <span className='text-copper'>
-              {debouncedSearchQuery ? ' ' : ''}from {
-                SOURCE_OPTIONS.find(opt => opt.value === sourceFilter)?.label
-              }
+              {debouncedSearchQuery ? ' ' : ''}from{' '}
+              {SOURCE_OPTIONS.find(opt => opt.value === sourceFilter)?.label}
             </span>
           )}
         </div>
@@ -155,9 +167,8 @@ export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilt
             <span className='text-light-gray'>Show:</span>
             <select
               value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className='bg-dark-blue text-light-gray border border-slate rounded px-3 py-1 focus:outline-none focus:border-copper'
-            >
+              onChange={e => handlePageSizeChange(Number(e.target.value))}
+              className='bg-dark-blue text-light-gray border border-slate rounded px-3 py-1 focus:outline-none focus:border-copper'>
               {PAGE_SIZE_OPTIONS.map(size => (
                 <option key={size} value={size}>
                   {size} per page
@@ -165,11 +176,12 @@ export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilt
               ))}
             </select>
           </div>
-          
+
           <div className='text-light-gray text-sm'>
-            Showing {startIndex + 1}-{Math.min(endIndex, books.length)} of {books.length} books
+            Showing {startIndex + 1}-{Math.min(endIndex, books.length)} of{' '}
+            {books.length} books
           </div>
-          
+
           <div className='text-light-gray text-sm'>
             Page {currentPage} of {totalPages}
           </div>
@@ -208,9 +220,10 @@ export const BookResults = ({ books, isLoading, debouncedSearchQuery, sourceFilt
       {/* No Results */}
       {books.length === 0 && debouncedSearchQuery && (
         <div className='text-center py-12 text-medium-gray'>
-          No books found matching "{debouncedSearchQuery}". Try adjusting your search terms or filters.
+          No books found matching "{debouncedSearchQuery}". Try adjusting your
+          search terms or filters.
         </div>
       )}
     </>
   )
-} 
+}

@@ -22,10 +22,9 @@ export const SimplifiedBookCard: React.FC<SimplifiedBookCardProps> = ({
 
   if (compact) {
     return (
-      <div 
+      <div
         className='bg-white rounded shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 border w-full h-full cursor-pointer'
-        onClick={handleClick}
-      >
+        onClick={handleClick}>
         <div className='relative h-full bg-gray-100'>
           <img
             src={book.coverUrl || '/placeholder-cover.jpg'}
@@ -44,10 +43,9 @@ export const SimplifiedBookCard: React.FC<SimplifiedBookCardProps> = ({
   }
 
   return (
-    <div 
+    <div
       className='bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-200 border cursor-pointer'
-      onClick={handleClick}
-    >
+      onClick={handleClick}>
       <div className='relative pb-[140%] bg-gray-100'>
         <img
           src={book.coverUrl || '/placeholder-cover.jpg'}

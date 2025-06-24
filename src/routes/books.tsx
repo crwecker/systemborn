@@ -17,12 +17,19 @@ export const Route = createRoute({
   path: '/books',
   validateSearch: (search: Record<string, unknown>): BooksSearch => {
     return {
-      tags: Array.isArray(search.tags) ? search.tags as string[] : 
-            typeof search.tags === 'string' ? [search.tags] : undefined,
+      tags: Array.isArray(search.tags)
+        ? (search.tags as string[])
+        : typeof search.tags === 'string'
+          ? [search.tags]
+          : undefined,
       sortBy: typeof search.sortBy === 'string' ? search.sortBy : undefined,
       query: typeof search.query === 'string' ? search.query : undefined,
-      minRating: typeof search.minRating === 'number' ? search.minRating : undefined,
-      sourceFilter: typeof search.sourceFilter === 'string' ? search.sourceFilter : undefined,
+      minRating:
+        typeof search.minRating === 'number' ? search.minRating : undefined,
+      sourceFilter:
+        typeof search.sourceFilter === 'string'
+          ? search.sourceFilter
+          : undefined,
     }
   },
   component: Books,
@@ -30,18 +37,18 @@ export const Route = createRoute({
 
 function Books() {
   const { tags, sortBy, query, minRating, sourceFilter } = Route.useSearch()
-  
+
   return (
     <main className='container mx-auto py-6'>
-      <BooksPage 
+      <BooksPage
         initialFilters={{
           selectedTags: tags || [],
           sortBy: sortBy || 'followers',
           searchQuery: query || '',
           minRating: minRating || 0,
-          sourceFilter: (sourceFilter as SourceFilter) || 'ALL'
+          sourceFilter: (sourceFilter as SourceFilter) || 'ALL',
         }}
       />
     </main>
   )
-} 
+}

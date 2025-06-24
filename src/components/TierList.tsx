@@ -315,10 +315,14 @@ const TierList: React.FC = () => {
   const regularTiers = tierData.filter(
     t => !['SSS', 'SS', 'S'].includes(t.tier)
   )
-  
+
   // Create staging area with books that have READING or FINISHED status but no tier assigned
   const stagingBooks = bookTiers.filter(bt => {
-    return bt.readingStatus && ['READING', 'FINISHED'].includes(bt.readingStatus) && bt.tier === null
+    return (
+      bt.readingStatus &&
+      ['READING', 'FINISHED'].includes(bt.readingStatus) &&
+      bt.tier === null
+    )
   })
 
   const handleRemoveFromTier = (tierId: string) => {
@@ -488,7 +492,8 @@ const TierList: React.FC = () => {
                     />
                   </svg>
                   <span>
-                    <strong>Staging Area:</strong> Books you're reading or have finished - drag them into tiers to rank them
+                    <strong>Staging Area:</strong> Books you're reading or have
+                    finished - drag them into tiers to rank them
                   </span>
                 </div>
               </div>
@@ -646,7 +651,8 @@ const TierList: React.FC = () => {
             total - publicly visible to other users)
           </li>
           <li>
-            • <strong>Staging Area:</strong> Books you're reading or have finished - drag them into tiers to rank them
+            • <strong>Staging Area:</strong> Books you're reading or have
+            finished - drag them into tiers to rank them
           </li>
           <li>
             • <strong>Organization Tiers:</strong> Categorize the rest of your
