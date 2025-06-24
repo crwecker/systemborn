@@ -734,6 +734,8 @@ function convertBooksToApiFormat(books: any[]): Book[] {
 const defaultStats = createDefaultStats();
 
 // Advanced search function with filtering
+// NOTE: This function only handles Royal Road books. Amazon books are handled 
+// separately in the frontend and are always displayed first as featured content.
 export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   const {
     tags = [],
@@ -761,8 +763,10 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   //   };
   // }
 
-  // When filtering by tags, we need to fetch more books since we're filtering in JavaScript
-  const searchLimit = query && query.trim() ? undefined : (tags.length > 0 ? undefined : limit);
+  // When filtering by tags or sorting, we need to fetch all books since we're filtering/sorting in JavaScript
+  // Only use the limit when we have both no tags AND no search query AND no sorting (just pagination)
+  const needsClientSideProcessing = tags.length > 0 || (query && query.trim()) || sortBy !== "rating";
+  const searchLimit = needsClientSideProcessing ? undefined : limit;
 
   // Include stats for filtering
   const books = await prisma.book.findMany({
@@ -847,8 +851,8 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
       }
     });
     
-    // Apply limit after sorting when we have tag filtering
-    if (tags.length > 0) {
+    // Apply limit after sorting when we performed client-side processing
+    if (needsClientSideProcessing) {
       processedBooks = processedBooks.slice(0, limit);
     }
   }

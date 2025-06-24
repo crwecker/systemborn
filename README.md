@@ -52,3 +52,33 @@ export default tseslint.config({
   },
 })
 ```
+
+# LitRPG Academy
+
+A curated platform for discovering the best LitRPG, GameLit, and progression fantasy books.
+
+## Features
+
+- **Book Discovery**: Browse and search through a curated collection of LitRPG and GameLit books
+- **Smart Filtering**: Filter by tags, ratings, source, and more
+- **User Reviews**: Read and write reviews for books
+- **Tier Lists**: Create personal tier lists of your favorite books
+- **Real-time Data**: Book stats are updated regularly from Royal Road
+- **Amazon Integration**: Featured book recommendations with affiliate links
+
+## Book Sorting and Display Behavior
+
+### Amazon Books Priority
+**IMPORTANT**: Amazon books are always displayed first in all book listings, regardless of the selected sort criteria. This is intentional because:
+
+1. Amazon books are curated recommendations and don't have Royal Road stats (followers, views, etc.)
+2. They serve as featured/sponsored content
+3. They provide monetization through affiliate links
+
+**Do not change this behavior** - Amazon books should always appear before Royal Road books in search results, even when sorting by followers, rating, etc.
+
+### Sort Order Logic
+1. **Amazon books** - Always first (sorted by manual curation order)
+2. **Royal Road books** - Sorted by selected criteria (followers, rating, views, etc.)
+
+This ensures users see curated recommendations first, followed by community-driven content sorted by their preferred metrics.

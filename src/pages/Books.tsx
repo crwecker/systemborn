@@ -152,12 +152,41 @@ const useBookData = (
     )
     const combinedBooks = [...filteredAmazonBooks, ...royalRoadBooks]
 
-    return combinedBooks.filter(book => {
+    const filteredBooks = combinedBooks.filter(book => {
       if (filters.sourceFilter === 'ALL') return true
       if (filters.sourceFilter === 'AMAZON') return book.source === 'AMAZON'
       if (filters.sourceFilter === 'ROYAL_ROAD')
         return book.source === 'ROYAL_ROAD' || !book.source
       return true
+    })
+
+    // Apply client-side sorting to the combined books to ensure proper ordering
+    // IMPORTANT: Amazon books always appear first as featured recommendations
+    // since they don't have follower/stats data yet
+    return filteredBooks.sort((a, b) => {
+      // Always prioritize Amazon books first regardless of sort criteria
+      if (a.source === 'AMAZON' && b.source !== 'AMAZON') return -1
+      if (b.source === 'AMAZON' && a.source !== 'AMAZON') return 1
+      
+      // If both are the same source type, apply normal sorting
+      switch (filters.sortBy) {
+        case 'rating':
+          return (b.rating || 0) - (a.rating || 0)
+        case 'followers':
+          return (b.stats?.followers || 0) - (a.stats?.followers || 0)
+        case 'views':
+          return (b.stats?.views?.total || 0) - (a.stats?.views?.total || 0)
+        case 'pages':
+          return (b.stats?.pages || 0) - (a.stats?.pages || 0)
+        case 'latest':
+          // For new books, we don't have createdAt, so fall back to original order
+          return 0
+        case 'trending':
+          // Trending is a complex calculation, trust backend ordering for Royal Road books
+          return 0
+        default:
+          return 0
+      }
     })
   })()
 
