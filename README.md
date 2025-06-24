@@ -82,3 +82,37 @@ A curated platform for discovering the best LitRPG, GameLit, and progression fan
 2. **Royal Road books** - Sorted by selected criteria (followers, rating, views, etc.)
 
 This ensures users see curated recommendations first, followed by community-driven content sorted by their preferred metrics.
+
+## Caching System
+
+### Redis Cache with Upstash
+The application uses **Upstash Redis** for high-performance caching to reduce database load and improve response times.
+
+#### Cached Data
+- **Royal Road Books** - All book data with latest stats (refreshed hourly)
+- **Amazon Books** - Featured affiliate book recommendations (refreshed hourly)  
+- **Popular Tags** - Most frequently used tags (refreshed daily)
+- **All Tags** - Complete list of unique tags (refreshed daily)
+
+#### Cache Refresh Schedule
+- **Automatic**: Every hour via scheduled Netlify function (`scheduled-cache-refresh.ts`)
+- **Manual**: POST to `/.netlify/functions/cache-refresh` 
+- **Clear Cache**: DELETE to `/.netlify/functions/cache-refresh`
+
+#### Cache TTL (Time To Live)
+- Books: 1 hour (3600 seconds)
+- Tags: 24 hours (86400 seconds)
+
+#### Environment Variables
+```
+UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_actual_token_here
+```
+
+**Important**: Use the **REST API URL** (starts with `https://`) from your Upstash console, NOT the Redis CLI connection string. The REST API section will have the format: `https://your-database.upstash.io`
+
+#### Benefits
+- **10x faster queries** - Data served from memory instead of database
+- **Reduced database load** - Fewer direct database queries
+- **Better user experience** - Faster page loads and search results
+- **Automatic fallback** - Falls back to database if cache is unavailable

@@ -12,6 +12,7 @@ import {
   setPrismaInstance,
   getAllTags,
 } from '../../lib/royalroad';
+import { getCachedAmazonBooksWithFallback } from '../../lib/cache-manager';
 
 // Set the Prisma instance for the service
 setPrismaInstance(prisma);
@@ -301,22 +302,9 @@ export const handler: Handler = async (event) => {
               };
 
             case 'amazon':
-              // Get all Amazon books (affiliate recommendations)
-              const amazonBooks = await prisma.book.findMany({
-                where: { source: 'AMAZON' },
-                include: {
-                  bookContributors: {
-                    include: {
-                      contributor: true
-                    }
-                  },
-                  bookReviews: {
-                    where: { userId: 'cmbjdfr1c0000kyu3giis7lz2' }, // Admin/reviewer user
-                    take: 1
-                  }
-                },
-                orderBy: { createdAt: 'asc' }
-              });
+              // Get all Amazon books from cache (affiliate recommendations)
+              console.log('Fetching Amazon books from cache...')
+              const amazonBooks = await getCachedAmazonBooksWithFallback();
               return {
                 statusCode: 200,
                 headers,

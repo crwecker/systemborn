@@ -2,6 +2,7 @@ import { parse } from 'node-html-parser';
 import type { Book } from "../src/types/book";
 import { PrismaClient } from "@prisma/client";
 import Fuse from 'fuse.js';
+import { getCachedBooksWithFallback, getCachedTagsWithFallback } from './cache-manager';
 
 // Define Source enum to match Prisma schema
 export enum Source {
@@ -726,7 +727,7 @@ function createBookFromDb(dbBook: any): Book {
 }
 
 // Update the convertBooksToApiFormat function to use the helper
-function convertBooksToApiFormat(books: any[]): Book[] {
+export function convertBooksToApiFormat(books: any[]): Book[] {
   return books.map(createBookFromDb);
 }
 
@@ -748,46 +749,14 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     query = "", // Extract the search query
   } = params;
 
-  // Build the where clause
-  const where: any = {};
-
-  // Remove database-level tag filtering - we'll do fuzzy matching in JavaScript
-  // if (tags.length > 0) {
-  //   where.tags = {
-  //     hasSome: tags.flatMap(tag => [
-  //       tag,
-  //       tag.toLowerCase(),
-  //       tag.toUpperCase(),
-  //       tag.charAt(0).toUpperCase() + tag.slice(1).toLowerCase(),
-  //     ])
-  //   };
-  // }
-
-  // When filtering by tags or sorting, we need to fetch all books since we're filtering/sorting in JavaScript
-  // Only use the limit when we have both no tags AND no search query AND no sorting (just pagination)
-  const needsClientSideProcessing = tags.length > 0 || (query && query.trim()) || sortBy !== "rating";
-  const searchLimit = needsClientSideProcessing ? undefined : limit;
-
-  // Include stats for filtering
-  const books = await prisma.book.findMany({
-    where,
-    include: {
-      stats: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-    },
-    take: searchLimit,
-    skip: offset,
-  });
+  // Get books from cache instead of database
+  console.log('Fetching books from Redis cache...')
+  const books = await getCachedBooksWithFallback();
 
   // Post-process to apply filters including fuzzy tag matching
   const filteredBooks = books.filter((book) => {
-    const latestStats = book.stats?.[0];
-    if (!latestStats) return false;
-
-    if (minRating && latestStats.rating < minRating) return false;
-    if (minPages && latestStats.pages < minPages) return false;
+    if (minRating && book.rating < minRating) return false;
+    if (minPages && book.stats?.pages && book.stats.pages < minPages) return false;
 
     // Apply fuzzy tag filtering
     if (tags.length > 0) {
@@ -812,7 +781,7 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
     const fuseOptions = {
       keys: [
         { name: 'title', weight: 0.4 },
-        { name: 'authorName', weight: 0.3 },
+        { name: 'author.name', weight: 0.3 },
         { name: 'description', weight: 0.2 },
         { name: 'tags', weight: 0.1 },
       ],
@@ -828,36 +797,28 @@ export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   } else {
     // Sort the filtered books only if no fuzzy search is applied
     processedBooks = [...filteredBooks].sort((a, b) => {
-      const statsA = a.stats?.[0];
-      const statsB = b.stats?.[0];
-
-      if (!statsA || !statsB) return 0;
-
       switch (sortBy) {
         case "rating":
-          return statsB.rating - statsA.rating;
+          return (b.rating || 0) - (a.rating || 0);
         case "followers":
-          return statsB.followers - statsA.followers;
+          return (b.stats?.followers || 0) - (a.stats?.followers || 0);
         case "views":
-          return statsB.views - statsA.views;
+          return (b.stats?.views?.total || 0) - (a.stats?.views?.total || 0);
         case "pages":
-          return statsB.pages - statsA.pages;
+          return (b.stats?.pages || 0) - (a.stats?.pages || 0);
         case "latest":
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+          // For cached books, we don't have createdAt - use original order
+          return 0;
         default:
           return 0;
       }
     });
     
-    // Apply limit after sorting when we performed client-side processing
-    if (needsClientSideProcessing) {
-      processedBooks = processedBooks.slice(0, limit);
-    }
+    // Apply limit and offset after sorting
+    processedBooks = processedBooks.slice(offset, offset + limit);
   }
 
-  return convertBooksToApiFormat(processedBooks);
+  return processedBooks;
 }
 
 // Get similar books based on tags
@@ -1008,67 +969,28 @@ function parseStats(element: any): BookStats {
   return stats;
 }
 
-// Get the most popular tags from the database
+// Get the most popular tags from the cache
 export async function getPopularTags(limit: number = 12): Promise<string[]> {
   try {
-    // Get all books with their tags
-    const books = await prisma.book.findMany({
-      select: { tags: true }
-    });
-
-    // Count tag frequency and keep track of the most common case
-    const tagFrequency: Record<string, { count: number; originalCase: string }> = {};
-    
-    books.forEach(book => {
-      book.tags.forEach(tag => {
-        const lowerTag = tag.toLowerCase();
-        if (tagFrequency[lowerTag]) {
-          tagFrequency[lowerTag].count += 1;
-        } else {
-          tagFrequency[lowerTag] = { count: 1, originalCase: tag };
-        }
-      });
-    });
-
-    // Sort tags by frequency (most popular first) and return top N with original case
-    const sortedTags = Object.values(tagFrequency)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, limit)
-      .map(({ originalCase }) => originalCase);
-
-    return sortedTags;
+    console.log('Fetching popular tags from Redis cache...')
+    const { popularTags } = await getCachedTagsWithFallback()
+    return popularTags.slice(0, limit)
   } catch (error) {
-    console.error('Error fetching popular tags:', error);
-    // Fallback to some common tags if database query fails
+    console.error('Error fetching popular tags from cache:', error)
+    // Fallback to some common tags if cache query fails
     return ['LitRPG', 'Progression', 'GameLit', 'Fantasy', 'Adventure', 'Action'];
   }
 }
 
-// Get all unique tags from the database
+// Get all unique tags from the cache
 export async function getAllTags(): Promise<string[]> {
   try {
-    // Get all books with their tags
-    const books = await prisma.book.findMany({
-      select: { tags: true }
-    });
-
-    // Create a map to track unique tags and preserve original case
-    const uniqueTags: Record<string, string> = {};
-    
-    books.forEach(book => {
-      book.tags.forEach(tag => {
-        const lowerTag = tag.toLowerCase();
-        if (!uniqueTags[lowerTag]) {
-          uniqueTags[lowerTag] = tag; // Keep the first occurrence's case
-        }
-      });
-    });
-
-    // Return all unique tags sorted alphabetically
-    return Object.values(uniqueTags).sort();
+    console.log('Fetching all tags from Redis cache...')
+    const { allTags } = await getCachedTagsWithFallback()
+    return allTags
   } catch (error) {
-    console.error('Error fetching all tags:', error);
-    // Fallback to some common tags if database query fails
+    console.error('Error fetching all tags from cache:', error);
+    // Fallback to some common tags if cache query fails
     return ['LitRPG', 'Progression', 'GameLit', 'Fantasy', 'Adventure', 'Action'];
   }
 } 

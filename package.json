@@ -30,6 +30,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/nodemailer": "^6.4.17",
+    "@upstash/redis": "^1.35.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
     "autoprefixer": "^10.4.0",
     "crypto-js": "^4.2.0",
