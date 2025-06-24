@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "populate-db": "tsx scripts/populate-db.ts",
+    "test-scheduled": "tsx scripts/test-scheduled-populate.ts",
     "test-functions": "tsx scripts/test-functions.ts",
     "dev": "netlify dev",
     "frontend": "vite",

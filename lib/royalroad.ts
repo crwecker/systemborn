@@ -74,7 +74,7 @@ function createDefaultStats(): BookStats {
 
 // Helper function to convert scraped data to database format
 function convertToDbStats(scrapedBook: Book) {
-  const stats = scrapedBook.stats || defaultStats;
+  const stats = scrapedBook.stats || createDefaultStats();
   return {
     rating: scrapedBook.rating || 0,
     followers: stats.followers || 0,
@@ -373,56 +373,59 @@ export async function fetchBooks(page: number = 1): Promise<BookListResponse> {
   }
 }
 
-export async function fetchBookDetails(bookId: string): Promise<Book> {
+export async function fetchBookDetails(bookId: string, forceFresh: boolean = false): Promise<Book> {
   try {
-    // First check if we have the book in our database
-    const existingBook = await prisma.book.findUnique({
-      where: { id: bookId },
-      include: {
-        stats: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
-      },
-    });
-
-    if (existingBook) {
-      return {
-        id: existingBook.id,
-        title: existingBook.title,
-        author: {
-          name: existingBook.authorName,
-        },
-        description: existingBook.description,
-        tags: existingBook.tags,
-        image: existingBook.coverUrl || "",
-        url: existingBook.sourceUrl,
-        rating: existingBook.stats[0]?.rating || 0,
-        coverUrl: existingBook.coverUrl || "",
-        contentWarnings: existingBook.contentWarnings || [],
-        source: existingBook.source as 'ROYAL_ROAD' | 'AMAZON',
-        stats: {
-          followers: existingBook.stats[0]?.followers || 0,
-          views: {
-            total: existingBook.stats[0]?.views || 0,
-            average: existingBook.stats[0]?.average_views || 0
+    // First check if we have the book in our database (unless forcing fresh data)
+    if (!forceFresh) {
+      const existingBook = await prisma.book.findUnique({
+        where: { id: bookId },
+        include: {
+          stats: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
           },
-          pages: existingBook.stats[0]?.pages || 0,
-          favorites: existingBook.stats[0]?.favorites || 0,
-          ratings_count: existingBook.stats[0]?.ratings_count || 0,
-          overall_score: existingBook.stats[0]?.overall_score || 0,
-          style_score: existingBook.stats[0]?.style_score || 0,
-          story_score: existingBook.stats[0]?.story_score || 0,
-          grammar_score: existingBook.stats[0]?.grammar_score || 0,
-          character_score: existingBook.stats[0]?.character_score || 0
         },
-      };
+      });
+
+      if (existingBook) {
+        return {
+          id: existingBook.id,
+          title: existingBook.title,
+          author: {
+            name: existingBook.authorName,
+          },
+          description: existingBook.description,
+          tags: existingBook.tags,
+          image: existingBook.coverUrl || "",
+          url: existingBook.sourceUrl,
+          rating: existingBook.stats[0]?.rating || 0,
+          coverUrl: existingBook.coverUrl || "",
+          contentWarnings: existingBook.contentWarnings || [],
+          source: existingBook.source as 'ROYAL_ROAD' | 'AMAZON',
+          stats: {
+            followers: existingBook.stats[0]?.followers || 0,
+            views: {
+              total: existingBook.stats[0]?.views || 0,
+              average: existingBook.stats[0]?.average_views || 0
+            },
+            pages: existingBook.stats[0]?.pages || 0,
+            favorites: existingBook.stats[0]?.favorites || 0,
+            ratings_count: existingBook.stats[0]?.ratings_count || 0,
+            overall_score: existingBook.stats[0]?.overall_score || 0,
+            style_score: existingBook.stats[0]?.style_score || 0,
+            story_score: existingBook.stats[0]?.story_score || 0,
+            grammar_score: existingBook.stats[0]?.grammar_score || 0,
+            character_score: existingBook.stats[0]?.character_score || 0
+          },
+        };
+      }
     }
 
     // If not in database, fetch from Royal Road
-    const response = await fetch(`${ROYALROAD_BASE_URL}/fiction/${bookId}`);
+    console.log(`Fetching fresh book details for ID: ${bookId}`);
+    const response = await fetchWithRetry(`${ROYALROAD_BASE_URL}/fiction/${bookId}`);
     if (!response.ok) {
-      throw new Error("Failed to fetch book details from Royal Road");
+      throw new Error(`Failed to fetch book details from Royal Road: ${response.status} ${response.statusText}`);
     }
 
     const html = await response.text();
@@ -930,55 +933,24 @@ function parseDescription(root: any): string {
 }
 
 function parseStats(element: any): BookStats {
-  const statsContent = element.querySelector('.fiction-info');
+  const statsContent = element.querySelector('.fiction-stats .stats-content');
   if (!statsContent) {
-    console.log('No fiction-info found in HTML:', element.toString());
+    console.log('No fiction-stats .stats-content found');
     return { ...defaultStats };
   }
 
-  // console.log('Found fiction-info HTML:', statsContent.toString());
-
   const stats = { ...defaultStats };
 
-  // Get all stat containers
-  const statContainers = statsContent.querySelectorAll('.col-sm-6');
-  for (const container of statContainers) {
-    
-    const text = container.text.trim().toLowerCase();
-    const numbers = text.match(/[\d,]+(\.\d+)?/g);
-    if (!numbers) continue;
-
-    const labels = text.split(/[\d,]+(\.\d+)?/).filter(Boolean);
-    const trimmedLabels = labels.map((label: string) => label?.trim()?.toLowerCase());
-
-    numbers.forEach((num: string, i: number) => {
-      const label = trimmedLabels[i];
-      const value = parseFloat(num.replace(/,/g, ''));
-      console.log('Processing number:', num, 'with label:', label);
-      if (label?.includes('follow')) stats.followers = value;
-      else if (label?.includes('page')) stats.pages = value;
-      else if (label?.includes('favorite')) stats.favorites = value;
-      else if (label?.includes('rating')) stats.ratings_count = value;
-      else if (label?.includes('view')) {
-        if (label.includes('average')) stats.views.average = value;
-        else stats.views.total = value;
-      }
-    });
-  }
-
-  // Parse the scores from star ratings
-  const scoreContainer = statsContent.querySelector('.stats-content');
-  if (scoreContainer) {
-    // Get all star elements
-    const starElements = scoreContainer.querySelectorAll('.star');
-
-    // Process each star element
+  // Parse the scores from the first column (star ratings)
+  const firstColumn = statsContent.querySelector('.col-sm-6:first-child');
+  if (firstColumn) {
+    const starElements = firstColumn.querySelectorAll('.star');
     starElements.forEach((star: any) => {
       const label = star.getAttribute('data-original-title')?.toLowerCase().trim();
       const ariaLabel = star.getAttribute('aria-label');
       if (!label || !ariaLabel) return;
 
-      // Extract score from aria-label (e.g. "4.5 out of 5 stars")
+      // Extract score from aria-label (e.g. "4.77 stars")
       const scoreMatch = ariaLabel.match(/(\d+(\.\d+)?)/);
       if (!scoreMatch) return;
 
@@ -993,6 +965,39 @@ function parseStats(element: any): BookStats {
       else if (label.includes('grammar')) stats.grammar_score = score;
       else if (label.includes('character')) stats.character_score = score;
     });
+  }
+
+  // Parse the numeric stats from the second column
+  const secondColumn = statsContent.querySelector('.col-sm-6:last-child');
+  if (secondColumn) {
+    const listItems = secondColumn.querySelectorAll('li');
+    
+    for (let i = 0; i < listItems.length; i += 2) {
+      const labelItem = listItems[i];
+      const valueItem = listItems[i + 1];
+      
+      if (!labelItem || !valueItem) continue;
+      
+      const label = labelItem.text.trim().toLowerCase();
+      const valueText = valueItem.text.trim();
+      const value = parseFloat(valueText.replace(/[^\d.]/g, ''));
+      
+      console.log('Processing stat:', label, '=', valueText, '(parsed:', value, ')');
+      
+      if (label.includes('total views')) {
+        stats.views.total = value;
+      } else if (label.includes('average views')) {
+        stats.views.average = value;
+      } else if (label.includes('followers')) {
+        stats.followers = value;
+      } else if (label.includes('favorites')) {
+        stats.favorites = value;
+      } else if (label.includes('ratings')) {
+        stats.ratings_count = value;
+      } else if (label.includes('pages')) {
+        stats.pages = value;
+      }
+    }
   }
 
   console.log('Final parsed stats:', stats);

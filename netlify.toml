@@ -11,6 +11,10 @@
   included_files = ["netlify/functions/generated/prisma/**", "prisma/**"]
   external_node_modules = ["@prisma/client"]
 
+# Scheduled function for nightly database population
+[functions."scheduled-populate"]
+  schedule = "0 2 * * *"  # Run at 2 AM UTC daily
+
 [dev]
   command = "npm run frontend"
   port = 3000
