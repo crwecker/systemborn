@@ -8,10 +8,10 @@ interface UserDropdownProps {
 }
 
 const REALMS = [
-  { id: 'xianxia', name: 'Xianxia Realm' },
+  { id: 'cultivation', name: 'Cultivation Realm' },
   { id: 'gamelit', name: 'GameLit Realm' },
   { id: 'apocalypse', name: 'Apocalypse Realm' },
-  { id: 'isekai', name: 'Isekai Realm' },
+  { id: 'portal', name: 'Portal Realm' },
 ]
 
 export function UserDropdown({ user, onLogout }: UserDropdownProps) {

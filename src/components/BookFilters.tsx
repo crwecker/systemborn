@@ -76,7 +76,7 @@ export const BookFiltersComponent = ({
       {/* Search Input */}
       <div className='mb-6'>
         <label className='block text-sm font-medium text-light-gray mb-2'>
-          Search Books
+          Search Library
         </label>
         <div className='relative'>
           <input

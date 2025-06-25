@@ -39,10 +39,10 @@ interface DailyLimits {
 }
 
 const REALM_CONFIG = {
-  xianxia: {
-    name: 'Xianxia (Cultivation) Realm',
+  cultivation: {
+    name: 'Cultivation Realm',
     boss: 'Longzu, The Heaven-Scourging Flame',
-    image: '/assets/images/xianxia/xianxia_realm.png',
+    image: '/assets/images/cultivation/cultivation_realm.png',
     bgGradient: 'from-emerald-800 to-slate-900',
     color: 'emerald',
     primary: '#1a4c3e', // Deep Jade
@@ -69,10 +69,10 @@ const REALM_CONFIG = {
     accent: '#ff7300', // Warning Orange
     description: 'Challenge the System herald who reshapes reality',
   },
-  isekai: {
-    name: 'Isekai / Rebirth Realm',
+  portal: {
+    name: 'Portal Realm',
     boss: 'Aurelion the Eternal Return',
-    image: '/assets/images/isekai/isekai_realm.png',
+    image: '/assets/images/portal/portal_realm.png',
     bgGradient: 'from-violet-800 to-slate-900',
     color: 'violet',
     primary: '#b892ff', // Celestial Lavender
@@ -83,7 +83,7 @@ const REALM_CONFIG = {
 
 // Map realm IDs to search terms that will be used to find matching tags
 const REALM_SEARCH_TERMS = {
-  xianxia: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
+  cultivation: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
   gamelit: ['gamelit', 'litrpg', 'game', 'rpg', 'system', 'level'],
   apocalypse: [
     'apocalypse',
@@ -95,7 +95,7 @@ const REALM_SEARCH_TERMS = {
     'end',
     'disaster',
   ],
-  isekai: [
+  portal: [
     'isekai',
     'reincarnation',
     'transmigration',
@@ -116,6 +116,18 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   const [isBookSearchOpen, setIsBookSearchOpen] = useState(false)
   const [bookSearchQuery, setBookSearchQuery] = useState('')
 
+  // Map new realm IDs to legacy database realm IDs for API compatibility
+  const getApiRealmId = (frontendRealmId: string): string => {
+    const realmMapping: Record<string, string> = {
+      'cultivation': 'xianxia',
+      'portal': 'isekai',
+      'gamelit': 'gamelit',
+      'apocalypse': 'apocalypse'
+    }
+    return realmMapping[frontendRealmId] || frontendRealmId
+  }
+
+  const apiRealmId = getApiRealmId(realmId)
   const realmConfig = REALM_CONFIG[realmId as keyof typeof REALM_CONFIG]
 
   // Fetch all available tags from the database
@@ -173,7 +185,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     queryKey: ['realmBoss', realmId],
     queryFn: async (): Promise<RealmBoss> => {
       const response = await fetch(
-        `/.netlify/functions/api/realms/boss/${realmId}`
+        `/.netlify/functions/api/realms/boss/${apiRealmId}`
       )
       if (!response.ok) throw new Error('Failed to fetch boss')
       return response.json()
@@ -202,7 +214,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     queryKey: ['battleStats', realmId],
     queryFn: async (): Promise<BattleStats> => {
       const response = await fetch(
-        `/.netlify/functions/api/realms/boss/${realmId}/stats`
+        `/.netlify/functions/api/realms/boss/${apiRealmId}/stats`
       )
       if (!response.ok) throw new Error('Failed to fetch battle stats')
       return response.json()
@@ -234,7 +246,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
       bookId?: string
     }) => {
       const response = await fetch(
-        `/.netlify/functions/api/realms/boss/${realmId}/battle`,
+        `/.netlify/functions/api/realms/boss/${apiRealmId}/battle`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -80,7 +80,7 @@ export function Header() {
             <Link
               to='/books'
               className='text-white hover:text-gray-200 transition-colors text-lg flex items-center space-x-2'
-              title='Search Books'>
+              title='Search Library'>
               <svg
                 className='w-5 h-5'
                 fill='none'
@@ -94,7 +94,7 @@ export function Header() {
                   d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
                 />
               </svg>
-              <span>Books</span>
+              <span>Library</span>
             </Link>
             {isLoading ? (
               <div className='text-white'>Loading...</div>
@@ -173,7 +173,7 @@ export function Header() {
                   to='/books'
                   className='flex items-center px-4 py-3 text-[#2B324B] hover:bg-gray-50 transition-colors border-t border-gray-100 mt-2'
                   onClick={closeMobileMenu}
-                  title='Search Books'>
+                  title='Search Library'>
                   <svg
                     className='w-5 h-5 mr-3'
                     fill='none'
@@ -187,7 +187,7 @@ export function Header() {
                       d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
                     />
                   </svg>
-                  Books
+                  Library
                 </Link>
                 {isLoading ? (
                   <div className='px-4 py-2 text-[#2B324B]'>Loading...</div>
@@ -205,10 +205,10 @@ export function Header() {
                       </div>
                       <Link
                         to='/realm/$realmId'
-                        params={{ realmId: 'xianxia' }}
+                        params={{ realmId: 'cultivation' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
-                        Xianxia Realm
+                        Cultivation Realm
                       </Link>
                       <Link
                         to='/realm/$realmId'
@@ -226,10 +226,10 @@ export function Header() {
                       </Link>
                       <Link
                         to='/realm/$realmId'
-                        params={{ realmId: 'isekai' }}
+                        params={{ realmId: 'portal' }}
                         className='block px-4 py-2 text-sm text-[#2B324B] hover:bg-gray-50 transition-colors'
                         onClick={closeMobileMenu}>
-                        Isekai Realm
+                        Portal Realm
                       </Link>
                     </div>
 

@@ -21,6 +21,7 @@
   targetPort = 5173
   framework = "#custom"
   publish = "dist"
+  https = false
 
 # Handle redirects for SPA
 [[redirects]]

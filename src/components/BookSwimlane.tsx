@@ -12,7 +12,7 @@ interface BookSwimlaneProps {
 
 // Map realm IDs to search terms that will be used to find matching tags
 const REALM_SEARCH_TERMS = {
-  xianxia: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
+  cultivation: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
   gamelit: ['gamelit', 'litrpg', 'game', 'rpg', 'system', 'level'],
   apocalypse: [
     'apocalypse',
@@ -24,7 +24,7 @@ const REALM_SEARCH_TERMS = {
     'end',
     'disaster',
   ],
-  isekai: [
+  portal: [
     'isekai',
     'reincarnation',
     'transmigration',

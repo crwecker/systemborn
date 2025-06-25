@@ -34,16 +34,16 @@ function Index() {
           <div className='hidden lg:grid lg:grid-cols-3 lg:gap-8 xl:gap-12 2xl:gap-16 items-center justify-items-center max-w-6xl mx-auto'>
             {/* Left Column */}
             <div className='flex flex-col items-center space-y-8'>
-              {/* Xianxia - Top Left */}
+              {/* Cultivation - Top Left */}
               <div className='text-center'>
                 <Link
                   to='/realm/$realmId'
-                  params={{ realmId: 'xianxia' }}
+                  params={{ realmId: 'cultivation' }}
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                   <img
-                    src='/assets/images/xianxia/xianxia_realm_icon.png'
-                    alt='Xianxia Realm'
-                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
+                    src='/assets/images/cultivation/cultivation_realm_icon.png'
+                    alt='Cultivation Realm'
+                    className='w-48 h-48 xl:w-56 xl:h-56 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -57,14 +57,27 @@ function Index() {
                   <img
                     src='/assets/images/apocalypse/apocalypse_realm_icon.png'
                     alt='Apocalypse Realm'
-                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
+                    className='w-48 h-48 xl:w-56 xl:h-56 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
             </div>
 
             {/* Center Column */}
-            <div className='flex flex-col items-center justify-center'>
+            <div className='flex flex-col items-center justify-center space-y-8'>
+              {/* Library - Top Center */}
+              <div className='text-center'>
+                <Link
+                  to='/books'
+                  className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
+                  <img
+                    src='/assets/images/library.png'
+                    alt='Library'
+                    className='w-48 h-48 xl:w-56 xl:h-56 object-contain drop-shadow-xl mx-auto'
+                  />
+                </Link>
+              </div>
+
               {/* Central LitRPG Academy Icon */}
               <div className='text-center'>
                 <Link
@@ -74,7 +87,7 @@ function Index() {
                     <img
                       src='/assets/images/litrpgacademy_realm_icon.png'
                       alt='LitRPG Academy'
-                      className='w-96 h-96 xl:w-96 xl:h-96 2xl:w-96 2xl:h-96 object-contain drop-shadow-xl mx-auto'
+                      className='w-80 h-80 xl:w-96 xl:h-96 2xl:w-[26rem] 2xl:h-[26rem] object-contain drop-shadow-xl mx-auto'
                     />
                     <p className='text-xl text-gray-200 drop-shadow-lg mt-[-50px]'>
                       Find books, read, battle, and level up in the LitRPG
@@ -96,21 +109,21 @@ function Index() {
                   <img
                     src='/assets/images/gamelit/gamelit_realm_icon.png'
                     alt='GameLit Realm'
-                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
+                    className='w-48 h-48 xl:w-56 xl:h-56 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
 
-              {/* Isekai - Bottom Right */}
+              {/* Portal - Bottom Right */}
               <div className='text-center'>
                 <Link
                   to='/realm/$realmId'
-                  params={{ realmId: 'isekai' }}
+                  params={{ realmId: 'portal' }}
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                   <img
-                    src='/assets/images/isekai/isekai_realm_icon.png'
-                    alt='Isekai Realm'
-                    className='w-64 h-64 xl:w-72 xl:h-72 object-contain drop-shadow-xl mx-auto'
+                    src='/assets/images/portal/portal_realm_icon.png'
+                    alt='Portal Realm'
+                    className='w-48 h-48 xl:w-56 xl:h-56 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -127,23 +140,36 @@ function Index() {
                 <img
                   src='/assets/images/litrpgacademy_realm_icon.png'
                   alt='LitRPG Academy'
-                  className='w-40 h-40 object-contain drop-shadow-xl mx-auto'
+                  className='w-48 h-48 object-contain drop-shadow-xl mx-auto'
+                />
+              </Link>
+            </div>
+
+            {/* Library Icon */}
+            <div className='text-center mb-8'>
+              <Link
+                to='/books'
+                className='inline-block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
+                <img
+                  src='/assets/images/library.png'
+                  alt='Library'
+                  className='w-36 h-36 object-contain drop-shadow-xl mx-auto'
                 />
               </Link>
             </div>
 
             {/* Realm Icons Grid */}
             <div className='grid grid-cols-2 gap-6 max-w-sm mx-auto'>
-              {/* Xianxia */}
+              {/* Cultivation */}
               <div className='text-center'>
                 <Link
                   to='/realm/$realmId'
-                  params={{ realmId: 'xianxia' }}
+                  params={{ realmId: 'cultivation' }}
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                   <img
-                    src='/assets/images/xianxia/xianxia_realm_icon.png'
-                    alt='Xianxia Realm'
-                    className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
+                    src='/assets/images/cultivation/cultivation_realm_icon.png'
+                    alt='Cultivation Realm'
+                    className='w-32 h-32 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -157,21 +183,21 @@ function Index() {
                   <img
                     src='/assets/images/gamelit/gamelit_realm_icon.png'
                     alt='GameLit Realm'
-                    className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
+                    className='w-32 h-32 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
 
-              {/* Isekai */}
+              {/* Portal */}
               <div className='text-center'>
                 <Link
                   to='/realm/$realmId'
-                  params={{ realmId: 'isekai' }}
+                  params={{ realmId: 'portal' }}
                   className='block transform hover:scale-110 transition-all duration-300 hover:drop-shadow-2xl'>
                   <img
-                    src='/assets/images/isekai/isekai_realm_icon.png'
-                    alt='Isekai Realm'
-                    className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
+                    src='/assets/images/portal/portal_realm_icon.png'
+                    alt='Portal Realm'
+                    className='w-32 h-32 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>
@@ -185,7 +211,7 @@ function Index() {
                   <img
                     src='/assets/images/apocalypse/apocalypse_realm_icon.png'
                     alt='Apocalypse Realm'
-                    className='w-28 h-28 object-contain drop-shadow-xl mx-auto'
+                    className='w-32 h-32 object-contain drop-shadow-xl mx-auto'
                   />
                 </Link>
               </div>

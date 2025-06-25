@@ -58,11 +58,24 @@ export function BattleStoryConsole({
   )
   const scrollRef = useRef<HTMLDivElement>(null)
 
+  // Map new realm IDs to legacy database realm IDs for API compatibility
+  const getApiRealmId = (frontendRealmId: string): string => {
+    const realmMapping: Record<string, string> = {
+      'cultivation': 'xianxia',
+      'portal': 'isekai',
+      'gamelit': 'gamelit',
+      'apocalypse': 'apocalypse'
+    }
+    return realmMapping[frontendRealmId] || frontendRealmId
+  }
+
+  const apiRealmId = getApiRealmId(realmId)
+
   const { data: storyData } = useQuery({
     queryKey: ['battleStory', realmId],
     queryFn: async (): Promise<BattleStoryData> => {
       const response = await fetch(
-        `/.netlify/functions/api/realms/boss/${realmId}/story`
+        `/.netlify/functions/api/realms/boss/${apiRealmId}/story`
       )
       if (!response.ok) throw new Error('Failed to fetch battle story')
       return response.json()
@@ -75,7 +88,7 @@ export function BattleStoryConsole({
     queryKey: ['battleStats', realmId],
     queryFn: async (): Promise<BattleStats> => {
       const response = await fetch(
-        `/.netlify/functions/api/realms/boss/${realmId}/stats`
+        `/.netlify/functions/api/realms/boss/${apiRealmId}/stats`
       )
       if (!response.ok) throw new Error('Failed to fetch battle stats')
       return response.json()

@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useAuth } from '../hooks/useAuth'
 
 // Define realm-specific progression systems
-const XIANXIA_REALMS = {
+const CULTIVATION_REALMS = {
   mortal: [
     { name: 'Body Refining', maxLevel: 9 },
     { name: 'Qi Gathering', maxLevel: 9 },
@@ -32,9 +32,9 @@ const BASE_STATS = {
 }
 
 const REALM_CONFIGS = {
-  xianxia: {
-    name: 'Xianxia Academy',
-    icon: '/assets/images/xianxia/xianxia_realm_icon.png',
+  cultivation: {
+    name: 'Cultivation Academy',
+    icon: '/assets/images/cultivation/cultivation_realm_icon.png',
     bgColor: 'from-emerald-800 to-slate-900',
     accentColor: '#d4af37',
     description: 'Cultivate your way to immortality',
@@ -53,9 +53,9 @@ const REALM_CONFIGS = {
     accentColor: '#ff7300',
     description: 'Survive the end times',
   },
-  isekai: {
-    name: 'Isekai Academy',
-    icon: '/assets/images/isekai/isekai_realm_icon.png',
+  portal: {
+    name: 'Portal Academy',
+    icon: '/assets/images/portal/portal_realm_icon.png',
     bgColor: 'from-violet-800 to-slate-900',
     accentColor: '#ffd369',
     description: 'Reincarnate and grow stronger',
@@ -67,7 +67,7 @@ export function AcademyPage() {
 
   // Mock user stats - in real app these would come from API
   const [userStats, setUserStats] = useState({
-    xianxia: {
+    cultivation: {
       currentRealm: 'mortal',
       currentStage: 'Body Refining',
       currentLevel: 2,
@@ -77,7 +77,7 @@ export function AcademyPage() {
       experience: 2450,
       experienceToNext: 3000,
     },
-    isekai: {
+    portal: {
       reincarnations: 3,
       currentLife: 'Noble Scholar',
       lifeLevel: 8,
@@ -88,18 +88,18 @@ export function AcademyPage() {
     },
   })
 
-  const renderXianxiaStats = () => {
-    const stats = userStats.xianxia
+  const renderCultivationStats = () => {
+    const stats = userStats.cultivation
     return (
       <div className='bg-black/30 rounded-lg p-4 border border-emerald-500/30'>
         <div className='flex items-center space-x-3 mb-3'>
           <img
-            src='/assets/images/xianxia/xianxia_realm_icon.png'
-            alt='Xianxia'
+                    src='/assets/images/cultivation/cultivation_realm_icon.png'
+        alt='Cultivation'
             className='w-8 h-8'
           />
           <h3 className='text-lg font-bold text-yellow-400'>
-            Xianxia Cultivation
+            Cultivation Arts
           </h3>
         </div>
         <div className='text-sm font-semibold text-emerald-300'>
@@ -157,17 +157,17 @@ export function AcademyPage() {
     )
   }
 
-  const renderIsekaiStats = () => {
-    const stats = userStats.isekai
+  const renderPortalStats = () => {
+    const stats = userStats.portal
     return (
       <div className='bg-black/30 rounded-lg p-4 border border-purple-500/30'>
         <div className='flex items-center space-x-3 mb-3'>
           <img
-            src='/assets/images/isekai/isekai_realm_icon.png'
-            alt='Isekai'
+                    src='/assets/images/portal/portal_realm_icon.png'
+        alt='Portal'
             className='w-8 h-8'
           />
-          <h3 className='text-lg font-bold text-purple-400'>Isekai Lives</h3>
+          <h3 className='text-lg font-bold text-purple-400'>Portal Lives</h3>
         </div>
         <div className='text-sm font-semibold text-purple-300'>
           Life #{stats.reincarnations + 1}: {stats.currentLife}
@@ -251,9 +251,9 @@ export function AcademyPage() {
               </div>
               {user ? (
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {renderXianxiaStats()}
+                  {renderCultivationStats()}
                   {renderGamelitStats()}
-                  {renderIsekaiStats()}
+                  {renderPortalStats()}
                   {renderApocalypseStats()}
                 </div>
               ) : (
@@ -314,7 +314,7 @@ export function AcademyPage() {
                   <div>
                     <div className='text-white font-semibold'>Library</div>
                     <div className='text-gray-400 text-sm'>
-                      Browse all books
+                      Browse Library
                     </div>
                   </div>
                   <div className='ml-auto text-gray-500 group-hover:text-white transition-colors'>

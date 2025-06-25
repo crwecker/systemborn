@@ -574,7 +574,7 @@ export function BookDetailPage() {
         <button
           onClick={() => navigate({ to: '/books' })}
           className='px-4 py-2 bg-copper text-dark-blue rounded hover:bg-light-gray transition-colors'>
-          Back to Books
+                        Back to Library
         </button>
       </div>
     )
