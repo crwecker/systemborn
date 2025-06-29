@@ -471,3 +471,75 @@ export async function createBook(
     throw error
   }
 }
+
+// User progress across all realms
+export interface UserRealmProgress {
+  totalMinutes: number
+  realmMinutes: {
+    cultivation: number
+    gamelit: number
+    apocalypse: number
+    portal: number
+  }
+  realmBooks: {
+    cultivation: Array<{bookId: string, title: string, minutes: number}>
+    gamelit: Array<{bookId: string, title: string, minutes: number}>
+    apocalypse: Array<{bookId: string, title: string, minutes: number}>
+    portal: Array<{bookId: string, title: string, minutes: number}>
+  }
+  bonusActivities: Array<{
+    bookId: string
+    bookTitle: string
+    minutes: number
+    activityType: string
+    date: string
+  }>
+  totalBonusMinutes: number
+  progress: {
+    cultivation: {
+      currentRealm: string
+      currentLevel: number
+      progressPercent: number
+      totalMinutes: number
+    }
+    gamelit: {
+      level: number
+      experience: number
+      experienceToNext: number
+      progressPercent: number
+      totalMinutes: number
+    }
+    apocalypse: {
+      survivalDays: number
+      stats: {
+        STR: number
+        CON: number
+        DEX: number
+        WIS: number
+        INT: number
+        CHA: number
+        LUCK: number
+      }
+      totalMinutes: number
+    }
+    portal: {
+      reincarnations: number
+      currentLife: string
+      lifeLevel: number
+      totalMinutes: number
+    }
+  }
+}
+
+export async function fetchUserRealmProgress(userId: string): Promise<UserRealmProgress> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/realms/user/${userId}/progress`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch user realm progress')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching user realm progress:', error)
+    throw error
+  }
+}

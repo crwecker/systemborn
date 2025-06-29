@@ -11,6 +11,80 @@ const headers = {
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
 };
 
+// Experience rewards for different activities
+const EXPERIENCE_REWARDS = {
+  READING_STATUS: 15, // Small amount for marking as read/reading
+  FIRST_S_TIER: 45,   // Bigger amount for first S tier
+  FIRST_SS_TIER: 75,  // Bigger amount for first SS tier  
+  FIRST_SSS_TIER: 120, // Large amount for first SSS tier
+  REVIEW: 30,         // Bigger amount for leaving a review
+  BOSS_VICTORY: 60,   // Bonus for participating in boss defeat
+};
+
+// Helper function to award bonus experience by creating battle activities for ALL realms
+async function awardBonusExperience(
+  userId: string, 
+  bookId: string, 
+  activityType: keyof typeof EXPERIENCE_REWARDS,
+  description: string
+) {
+  const minutes = EXPERIENCE_REWARDS[activityType];
+  
+  // Award experience to ALL realms instead of just the matching one
+  const allRealms = ['XIANXIA', 'GAMELIT', 'APOCALYPSE', 'ISEKAI'];
+  const bossNames: Record<string, string> = {
+    XIANXIA: 'Longzu, The Heaven-Scourging Flame',
+    GAMELIT: 'Glitchlord Exeon',
+    APOCALYPSE: 'Zereth, Dungeon Architect of the End',
+    ISEKAI: 'Aurelion the Eternal Return'
+  };
+  
+  for (const realmName of allRealms) {
+    // Get or create the realm boss
+    let realmBoss = await prisma.realmBoss.findUnique({
+      where: { realm: realmName as any }
+    });
+    
+    if (!realmBoss) {
+      realmBoss = await prisma.realmBoss.create({
+        data: {
+          realm: realmName as any,
+          name: bossNames[realmName] || 'Unknown Boss',
+          maxHitpoints: 10000,
+          currentHitpoints: 10000
+        }
+      });
+    }
+    
+    // Create the bonus battle activity for this realm
+    await prisma.battleActivity.create({
+      data: {
+        userId,
+        realmBossId: realmBoss.id,
+        bookId,
+        minutesRead: minutes,
+        damage: minutes // 1 minute = 1 damage
+      }
+    });
+  }
+  
+  console.log(`Awarded ${minutes} bonus minutes to ALL realms for user ${userId} for ${activityType}: ${description}`);
+}
+
+
+// Helper function to check if user has earned a tier achievement before  
+async function hasEarnedTierAchievement(userId: string, tier: 'S' | 'SS' | 'SSS'): Promise<boolean> {
+  const existingTierCount = await prisma.bookTier.count({
+    where: { 
+      userId, 
+      tier: tier as any,
+      createdAt: { lt: new Date() } // Any previous assignments of this tier
+    }
+  });
+  
+  return existingTierCount > 0;
+}
+
 // Verify JWT token and return user
 async function verifyAuth(token: string) {
   try {
@@ -205,6 +279,10 @@ async function handleTiersEndpoint(method: string, path: string[], userId: strin
         }
       }
 
+      // Check if this is the user's first time earning this tier level
+      const isFirstTimeAchievement = ['S', 'SS', 'SSS'].includes(tier) && 
+        !(await hasEarnedTierAchievement(userId, tier as 'S' | 'SS' | 'SSS'));
+
       const createdTier = await prisma.bookTier.upsert({
         where: {
           userId_bookId: { userId, bookId }
@@ -230,6 +308,25 @@ async function handleTiersEndpoint(method: string, path: string[], userId: strin
           }
         }
       });
+
+      // Award bonus experience for first-time tier achievements
+      if (isFirstTimeAchievement) {
+        const tierExpRewards = {
+          'S': 'FIRST_S_TIER' as const,
+          'SS': 'FIRST_SS_TIER' as const, 
+          'SSS': 'FIRST_SSS_TIER' as const
+        };
+        
+        const rewardType = tierExpRewards[tier as keyof typeof tierExpRewards];
+        if (rewardType) {
+          await awardBonusExperience(
+            userId,
+            bookId,
+            rewardType,
+            `First time earning ${tier} tier with "${createdTier.book?.title}"`
+          );
+        }
+      }
 
       const transformedCreatedTier = {
         ...createdTier,
@@ -354,6 +451,13 @@ async function handleReadingStatusEndpoint(method: string, userId: string, body:
         };
       }
 
+      // Check if this is a new reading status assignment
+      const existingTier = await prisma.bookTier.findUnique({
+        where: { userId_bookId: { userId, bookId } }
+      });
+      
+      const isNewAssignment = !existingTier || existingTier.readingStatus !== readingStatus;
+
       const updatedTier = await prisma.bookTier.upsert({
         where: {
           userId_bookId: { userId, bookId }
@@ -376,6 +480,16 @@ async function handleReadingStatusEndpoint(method: string, userId: string, body:
           }
         }
       });
+
+      // Award bonus experience for reading status changes (FINISHED or READING)
+      if (isNewAssignment && (readingStatus === 'FINISHED' || readingStatus === 'READING')) {
+        await awardBonusExperience(
+          userId, 
+          bookId, 
+          'READING_STATUS', 
+          `Marked "${updatedTier.book?.title}" as ${readingStatus.toLowerCase()}`
+        );
+      }
 
       const transformedTier = {
         ...updatedTier,
@@ -453,6 +567,13 @@ async function handleReviewsEndpoint(method: string, path: string[], userId: str
         };
       }
 
+      // Check if this is a new review (not an update)
+      const currentReview = await prisma.bookReview.findUnique({
+        where: { userId_bookId: { userId, bookId } }
+      });
+      
+      const isNewReview = !currentReview;
+
       const newReview = await prisma.bookReview.upsert({
         where: {
           userId_bookId: { userId, bookId }
@@ -470,6 +591,16 @@ async function handleReviewsEndpoint(method: string, path: string[], userId: str
           }
         }
       });
+
+      // Award bonus experience for creating a new review
+      if (isNewReview) {
+        await awardBonusExperience(
+          userId,
+          bookId,
+          'REVIEW',
+          `Left a review for "${newReview.book?.title}"`
+        );
+      }
 
       const transformedNewReview = {
         ...newReview,

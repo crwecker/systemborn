@@ -28,6 +28,118 @@ function getBossName(realm: string): string {
   return bossNames[realm as keyof typeof bossNames] || 'Unknown Boss';
 }
 
+// Progression calculation functions
+function calculateCultivationProgress(totalMinutes: number) {
+  // Cultivation progression: 60 minutes per level, with different realms
+  const CULTIVATION_REALMS = [
+    { name: 'Body Refining', maxLevel: 9, minutesPerLevel: 60 },
+    { name: 'Qi Gathering', maxLevel: 9, minutesPerLevel: 120 },
+    { name: 'Foundation Establishment', maxLevel: 9, minutesPerLevel: 180 },
+    { name: 'Core Formation', maxLevel: 9, minutesPerLevel: 240 },
+    { name: 'Nascent Soul', maxLevel: 9, minutesPerLevel: 300 },
+    { name: 'Spirit Severing', maxLevel: 9, minutesPerLevel: 360 },
+  ];
+
+  let remainingMinutes = totalMinutes;
+  let currentRealmIndex = 0;
+  let currentLevel = 1;
+
+  for (let i = 0; i < CULTIVATION_REALMS.length; i++) {
+    const realm = CULTIVATION_REALMS[i];
+    const totalMinutesForRealm = realm.minutesPerLevel * realm.maxLevel;
+    
+    if (remainingMinutes >= totalMinutesForRealm) {
+      remainingMinutes -= totalMinutesForRealm;
+      currentRealmIndex = i + 1;
+      currentLevel = 1;
+    } else {
+      currentLevel = Math.floor(remainingMinutes / realm.minutesPerLevel) + 1;
+      break;
+    }
+  }
+
+  // Cap at highest realm
+  if (currentRealmIndex >= CULTIVATION_REALMS.length) {
+    currentRealmIndex = CULTIVATION_REALMS.length - 1;
+    currentLevel = CULTIVATION_REALMS[currentRealmIndex].maxLevel;
+  }
+
+  const currentRealm = CULTIVATION_REALMS[currentRealmIndex];
+  const progressInCurrentLevel = totalMinutes % currentRealm.minutesPerLevel;
+  
+  return {
+    currentRealm: currentRealm.name,
+    currentLevel: Math.min(currentLevel, currentRealm.maxLevel),
+    progressPercent: (progressInCurrentLevel / currentRealm.minutesPerLevel) * 100,
+    totalMinutes
+  };
+}
+
+function calculateGamelitProgress(totalMinutes: number) {
+  // GameLit progression: exponential leveling system
+  const baseMinutesPerLevel = 45;
+  const level = Math.floor(Math.sqrt(totalMinutes / baseMinutesPerLevel)) + 1;
+  const currentLevelMinutes = Math.pow(level - 1, 2) * baseMinutesPerLevel;
+  const nextLevelMinutes = Math.pow(level, 2) * baseMinutesPerLevel;
+  const experience = totalMinutes - currentLevelMinutes;
+  const experienceToNext = nextLevelMinutes - currentLevelMinutes;
+  
+  return {
+    level,
+    experience,
+    experienceToNext,
+    progressPercent: (experience / experienceToNext) * 100,
+    totalMinutes
+  };
+}
+
+function calculateApocalypseProgress(totalMinutes: number) {
+  // Apocalypse progression: survival days and stat increases
+  const minutesPerDay = 30; // 30 minutes = 1 survival day
+  const survivalDays = Math.floor(totalMinutes / minutesPerDay);
+  
+  const baseStats = { STR: 10, CON: 10, DEX: 10, WIS: 10, INT: 10, CHA: 10, LUCK: 10 };
+  const statIncreases = Math.floor(survivalDays / 10); // 1 stat point every 10 days
+  
+  return {
+    survivalDays,
+    stats: {
+      ...baseStats,
+      STR: baseStats.STR + statIncreases,
+      CON: baseStats.CON + Math.floor(statIncreases * 1.5), // CON increases faster
+      LUCK: Math.max(1, baseStats.LUCK - Math.floor(statIncreases * 0.3)) // LUCK decreases in apocalypse
+    },
+    totalMinutes
+  };
+}
+
+function calculatePortalProgress(totalMinutes: number) {
+  // Portal progression: reincarnation system
+  const minutesPerLife = 200; // 200 minutes per life
+  const reincarnations = Math.floor(totalMinutes / minutesPerLife);
+  const currentLifeMinutes = totalMinutes % minutesPerLife;
+  const currentLifeLevel = Math.floor(currentLifeMinutes / 20) + 1; // 20 minutes per life level
+  
+  const lifeTypes = [
+    'Peasant Farmer',
+    'Village Scholar',
+    'Merchant Apprentice',
+    'Noble Scholar',
+    'Court Wizard',
+    'Dragon Rider',
+    'Dimensional Sage'
+  ];
+  
+  const currentLifeType = lifeTypes[Math.min(reincarnations, lifeTypes.length - 1)];
+  
+  return {
+    reincarnations,
+    currentLife: currentLifeType,
+    lifeLevel: Math.min(currentLifeLevel, 10),
+    totalMinutes
+  };
+}
+
 // Story generation system
 function generateBossIntroduction(realm: string, bossName: string): string {
   const introductions = {
@@ -145,6 +257,69 @@ async function calculateCurrentHP(boss: { id: string; maxHitpoints: number }): P
   }
 
   return currentHP;
+}
+
+// Award boss victory bonuses to all participants
+async function awardBossVictoryBonuses(realmBossId: string, defeatedBossRealm: string) {
+  // Find all unique users who participated in battles since the last respawn 
+  const lastDefeat = await prisma.battleStory.findFirst({
+    where: {
+      realmBossId: realmBossId,
+      entryType: 'BOSS_DEFEAT'
+    },
+    orderBy: { createdAt: 'desc' },
+    skip: 1 // Skip the current defeat we just added
+  });
+
+  const participants = await prisma.battleActivity.findMany({
+    where: {
+      realmBossId: realmBossId,
+      userId: { not: null },
+      damage: { gt: 0 }, // Only count actual battle participation
+      createdAt: lastDefeat ? { gt: lastDefeat.createdAt } : undefined
+    },
+    select: {
+      userId: true,
+      bookId: true,
+      user: {
+        select: { firstName: true, lastName: true }
+      }
+    },
+    distinct: ['userId']
+  });
+
+  const BOSS_VICTORY_BONUS = 60; // 60 minutes bonus XP
+  const allRealms = ['XIANXIA', 'GAMELIT', 'APOCALYPSE', 'ISEKAI'] as const;
+  
+  // Award bonus XP to ALL realms for each participant
+  for (const participant of participants) {
+    if (participant.userId) {
+      // Get all realm bosses
+      const realmBosses = await prisma.realmBoss.findMany({
+        where: { 
+          realm: { 
+            in: [...allRealms] as any // Cast to bypass type checking for now
+          } 
+        }
+      });
+      
+      // Award to all realms
+      for (const boss of realmBosses) {
+        await prisma.battleActivity.create({
+          data: {
+            userId: participant.userId,
+            realmBossId: boss.id,
+            bookId: participant.bookId,
+            minutesRead: BOSS_VICTORY_BONUS,
+            damage: 0 // Bonus activities don't deal damage
+          }
+        });
+      }
+    }
+  }
+
+  console.log(`Awarded boss victory bonuses to ${participants.length} participants for ${defeatedBossRealm} boss defeat`);
+  return participants.length;
 }
 
 // CORS headers
@@ -424,6 +599,178 @@ export const handler: Handler = async (event) => {
       case 'realms':
         const realmEndpoint = path[1];
         const realmName = path[2];
+        
+        // GET /realms/user/{userId}/progress - Get user's progress across all realms
+        if (realmEndpoint === 'user' && realmName && path[3] === 'progress') {
+          const userId = realmName;
+          
+          // Map realm IDs to search terms that will be used to find matching tags
+          const REALM_SEARCH_TERMS = {
+            cultivation: ['xianxia', 'cultivation', 'eastern', 'wuxia', 'martial', 'dao'],
+            gamelit: ['gamelit', 'litrpg', 'game', 'rpg', 'system', 'level'],
+            apocalypse: [
+              'apocalypse',
+              'post-apocalyptic',
+              'post apocalyptic',
+              'dystopia',
+              'zombie',
+              'survival',
+              'end',
+              'disaster',
+            ],
+            portal: [
+              'isekai',
+              'reincarnation',
+              'transmigration',
+              'rebirth',
+              'another world',
+              'transported',
+            ],
+          };
+
+          // Get all battle activities for this user
+          const battleActivities = await prisma.battleActivity.findMany({
+            where: { userId },
+            include: {
+              book: {
+                select: {
+                  id: true,
+                  title: true,
+                  tags: true
+                }
+              }
+            }
+          });
+
+          // Separate bonus activities from regular reading activities
+          // Bonus activities are those where the same book appears multiple times on the same day
+          // or activities that seem unusually short (bonus activities are typically 15-120 minutes)
+          const bonusThresholds = [15, 30, 45, 60, 75, 120]; // Our bonus reward amounts
+          const bonusActivities: Array<{
+            bookId: string
+            bookTitle: string
+            minutes: number
+            activityType: string
+            date: string
+          }> = [];
+
+          // Group activities by book and date to identify potential bonus activities
+          const activityGroups = new Map<string, any[]>();
+          
+          for (const activity of battleActivities) {
+            if (!activity.book) continue;
+            
+            const dateKey = `${activity.bookId}-${activity.createdAt.toDateString()}`;
+            if (!activityGroups.has(dateKey)) {
+              activityGroups.set(dateKey, []);
+            }
+            activityGroups.get(dateKey)!.push(activity);
+          }
+
+          // Identify bonus activities (activities that match our bonus amounts)
+          for (const [dateKey, activities] of activityGroups) {
+            for (const activity of activities) {
+              if (bonusThresholds.includes(activity.minutesRead)) {
+                const activityType = activity.minutesRead === 15 ? 'Marked Book as Read or Reading' :
+                                  activity.minutesRead === 30 ? 'Review' :
+                                  activity.minutesRead === 45 ? 'First S Tier' :
+                                  activity.minutesRead === 60 ? 'Boss Victory' :
+                                  activity.minutesRead === 75 ? 'First SS Tier' :
+                                  activity.minutesRead === 120 ? 'First SSS Tier' : 'Bonus';
+                
+                bonusActivities.push({
+                  bookId: activity.bookId!,
+                  bookTitle: activity.book?.title || 'Unknown Book',
+                  minutes: activity.minutesRead,
+                  activityType,
+                  date: activity.createdAt.toISOString()
+                });
+              }
+            }
+          }
+
+          // Calculate reading minutes per realm based on book tags
+          const realmProgress = {
+            cultivation: 0,
+            gamelit: 0,
+            apocalypse: 0,
+            portal: 0
+          };
+
+          // Track books per realm for detailed breakdown
+          const realmBooks = {
+            cultivation: [] as Array<{bookId: string, title: string, minutes: number}>,
+            gamelit: [] as Array<{bookId: string, title: string, minutes: number}>,
+            apocalypse: [] as Array<{bookId: string, title: string, minutes: number}>,
+            portal: [] as Array<{bookId: string, title: string, minutes: number}>
+          };
+
+          // Calculate total bonus minutes that apply to all realms
+          const totalBonusMinutes = bonusActivities.reduce((sum, bonus) => sum + bonus.minutes, 0);
+
+          for (const activity of battleActivities) {
+            if (!activity.book?.tags) continue;
+            
+            // Skip bonus activities from realm-specific categorization since they apply to all realms
+            if (bonusThresholds.includes(activity.minutesRead)) continue;
+
+            const bookTags = activity.book.tags.map(tag => tag.toLowerCase());
+            
+            // Check which realm this book belongs to based on tags
+            for (const [realmId, searchTerms] of Object.entries(REALM_SEARCH_TERMS)) {
+              const hasMatchingTag = searchTerms.some(term => 
+                bookTags.some(tag => 
+                  tag.includes(term.toLowerCase()) || 
+                  term.toLowerCase().includes(tag)
+                )
+              );
+              
+              if (hasMatchingTag) {
+                const realm = realmId as keyof typeof realmProgress;
+                realmProgress[realm] += activity.minutesRead;
+                
+                // Add or update book in the realm's book list
+                const existingBook = realmBooks[realm].find(book => book.bookId === activity.book!.id);
+                if (existingBook) {
+                  existingBook.minutes += activity.minutesRead;
+                } else {
+                  realmBooks[realm].push({
+                    bookId: activity.book!.id,
+                    title: activity.book!.title,
+                    minutes: activity.minutesRead
+                  });
+                }
+                break; // Only count towards one realm to avoid double counting
+              }
+            }
+          }
+
+          // Add bonus minutes to all realms
+          for (const realmKey of Object.keys(realmProgress)) {
+            realmProgress[realmKey as keyof typeof realmProgress] += totalBonusMinutes;
+          }
+
+          // Convert reading minutes to progression data for each realm
+          const progressData = {
+            cultivation: calculateCultivationProgress(realmProgress.cultivation),
+            gamelit: calculateGamelitProgress(realmProgress.gamelit),
+            apocalypse: calculateApocalypseProgress(realmProgress.apocalypse),
+            portal: calculatePortalProgress(realmProgress.portal)
+          };
+
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+              totalMinutes: battleActivities.reduce((sum, activity) => sum + activity.minutesRead, 0),
+              realmMinutes: realmProgress,
+              realmBooks,
+              bonusActivities: bonusActivities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), // Sort by newest first
+              totalBonusMinutes,
+              progress: progressData
+            })
+          };
+        }
         
         if (realmEndpoint === 'boss' && realmName) {
           // GET /realms/boss/{realmName} - Get boss data (only if no subpath)
@@ -746,6 +1093,14 @@ export const handler: Handler = async (event) => {
                 totalDamageDealt: boss.maxHitpoints,
                 respawning: true
               });
+              
+              // Award bonus XP to all participants who helped defeat the boss
+              try {
+                const participantCount = await awardBossVictoryBonuses(boss.id, realmName.toUpperCase());
+                console.log(`Boss victory bonuses awarded to ${participantCount} participants for ${realmName.toUpperCase()} boss`);
+              } catch (error) {
+                console.error('Error awarding boss victory bonuses:', error);
+              }
             }
             
             // Calculate HP for percentage checks (no need to update database)
