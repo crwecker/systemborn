@@ -655,42 +655,7 @@ export async function getLitRPGBooks(): Promise<Book[]> {
   }));
 }
 
-// Get trending books in our target genres
-export async function getTrendingLitRPGBooks(
-  limit: number = 10
-): Promise<Book[]> {
-  // Get popular tags dynamically
-  const popularTags = await getPopularTags(12);
-  
-  const books = await prisma.book.findMany({
-    where: {
-      OR: popularTags.map((tag) => ({
-        tags: {
-          hasSome: [
-            tag,
-            tag.toLowerCase(),
-            tag.toUpperCase(),
-            tag.charAt(0).toUpperCase() + tag.slice(1),
-          ],
-        },
-      })),
-    },
-    include: {
-      stats: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-      },
-    },
-    orderBy: {
-      stats: {
-        _count: "desc",
-      },
-    },
-    take: limit,
-  });
 
-  return convertBooksToApiFormat(books);
-}
 
 // Helper function to create a book object from database data
 function createBookFromDb(dbBook: any): Book {
@@ -736,7 +701,7 @@ const defaultStats = createDefaultStats();
 
 // Advanced search function with filtering
 // NOTE: This function only handles Royal Road books. Amazon books are handled 
-// separately in the frontend and are always displayed first as featured content.
+// separately in the frontend.
 export async function searchBooks(params: BookSearchParams): Promise<Book[]> {
   const {
     tags = [],

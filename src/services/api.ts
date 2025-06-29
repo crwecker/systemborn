@@ -543,3 +543,32 @@ export async function fetchUserRealmProgress(userId: string): Promise<UserRealmP
     throw error
   }
 }
+
+// Book tier counts interface
+export interface BookTierCounts {
+  [bookId: string]: {
+    SSS: number
+    SS: number
+    S: number
+    total: number
+  }
+}
+
+export async function fetchBookTierCounts(bookIds: string[]): Promise<BookTierCounts> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/book-tier-counts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ bookIds }),
+    })
+    if (!response.ok) {
+      throw new Error('Failed to fetch book tier counts')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching book tier counts:', error)
+    return {}
+  }
+}

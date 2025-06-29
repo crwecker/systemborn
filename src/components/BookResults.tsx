@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { BookCard } from './BookCard'
+import { fetchBookTierCounts, type BookTierCounts } from '../services/api'
 import type { Book } from '../types/book'
 
 const SOURCE_OPTIONS = [
@@ -112,6 +114,15 @@ export const BookResults = ({
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
 
+  // Fetch tier counts for all books
+  const bookIds = books.map(book => book.id)
+  const { data: tierCounts = {} } = useQuery<BookTierCounts>({
+    queryKey: ['bookTierCounts', bookIds],
+    queryFn: () => fetchBookTierCounts(bookIds),
+    enabled: bookIds.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
+
   // Reset to first page when books change (new search/filter)
   useEffect(() => {
     setCurrentPage(1)
@@ -202,7 +213,12 @@ export const BookResults = ({
       {/* Books Grid */}
       <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8'>
         {currentBooks.map(book => (
-          <BookCard key={book.id} book={book} onAuthorClick={onAuthorClick} />
+          <BookCard 
+            key={book.id} 
+            book={book} 
+            onAuthorClick={onAuthorClick}
+            tierCounts={tierCounts[book.id]}
+          />
         ))}
       </div>
 

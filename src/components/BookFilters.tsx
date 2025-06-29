@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { FilterButtons } from './FilterButtons'
 
 const SORT_OPTIONS = [
-  { value: 'trending', label: 'Trending' },
+  { value: 'trending', label: 'Community Trending' },
   { value: 'rating', label: 'Rating' },
   { value: 'followers', label: 'Followers' },
   { value: 'views', label: 'Views' },

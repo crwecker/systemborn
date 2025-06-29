@@ -4,7 +4,6 @@ import {
   fetchBooks,
   fetchBookDetails,
   getLitRPGBooks,
-  getTrendingLitRPGBooks,
   searchBooks,
   getSimilarBooks,
   getAuthorBooks,
@@ -381,6 +380,68 @@ export const handler: Handler = async (event) => {
           body: JSON.stringify(allTags)
         };
 
+      case 'book-tier-counts':
+        if (event.httpMethod === 'POST') {
+          try {
+            const body = JSON.parse(event.body || '{}');
+            const bookIds = body.bookIds || [];
+            
+            if (!Array.isArray(bookIds)) {
+              return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'bookIds must be an array' })
+              };
+            }
+
+            // Get tier counts for the specified books
+            const tierCounts = await prisma.bookTier.groupBy({
+              by: ['bookId', 'tier'],
+              where: {
+                bookId: { in: bookIds },
+                tier: { in: ['SSS', 'SS', 'S'] }
+              },
+              _count: {
+                id: true
+              }
+            });
+
+            // Transform the results into the expected format
+            const result: { [bookId: string]: { SSS: number; SS: number; S: number; total: number } } = {};
+            
+            // Initialize all books with zero counts
+            bookIds.forEach(bookId => {
+              result[bookId] = { SSS: 0, SS: 0, S: 0, total: 0 };
+            });
+
+            // Fill in the actual counts
+            tierCounts.forEach(({ bookId, tier, _count }) => {
+              if (result[bookId] && tier) {
+                result[bookId][tier as 'SSS' | 'SS' | 'S'] = _count.id;
+                result[bookId].total += _count.id;
+              }
+            });
+
+            return {
+              statusCode: 200,
+              headers,
+              body: JSON.stringify(result)
+            };
+          } catch (error) {
+            console.error('Error fetching book tier counts:', error);
+            return {
+              statusCode: 500,
+              headers,
+              body: JSON.stringify({ error: 'Failed to fetch book tier counts' })
+            };
+          }
+        }
+        return {
+          statusCode: 405,
+          headers,
+          body: JSON.stringify({ error: 'Method not allowed' })
+        };
+
       case 'books':
         const subEndpoint = path[1];
         console.log('Books subEndpoint:', subEndpoint);
@@ -469,7 +530,11 @@ export const handler: Handler = async (event) => {
 
             case 'trending':
               const limit = params.limit ? parseInt(params.limit) : 10;
-              const trendingBooks = await getTrendingLitRPGBooks(limit);
+              // Use regular book search with rating sort since trending is now handled in frontend
+              const trendingBooks = await searchBooks({ 
+                sortBy: 'rating',
+                limit 
+              });
               return {
                 statusCode: 200,
                 headers,

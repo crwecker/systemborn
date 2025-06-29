@@ -68,20 +68,15 @@ A curated platform for discovering the best LitRPG, GameLit, and progression fan
 
 ## Book Sorting and Display Behavior
 
-### Amazon Books Priority
-**IMPORTANT**: Amazon books are always displayed first in all book listings, regardless of the selected sort criteria. This is intentional because:
+### Unified Sorting
+All books (Amazon and Royal Road) are now sorted together using the same criteria. The sort behavior has been updated to provide a more unified experience:
 
-1. Amazon books are curated recommendations and don't have Royal Road stats (followers, views, etc.)
-2. They serve as featured/sponsored content
-3. They provide monetization through affiliate links
+1. **Community Trending** - Uses tier-based scoring from user tier assignments (SSS=9, SS=8, S=7, etc.)
+2. **Rating, Followers, Views, Pages** - Standard sorting by these metrics
+3. **Latest** - Maintains original order as no creation date is available
 
-**Do not change this behavior** - Amazon books should always appear before Royal Road books in search results, even when sorting by followers, rating, etc.
-
-### Sort Order Logic
-1. **Amazon books** - Always first (sorted by manual curation order)
-2. **Royal Road books** - Sorted by selected criteria (followers, rating, views, etc.)
-
-This ensures users see curated recommendations first, followed by community-driven content sorted by their preferred metrics.
+### Tier-Based Trending
+The "Community Trending" sort calculates scores based on how users have ranked books in their tier lists, providing community-driven recommendations that reflect actual user preferences rather than just follower counts.
 
 ## Caching System
 

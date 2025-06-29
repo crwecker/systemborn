@@ -6,6 +6,8 @@ import {
   fetchAmazonBooks,
   fetchAvailableTags,
   fetchAllTags,
+  fetchBookTierCounts,
+  type BookTierCounts,
 } from '../services/api'
 import {
   BookFiltersComponent,
@@ -125,14 +127,14 @@ const useBookData = (
       'books',
       filters.selectedTags,
       filters.minRating,
-      filters.sortBy,
+      filters.sortBy === 'trending' ? 'rating' : filters.sortBy, // Use rating for trending, we'll handle tier sorting in frontend
       filters.debouncedSearchQuery,
     ],
     queryFn: () =>
       searchBooks({
         tags: filters.selectedTags,
         minRating: filters.minRating,
-        sortBy: filters.sortBy,
+        sortBy: filters.sortBy === 'trending' ? 'rating' : filters.sortBy, // Get books sorted by rating for trending
         query: filters.debouncedSearchQuery,
       }),
   })
@@ -144,14 +146,23 @@ const useBookData = (
     queryFn: fetchAmazonBooks,
   })
 
-  const processedBooks = (() => {
-    const filteredAmazonBooks = filterAmazonBooks(
-      amazonBooks,
-      filters.debouncedSearchQuery,
-      filters.selectedTags
-    )
-    const combinedBooks = [...filteredAmazonBooks, ...royalRoadBooks]
+  // Get tier counts for all books when using trending sort
+  const filteredAmazonBooks = filterAmazonBooks(
+    amazonBooks,
+    filters.debouncedSearchQuery,
+    filters.selectedTags
+  )
+  const combinedBooks = [...royalRoadBooks, ...filteredAmazonBooks]
+  const allBookIds = combinedBooks.map(book => book.id)
 
+  const { data: tierCounts = {} } = useQuery<BookTierCounts>({
+    queryKey: ['bookTierCounts', allBookIds],
+    queryFn: () => fetchBookTierCounts(allBookIds),
+    enabled: filters.sortBy === 'trending' && allBookIds.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  const processedBooks = (() => {
     const filteredBooks = combinedBooks.filter(book => {
       if (filters.sourceFilter === 'ALL') return true
       if (filters.sourceFilter === 'AMAZON') return book.source === 'AMAZON'
@@ -160,16 +171,29 @@ const useBookData = (
       return true
     })
 
-    // Apply client-side sorting to the combined books to ensure proper ordering
-    // IMPORTANT: Amazon books always appear first as featured recommendations
-    // since they don't have follower/stats data yet
+    // Apply client-side sorting to the combined books
     return filteredBooks.sort((a, b) => {
-      // Always prioritize Amazon books first regardless of sort criteria
-      if (a.source === 'AMAZON' && b.source !== 'AMAZON') return -1
-      if (b.source === 'AMAZON' && a.source !== 'AMAZON') return 1
-      
-      // If both are the same source type, apply normal sorting
       switch (filters.sortBy) {
+        case 'trending':
+          // Sort by tier-trending score (higher is better)
+          const aTierData = tierCounts[a.id]
+          const bTierData = tierCounts[b.id]
+          
+          const aTierScore = aTierData ? (aTierData.SSS * 9 + aTierData.SS * 8 + aTierData.S * 7) : 0
+          const bTierScore = bTierData ? (bTierData.SSS * 9 + bTierData.SS * 8 + bTierData.S * 7) : 0
+          
+          if (bTierScore !== aTierScore) {
+            return bTierScore - aTierScore
+          }
+          // Tiebreaker: rating for Amazon books, followers for Royal Road books
+          if (a.source === 'AMAZON' && b.source === 'AMAZON') {
+            return (b.rating || 0) - (a.rating || 0)
+          } else if (a.source !== 'AMAZON' && b.source !== 'AMAZON') {
+            return (b.stats?.followers || 0) - (a.stats?.followers || 0)
+          } else {
+            // Mixed sources, prefer Royal Road books if tier scores are equal
+            return a.source === 'AMAZON' ? 1 : -1
+          }
         case 'rating':
           return (b.rating || 0) - (a.rating || 0)
         case 'followers':
@@ -180,9 +204,6 @@ const useBookData = (
           return (b.stats?.pages || 0) - (a.stats?.pages || 0)
         case 'latest':
           // For new books, we don't have createdAt, so fall back to original order
-          return 0
-        case 'trending':
-          // Trending is a complex calculation, trust backend ordering for Royal Road books
           return 0
         default:
           return 0

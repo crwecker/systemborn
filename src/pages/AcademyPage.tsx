@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
-import { fetchUserRealmProgress, type UserRealmProgress } from '../services/api'
+import { fetchUserRealmProgress } from '../services/api'
 
 // Define realm configurations
 

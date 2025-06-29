@@ -1,7 +1,7 @@
 import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { fetchUserBookTiers } from '../services/api'
+import { fetchUserBookTiers, fetchBookTierCounts } from '../services/api'
 import { useAuthContext } from '../contexts/AuthContext'
 import type { Book } from '../types/book'
 import { TIER_CONFIG } from '../types/book'
@@ -9,9 +9,15 @@ import { TIER_CONFIG } from '../types/book'
 interface BookCardProps {
   book: Book
   onAuthorClick?: (authorName: string) => void
+  tierCounts?: {
+    SSS: number
+    SS: number
+    S: number
+    total: number
+  }
 }
 
-export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
+export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick, tierCounts }) => {
   const { user } = useAuthContext()
   const navigate = useNavigate()
 
@@ -123,24 +129,29 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onAuthorClick }) => {
           </div>
         )}
 
-        {/* Tier management hint */}
-        {user && !isAmazonBook && (
-          <div className='mt-3 text-xs text-medium-gray opacity-60 flex items-center justify-center gap-1'>
-            <svg
-              className='w-3 h-3'
-              fill='none'
-              stroke='currentColor'
-              viewBox='0 0 24 24'>
-              <path
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth={2}
-                d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
-              />
-            </svg>
-            Click for full tier management
+        {/* Tier counts for all books */}
+        {tierCounts && tierCounts.total > 0 && (
+          <div className='mt-3 flex items-center justify-center gap-2 text-xs'>
+            <span className='text-medium-gray'>Student Tiers:</span>
+            {tierCounts.SSS > 0 && (
+              <span className='bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2 py-1 rounded font-bold'>
+                SSS: {tierCounts.SSS}
+              </span>
+            )}
+            {tierCounts.SS > 0 && (
+              <span className='bg-gradient-to-r from-gray-300 to-gray-500 text-black px-2 py-1 rounded font-bold'>
+                SS: {tierCounts.SS}
+              </span>
+            )}
+            {tierCounts.S > 0 && (
+              <span className='bg-gradient-to-r from-yellow-600 to-yellow-800 text-white px-2 py-1 rounded font-bold'>
+                S: {tierCounts.S}
+              </span>
+            )}
           </div>
         )}
+
+
       </div>
     </div>
   )
