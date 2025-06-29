@@ -191,6 +191,129 @@ export function AcademyPage() {
     )
   }
 
+  const renderBonusExperienceGuide = () => {
+    // Define all possible bonus activities
+    const allBonusActivities = [
+      {
+        type: 'Marked Book as Read or Reading',
+        icon: '📖',
+        color: 'text-blue-400',
+        minutes: 15,
+        description: 'Mark any book as "Read" or "Reading"',
+        action: 'Go to a book page and set reading status'
+      },
+      {
+        type: 'Review',
+        icon: '⭐',
+        color: 'text-yellow-400', 
+        minutes: 30,
+        description: 'Write a review for any book',
+        action: 'Go to a book page and write a review'
+      },
+      {
+        type: 'First S Tier',
+        icon: '🥉',
+        color: 'text-amber-400',
+        minutes: 45,
+        description: 'Assign your first S tier rating',
+        action: 'Go to a book page and assign S tier'
+      },
+      {
+        type: 'Boss Victory',
+        icon: '⚔️',
+        color: 'text-red-400',
+        minutes: 60,
+        description: 'Participate in defeating a realm boss',
+        action: 'Battle in any realm until boss is defeated'
+      },
+      {
+        type: 'First SS Tier',
+        icon: '🥈',
+        color: 'text-gray-300',
+        minutes: 75,
+        description: 'Assign your first SS tier rating',
+        action: 'Go to a book page and assign SS tier'
+      },
+      {
+        type: 'First SSS Tier',
+        icon: '🥇',
+        color: 'text-yellow-500',
+        minutes: 120,
+        description: 'Assign your first SSS tier rating',
+        action: 'Go to a book page and assign SSS tier'
+      }
+    ]
+
+    // Check which activities the user has completed
+    const completedActivities = new Set(
+      userRealmProgress?.bonusActivities?.map(activity => activity.activityType) || []
+    )
+
+    return (
+      <div className='bg-slate-800/50 rounded-lg border border-slate-700 p-6 mb-6'>
+        <div className='flex items-center space-x-2 mb-4'>
+          <span className='text-2xl'>🎯</span>
+          <h3 className='text-xl font-bold text-white'>
+            Bonus Experience Guide
+          </h3>
+        </div>
+        
+        <div className='text-sm text-gray-400 mb-4'>
+          Complete these activities to earn bonus experience that applies to ALL realms:
+        </div>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+          {allBonusActivities.map((activity, index) => {
+            const isCompleted = completedActivities.has(activity.type)
+            
+            return (
+              <div
+                key={index}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  isCompleted 
+                    ? 'bg-green-900/30 border-green-500/50' 
+                    : 'bg-gray-800/30 border-gray-600/50 hover:border-gray-500/50'
+                }`}
+              >
+                <div className='flex items-center space-x-3'>
+                  <div className='flex items-center space-x-2'>
+                    <span className='text-lg'>{activity.icon}</span>
+                    {isCompleted ? (
+                      <span className='text-green-400 text-sm'>✓</span>
+                    ) : (
+                      <span className='text-gray-500 text-sm'>○</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className={`text-sm font-medium ${isCompleted ? 'text-green-300' : activity.color}`}>
+                      {activity.description}
+                    </div>
+                    <div className='text-xs text-gray-400'>
+                      {activity.action}
+                    </div>
+                  </div>
+                </div>
+                <div className={`text-xs font-bold ${isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
+                  +{activity.minutes}m
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className='mt-4 p-3 bg-amber-900/30 border border-amber-500/50 rounded-lg'>
+          <div className='flex items-center space-x-2 mb-1'>
+            <span className='text-amber-400'>💡</span>
+            <span className='text-amber-200 text-sm font-medium'>Pro Tip:</span>
+          </div>
+          <div className='text-amber-200 text-xs'>
+            Bonus experience applies to ALL realms simultaneously, making it the most efficient way to boost your overall progress!
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const renderCultivationStats = () => {
     const stats = userRealmProgress?.progress.cultivation
     const books = userRealmProgress?.realmBooks.cultivation || []
@@ -374,6 +497,15 @@ export function AcademyPage() {
                   </div>
                 ) : userRealmProgress ? (
                   <>
+                    {/* Show progress first - the main experience display */}
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-8'>
+                      {renderCultivationStats()}
+                      {renderGamelitStats()}
+                      {renderPortalStats()}
+                      {renderApocalypseStats()}
+                    </div>
+
+                    {/* Then show explanations and details */}
                     <div className='bg-green-900/30 border border-green-500/50 rounded-lg p-3 mb-6'>
                       <div className='flex items-center space-x-2'>
                         <span className='text-green-400'>✨</span>
@@ -387,13 +519,8 @@ export function AcademyPage() {
                         </p>
                       </div>
                     </div>
+                    {renderBonusExperienceGuide()}
                     {renderBonusActivities()}
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      {renderCultivationStats()}
-                      {renderGamelitStats()}
-                      {renderPortalStats()}
-                      {renderApocalypseStats()}
-                    </div>
                   </>
                 ) : (
                   <div className='bg-gray-800/30 border border-gray-500/50 rounded-lg p-6 text-center'>
