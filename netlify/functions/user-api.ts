@@ -19,6 +19,7 @@ const EXPERIENCE_REWARDS = {
   FIRST_SSS_TIER: 120, // Large amount for first SSS tier
   REVIEW: 30,         // Bigger amount for leaving a review
   BOSS_VICTORY: 60,   // Bonus for participating in boss defeat
+  WRITING: 1,         // 1 minute per minute written (1:1 ratio)
 };
 
 // Helper function to award bonus experience by creating battle activities for ALL realms
@@ -29,6 +30,19 @@ async function awardBonusExperience(
   description: string
 ) {
   const minutes = EXPERIENCE_REWARDS[activityType];
+  
+  // Map experience reward types to database activity types
+  const activityTypeMapping = {
+    READING_STATUS: 'READING_STATUS',
+    FIRST_S_TIER: 'TIER_ASSIGNMENT',
+    FIRST_SS_TIER: 'TIER_ASSIGNMENT', 
+    FIRST_SSS_TIER: 'TIER_ASSIGNMENT',
+    REVIEW: 'REVIEW',
+    BOSS_VICTORY: 'BOSS_VICTORY',
+    WRITING: 'WRITING'
+  } as const;
+  
+  const dbActivityType = activityTypeMapping[activityType];
   
   // Award experience to ALL realms instead of just the matching one
   const allRealms = ['XIANXIA', 'GAMELIT', 'APOCALYPSE', 'ISEKAI'];
@@ -63,7 +77,9 @@ async function awardBonusExperience(
         realmBossId: realmBoss.id,
         bookId,
         minutesRead: minutes,
-        damage: minutes // 1 minute = 1 damage
+        damage: dbActivityType === 'WRITING' ? minutes : 0, // Writing deals damage, others are pure bonus
+        activityType: dbActivityType,
+        isBonus: true
       }
     });
   }
@@ -148,6 +164,9 @@ export const handler: Handler = async (event) => {
       
       case 'reviews':
         return await handleReviewsEndpoint(event.httpMethod, path, user.id, body);
+      
+      case 'writing':
+        return await handleWritingEndpoint(event.httpMethod, user.id, body);
       
       case 'community-favorites':
         if (event.httpMethod === 'GET') {
@@ -686,6 +705,61 @@ async function handleReviewsEndpoint(method: string, path: string[], userId: str
         statusCode: 204,
         headers,
         body: ''
+      };
+
+    default:
+      return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ error: 'Method not allowed' })
+      };
+  }
+}
+
+async function handleWritingEndpoint(method: string, userId: string, body: any) {
+  switch (method) {
+    case 'POST':
+      // Record writing minutes
+      const { bookId, minutes } = body;
+      
+      if (!bookId || !minutes || typeof minutes !== 'number' || minutes <= 0) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'bookId and positive minutes are required' })
+        };
+      }
+
+      // Get book details for the activity description
+      const book = await prisma.book.findUnique({
+        where: { id: bookId },
+        select: { title: true }
+      });
+
+      if (!book) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Book not found' })
+        };
+      }
+
+      // Award writing experience to all realms (1 minute written = 1 minute experience)
+      await awardBonusExperience(
+        userId,
+        bookId,
+        'WRITING',
+        `Wrote ${minutes} minutes for "${book.title}"`
+      );
+
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify({ 
+          message: `${minutes} writing minutes added to all realms`,
+          bookTitle: book.title,
+          minutesAwarded: minutes
+        })
       };
 
     default:

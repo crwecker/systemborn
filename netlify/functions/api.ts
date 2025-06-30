@@ -310,7 +310,9 @@ async function awardBossVictoryBonuses(realmBossId: string, defeatedBossRealm: s
             realmBossId: boss.id,
             bookId: participant.bookId,
             minutesRead: BOSS_VICTORY_BONUS,
-            damage: 0 // Bonus activities don't deal damage
+            damage: 0, // Bonus activities don't deal damage
+            activityType: 'BOSS_VICTORY',
+            isBonus: true
           }
         });
       }
@@ -707,10 +709,7 @@ export const handler: Handler = async (event) => {
             }
           });
 
-          // Separate bonus activities from regular reading activities
-          // Bonus activities are those where the same book appears multiple times on the same day
-          // or activities that seem unusually short (bonus activities are typically 15-120 minutes)
-          const bonusThresholds = [15, 30, 45, 60, 75, 120]; // Our bonus reward amounts
+          // Identify bonus activities using the new explicit fields
           const bonusActivities: Array<{
             bookId: string
             bookTitle: string
@@ -719,38 +718,37 @@ export const handler: Handler = async (event) => {
             date: string
           }> = [];
 
-          // Group activities by book and date to identify potential bonus activities
-          const activityGroups = new Map<string, any[]>();
-          
+          // Map database activity types to display names
+          const activityTypeDisplayNames = {
+            READING_STATUS: 'Marked Book as Read or Reading',
+            TIER_ASSIGNMENT: 'Tier Assignment',
+            REVIEW: 'Review',
+            BOSS_VICTORY: 'Boss Victory',
+            WRITING: 'Writing'
+          };
+
           for (const activity of battleActivities) {
             if (!activity.book) continue;
             
-            const dateKey = `${activity.bookId}-${activity.createdAt.toDateString()}`;
-            if (!activityGroups.has(dateKey)) {
-              activityGroups.set(dateKey, []);
-            }
-            activityGroups.get(dateKey)!.push(activity);
-          }
-
-          // Identify bonus activities (activities that match our bonus amounts)
-          for (const [dateKey, activities] of activityGroups) {
-            for (const activity of activities) {
-              if (bonusThresholds.includes(activity.minutesRead)) {
-                const activityType = activity.minutesRead === 15 ? 'Marked Book as Read or Reading' :
-                                  activity.minutesRead === 30 ? 'Review' :
-                                  activity.minutesRead === 45 ? 'First S Tier' :
-                                  activity.minutesRead === 60 ? 'Boss Victory' :
-                                  activity.minutesRead === 75 ? 'First SS Tier' :
-                                  activity.minutesRead === 120 ? 'First SSS Tier' : 'Bonus';
-                
-                bonusActivities.push({
-                  bookId: activity.bookId!,
-                  bookTitle: activity.book?.title || 'Unknown Book',
-                  minutes: activity.minutesRead,
-                  activityType,
-                  date: activity.createdAt.toISOString()
-                });
+            // Check if this is a bonus activity using the explicit isBonus field
+            if (activity.isBonus) {
+              // Determine display name based on activity type and minutes
+              let displayName = activityTypeDisplayNames[activity.activityType as keyof typeof activityTypeDisplayNames] || 'Bonus';
+              
+              // For tier assignments, be more specific based on minutes
+              if (activity.activityType === 'TIER_ASSIGNMENT') {
+                displayName = activity.minutesRead === 45 ? 'First S Tier' :
+                             activity.minutesRead === 75 ? 'First SS Tier' :
+                             activity.minutesRead === 120 ? 'First SSS Tier' : 'Tier Assignment';
               }
+              
+              bonusActivities.push({
+                bookId: activity.bookId!,
+                bookTitle: activity.book?.title || 'Unknown Book',
+                minutes: activity.minutesRead,
+                activityType: displayName,
+                date: activity.createdAt.toISOString()
+              });
             }
           }
 
@@ -777,7 +775,7 @@ export const handler: Handler = async (event) => {
             if (!activity.book?.tags) continue;
             
             // Skip bonus activities from realm-specific categorization since they apply to all realms
-            if (bonusThresholds.includes(activity.minutesRead)) continue;
+            if (activity.isBonus) continue;
 
             const bookTags = activity.book.tags.map(tag => tag.toLowerCase());
             
@@ -1106,7 +1104,9 @@ export const handler: Handler = async (event) => {
                 userId: userId || null,
                 minutesRead,
                 bookId: bookId || null,
-                damage
+                damage,
+                activityType: 'READING',
+                isBonus: false
               },
               include: {
                 user: true,

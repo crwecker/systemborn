@@ -161,6 +161,15 @@ enum ReadingStatus {
   FINISHED
 }
 
+enum ActivityType {
+  READING
+  WRITING
+  REVIEW
+  TIER_ASSIGNMENT
+  READING_STATUS
+  BOSS_VICTORY
+}
+
 model RealmBoss {
   id            String   @id @default(cuid())
   realm         Realm    @unique
@@ -174,16 +183,19 @@ model RealmBoss {
 }
 
 model BattleActivity {
-  id          String    @id @default(cuid())
-  userId      String?
-  realmBossId String
-  minutesRead Int
-  bookId      String?
-  damage      Int       @default(0)
-  createdAt   DateTime  @default(now())
-  user        User?     @relation(fields: [userId], references: [id])
-  realmBoss   RealmBoss @relation(fields: [realmBossId], references: [id])
-  book        Book?     @relation(fields: [bookId], references: [id])
+  id               String       @id @default(cuid())
+  userId           String?
+  realmBossId      String
+  minutesRead      Int
+  bookId           String?
+  damage           Int          @default(0)
+  activityType     ActivityType @default(READING)
+  isBonus          Boolean      @default(false)
+  sourceActivityId String?
+  createdAt        DateTime     @default(now())
+  user             User?        @relation(fields: [userId], references: [id])
+  realmBoss        RealmBoss    @relation(fields: [realmBossId], references: [id])
+  book             Book?        @relation(fields: [bookId], references: [id])
 }
 
 model BattleStory {

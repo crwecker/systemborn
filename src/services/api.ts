@@ -544,6 +544,30 @@ export async function fetchUserRealmProgress(userId: string): Promise<UserRealmP
   }
 }
 
+export async function submitWritingMinutes(
+  bookId: string,
+  minutes: number
+): Promise<{ message: string; bookTitle: string; minutesAwarded: number }> {
+  try {
+    const response = await fetch(`${USER_API_BASE_URL}/writing`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({
+        bookId,
+        minutes
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to submit writing minutes')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error submitting writing minutes:', error)
+    throw error
+  }
+}
+
 // Book tier counts interface
 export interface BookTierCounts {
   [bookId: string]: {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
-import { fetchUserRealmProgress } from '../services/api'
+import { fetchUserRealmProgress, submitWritingMinutes } from '../services/api'
 
 // Define realm configurations
 
@@ -51,6 +51,11 @@ export function AcademyPage() {
   // State for collapsible book details and bonus activities
   const [expandedRealms, setExpandedRealms] = useState<Record<string, boolean>>({})
   const [showBonusActivities, setShowBonusActivities] = useState(false)
+  
+  // State for writing tracker
+  const [writingMinutes, setWritingMinutes] = useState('')
+  const [selectedBookId, setSelectedBookId] = useState('')
+  const [isSubmittingWriting, setIsSubmittingWriting] = useState(false)
 
   const toggleRealmExpansion = (realmId: string) => {
     setExpandedRealms(prev => ({
@@ -116,6 +121,7 @@ export function AcademyPage() {
       'Boss Victory': '⚔️',
       'First SS Tier': '🥈', 
       'First SSS Tier': '🥇',
+      'Writing': '✍️',
       'Bonus': '✨'
     }
 
@@ -126,6 +132,7 @@ export function AcademyPage() {
       'Boss Victory': 'text-red-400',
       'First SS Tier': 'text-gray-300',
       'First SSS Tier': 'text-yellow-500',
+      'Writing': 'text-green-400',
       'Bonus': 'text-purple-400'
     }
 
@@ -241,6 +248,14 @@ export function AcademyPage() {
         minutes: 120,
         description: 'Assign your first SSS tier rating',
         action: 'Go to a book page and assign SSS tier'
+      },
+      {
+        type: 'Writing',
+        icon: '✍️',
+        color: 'text-green-400',
+        minutes: '1:1',
+        description: 'Write for any book (1 min written = 1 min XP)',
+        action: 'Track your daily writing minutes below'
       }
     ]
 
@@ -294,7 +309,7 @@ export function AcademyPage() {
                   </div>
                 </div>
                 <div className={`text-xs font-bold ${isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
-                  +{activity.minutes}m
+                  {typeof activity.minutes === 'number' ? `+${activity.minutes}m` : activity.minutes}
                 </div>
               </div>
             )
@@ -309,6 +324,108 @@ export function AcademyPage() {
           <div className='text-amber-200 text-xs'>
             Bonus experience applies to ALL realms simultaneously, making it the most efficient way to boost your overall progress!
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  const renderWritingTracker = () => {
+    const handleWritingSubmit = async (e: React.FormEvent) => {
+      e.preventDefault()
+      
+      if (!user || !writingMinutes || !selectedBookId) {
+        return
+      }
+      
+      const minutes = parseInt(writingMinutes)
+      if (isNaN(minutes) || minutes <= 0) {
+        alert('Please enter a valid number of minutes')
+        return
+      }
+      
+      setIsSubmittingWriting(true)
+      
+      try {
+        const result = await submitWritingMinutes(selectedBookId, minutes)
+        
+        // Clear form and show success
+        setWritingMinutes('')
+        setSelectedBookId('')
+        
+        // Show success message
+        alert(`Success! Added ${result.minutesAwarded} writing minutes for "${result.bookTitle}" to all realms!`)
+        
+        // Trigger a refetch of the progress data
+        window.location.reload() // Simple approach - could be improved with proper query invalidation
+        
+      } catch (error) {
+        console.error('Error submitting writing time:', error)
+        alert('Failed to submit writing time. Please try again.')
+      } finally {
+        setIsSubmittingWriting(false)
+      }
+    }
+
+    // Get unique books from all realms for the dropdown
+    const allBooks = new Map<string, { id: string, title: string }>()
+    if (userRealmProgress?.realmBooks) {
+      Object.values(userRealmProgress.realmBooks).forEach(books => {
+        books.forEach(book => {
+          allBooks.set(book.bookId, { id: book.bookId, title: book.title })
+        })
+      })
+    }
+    
+    return (
+      <div className='bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/50 rounded-lg p-4 mb-6'>
+        <div className='flex items-center space-x-2 mb-4'>
+          <span className='text-green-400 text-xl'>✍️</span>
+          <h3 className='text-lg font-bold text-green-200'>
+            Daily Writing Tracker
+          </h3>
+        </div>
+        
+        <div className='text-sm text-green-300 mb-4'>
+          Track your writing minutes and earn 1:1 experience across all realms!
+        </div>
+
+        <form onSubmit={handleWritingSubmit} className='flex flex-col sm:flex-row gap-3'>
+          <select
+            value={selectedBookId}
+            onChange={(e) => setSelectedBookId(e.target.value)}
+            className='flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-green-500'
+            required
+          >
+            <option value="">Select a book you're writing about...</option>
+            {Array.from(allBooks.values()).map(book => (
+              <option key={book.id} value={book.id}>
+                {book.title}
+              </option>
+            ))}
+          </select>
+          
+          <input
+            type="number"
+            value={writingMinutes}
+            onChange={(e) => setWritingMinutes(e.target.value)}
+            placeholder="Minutes written"
+            min="1"
+            max="240"
+            className='w-32 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-green-500'
+            required
+          />
+          
+          <button
+            type="submit"
+            disabled={isSubmittingWriting || !user}
+            className='px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors'
+          >
+            {isSubmittingWriting ? 'Adding...' : 'Add XP'}
+          </button>
+        </form>
+        
+        <div className='text-xs text-green-400 mt-2'>
+          💡 Writing includes: fan fiction, reviews, story analysis, world-building notes, character development, etc.
         </div>
       </div>
     )
@@ -335,7 +452,7 @@ export function AcademyPage() {
           {stats.currentRealm} - Level {stats.currentLevel}
         </div>
         <div className='text-xs text-gray-300 mt-1'>
-          Reading Minutes: {stats.totalMinutes}
+          Reading/Listening Minutes: {stats.totalMinutes}
         </div>
         <div className='mt-2'>
           <div className='bg-gray-800 rounded-full h-2'>
@@ -372,7 +489,7 @@ export function AcademyPage() {
           Level {stats.level}
         </div>
         <div className='text-xs text-gray-300 mt-1'>
-          Reading Minutes: {stats.totalMinutes}
+          Reading/Listening Minutes: {stats.totalMinutes}
         </div>
         <div className='mt-2'>
           <div className='bg-gray-800 rounded-full h-2'>
@@ -414,7 +531,7 @@ export function AcademyPage() {
           Life Level: {stats.lifeLevel}
         </div>
         <div className='text-xs text-gray-300 mt-1'>
-          Reading Minutes: {stats.totalMinutes}
+          Reading/Listening Minutes: {stats.totalMinutes}
         </div>
         <div className='text-xs text-gray-400 mt-1'>
           Previous Reincarnations: {stats.reincarnations}
@@ -445,7 +562,7 @@ export function AcademyPage() {
           Day {stats.survivalDays}
         </div>
         <div className='text-xs text-gray-300 mb-2'>
-          Reading Minutes: {stats.totalMinutes}
+          Reading/Listening Minutes: {stats.totalMinutes}
         </div>
         <div className='grid grid-cols-4 gap-1 text-xs'>
           {Object.entries(stats.stats).map(([stat, value]) => (
@@ -510,25 +627,26 @@ export function AcademyPage() {
                       <div className='flex items-center space-x-2'>
                         <span className='text-green-400'>✨</span>
                         <p className='text-green-200 text-sm'>
-                          <strong>Real Progress:</strong> Your advancement is calculated from {userRealmProgress.totalMinutes} total minutes of reading across all genres!
+                          <strong>Real Progress:</strong> Your advancement is calculated from {userRealmProgress.totalMinutes} total minutes of reading, listening, and writing across all genres!
                           {userRealmProgress.totalBonusMinutes > 0 && (
                             <span className='block mt-1'>
-                              <strong>Bonus:</strong> +{userRealmProgress.totalBonusMinutes} minutes from achievements applied to all realms!
+                              <strong>Bonus:</strong> +{userRealmProgress.totalBonusMinutes} minutes from achievements and writing applied to all realms!
                             </span>
                           )}
                         </p>
                       </div>
                     </div>
                     {renderBonusExperienceGuide()}
+                    {renderWritingTracker()}
                     {renderBonusActivities()}
                   </>
                 ) : (
                   <div className='bg-gray-800/30 border border-gray-500/50 rounded-lg p-6 text-center'>
                     <p className='text-gray-400 mb-4'>
-                      No reading progress yet! Start battling in the realms to track your advancement.
+                      No progress yet! Start battling in the realms or track your writing to begin your advancement.
                     </p>
                     <div className='text-sm text-gray-500'>
-                      Your progress will be calculated based on the minutes you spend reading books from each genre.
+                      Your progress will be calculated based on the minutes you spend reading, listening to, or writing about books from each genre.
                     </div>
                   </div>
                 )
