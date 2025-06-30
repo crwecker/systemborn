@@ -111,6 +111,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   const [minutesRead, setMinutesRead] = useState('')
   const [selectedBookId, setSelectedBookId] = useState('')
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [minutesWritten, setMinutesWritten] = useState('')
   const [timelineHp, setTimelineHp] = useState<number | null>(null)
   const [isViewingTimeline, setIsViewingTimeline] = useState(false)
   const [isBookSearchOpen, setIsBookSearchOpen] = useState(false)
@@ -303,6 +304,42 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     setSelectedBookId('')
   }
 
+  // Writing mutation
+  const writingMutation = useMutation({
+    mutationFn: async ({ minutes }: { minutes: number }) => {
+      const response = await fetch('/.netlify/functions/user-api/writing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('authToken')}` },
+        body: JSON.stringify({
+          realmName: apiRealmId.toUpperCase(),
+          minutes: minutes
+        })
+      })
+      if (!response.ok) throw new Error('Writing submission failed')
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['realmBoss', realmId] })
+      queryClient.invalidateQueries({ queryKey: ['battleStats', realmId] })
+      queryClient.invalidateQueries({ queryKey: ['dailyLimits', user?.id] })
+      queryClient.invalidateQueries({ queryKey: ['battleStory', realmId] })
+      setMinutesWritten('')
+    },
+  })
+
+  const handleWriting = () => {
+    const minutes = parseInt(minutesWritten)
+
+    // Validate minutes
+    if (minutes <= 0) return
+    if (minutes > 300) {
+      alert('Maximum 300 minutes per writing session')
+      return
+    }
+
+    writingMutation.mutate({ minutes })
+  }
+
   // Use timeline HP if viewing a specific point, otherwise use current HP
   const displayHp =
     isViewingTimeline && timelineHp !== null
@@ -418,104 +455,167 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                 ⚔️ Battle Interface
               </h3>
 
-              <div className='space-y-3'>
-                <div>
-                  <label className='block text-xs font-medium mb-1'>
-                    Minutes Read
-                  </label>
-                  <input
-                    type='number'
-                    min='1'
-                    max='300'
-                    value={minutesRead}
-                    onChange={e => setMinutesRead(e.target.value)}
-                    className='w-full px-3 py-2 bg-gray-800 rounded-lg text-white text-sm'
-                    placeholder='Minutes read today'
-                  />
-                </div>
+              <div className='space-y-4'>
+                {/* Reading Section */}
+                <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <span className='text-blue-400 text-lg'>📖</span>
+                    <span className='text-sm font-medium text-blue-300'>Reading/Listening</span>
+                  </div>
+                  
+                  <div>
+                    <label className='block text-xs font-medium mb-1'>
+                      Minutes Read
+                    </label>
+                    <input
+                      type='number'
+                      min='1'
+                      max='300'
+                      value={minutesRead}
+                      onChange={e => setMinutesRead(e.target.value)}
+                      className='w-full px-3 py-2 bg-gray-800 rounded-lg text-white text-sm'
+                      placeholder='Minutes read today'
+                    />
+                  </div>
 
-                <div>
-                  <label className='block text-xs font-medium mb-1'>
-                    Book (Optional)
-                  </label>
-                  {selectedBook ? (
-                    <div className='flex items-center justify-between p-2 bg-gray-800 rounded-lg border border-gray-600'>
-                      <div className='flex-1 min-w-0'>
-                        <div className='text-white text-sm font-medium truncate'>
-                          {selectedBook.title}
+                  <div>
+                    <label className='block text-xs font-medium mb-1'>
+                      Book (Optional)
+                    </label>
+                    {selectedBook ? (
+                      <div className='flex items-center justify-between p-2 bg-gray-800 rounded-lg border border-gray-600'>
+                        <div className='flex-1 min-w-0'>
+                          <div className='text-white text-sm font-medium truncate'>
+                            {selectedBook.title}
+                          </div>
+                          <div className='text-gray-400 text-xs truncate'>
+                            {selectedBook.author?.name || 'Unknown Author'}
+                          </div>
                         </div>
-                        <div className='text-gray-400 text-xs truncate'>
-                          {selectedBook.author?.name || 'Unknown Author'}
-                        </div>
+                        <button
+                          onClick={clearBookSelection}
+                          className='ml-2 text-gray-400 hover:text-white transition-colors'
+                          title='Remove book'>
+                          <svg
+                            className='w-4 h-4'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'>
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M6 18L18 6M6 6l12 12'
+                            />
+                          </svg>
+                        </button>
                       </div>
+                    ) : (
                       <button
-                        onClick={clearBookSelection}
-                        className='ml-2 text-gray-400 hover:text-white transition-colors'
-                        title='Remove book'>
-                        <svg
-                          className='w-4 h-4'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'>
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M6 18L18 6M6 6l12 12'
-                          />
-                        </svg>
+                        onClick={() => setIsBookSearchOpen(true)}
+                        className='w-full p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500 text-sm'>
+                        <div className='flex items-center justify-between'>
+                          <span>Select book</span>
+                          <svg
+                            className='w-4 h-4 text-gray-400'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'>
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                            />
+                          </svg>
+                        </div>
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setIsBookSearchOpen(true)}
-                      className='w-full p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500 text-sm'>
-                      <div className='flex items-center justify-between'>
-                        <span>Select book</span>
-                        <svg
-                          className='w-4 h-4 text-gray-400'
-                          fill='none'
-                          stroke='currentColor'
-                          viewBox='0 0 24 24'>
-                          <path
-                            strokeLinecap='round'
-                            strokeLinejoin='round'
-                            strokeWidth={2}
-                            d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-                          />
-                        </svg>
-                      </div>
-                    </button>
-                  )}
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleBattle}
+                    disabled={
+                      !minutesRead ||
+                      parseInt(minutesRead) <= 0 ||
+                      battleMutation.isPending
+                    }
+                    className={`w-full py-2 px-4 rounded-lg font-bold transition-all duration-200 border-2 text-white text-sm
+                      ${
+                        minutesRead && parseInt(minutesRead) > 0
+                          ? 'hover:opacity-80'
+                          : 'opacity-50 cursor-not-allowed'
+                      }`}
+                    style={{
+                      backgroundColor:
+                        minutesRead && parseInt(minutesRead) > 0
+                          ? '#3b82f6'
+                          : '#4b5563',
+                      borderColor:
+                        minutesRead && parseInt(minutesRead) > 0
+                          ? '#3b82f6'
+                          : '#6b7280',
+                    }}>
+                    {battleMutation.isPending
+                      ? 'Reading...'
+                      : `Deal ${minutesRead || 0} Reading Damage!`}
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleBattle}
-                  disabled={
-                    !minutesRead ||
-                    parseInt(minutesRead) <= 0 ||
-                    battleMutation.isPending
-                  }
-                  className={`w-full py-2 px-4 rounded-lg font-bold transition-all duration-200 border-2 text-white text-sm
-                    ${
-                      minutesRead && parseInt(minutesRead) > 0
-                        ? 'hover:opacity-80'
-                        : 'opacity-50 cursor-not-allowed'
-                    }`}
-                  style={{
-                    backgroundColor:
-                      minutesRead && parseInt(minutesRead) > 0
-                        ? realmConfig.accent
-                        : '#4b5563',
-                    borderColor:
-                      minutesRead && parseInt(minutesRead) > 0
-                        ? realmConfig.accent
-                        : '#6b7280',
-                  }}>
-                  {battleMutation.isPending
-                    ? 'Attacking...'
-                    : `Deal ${minutesRead || 0} Damage!`}
-                </button>
+                {/* Writing Section */}
+                <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
+                  <div className='flex items-center gap-2 mb-2'>
+                    <span className='text-green-400 text-lg'>✍️</span>
+                    <span className='text-sm font-medium text-green-300'>Writing</span>
+                  </div>
+                  
+                  <div>
+                    <label className='block text-xs font-medium mb-1'>
+                      Minutes Written
+                    </label>
+                    <input
+                      type='number'
+                      min='1'
+                      max='300'
+                      value={minutesWritten}
+                      onChange={e => setMinutesWritten(e.target.value)}
+                      className='w-full px-3 py-2 bg-gray-800 rounded-lg text-white text-sm'
+                      placeholder='Minutes written today'
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleWriting}
+                    disabled={
+                      !minutesWritten ||
+                      parseInt(minutesWritten) <= 0 ||
+                      writingMutation.isPending
+                    }
+                    className={`w-full py-2 px-4 rounded-lg font-bold transition-all duration-200 border-2 text-white text-sm
+                      ${
+                        minutesWritten && parseInt(minutesWritten) > 0
+                          ? 'hover:opacity-80'
+                          : 'opacity-50 cursor-not-allowed'
+                      }`}
+                    style={{
+                      backgroundColor:
+                        minutesWritten && parseInt(minutesWritten) > 0
+                          ? '#10b981'
+                          : '#4b5563',
+                      borderColor:
+                        minutesWritten && parseInt(minutesWritten) > 0
+                          ? '#10b981'
+                          : '#6b7280',
+                    }}>
+                    {writingMutation.isPending
+                      ? 'Writing...'
+                      : `Deal ${minutesWritten || 0} Writing Damage!`}
+                  </button>
+                  
+                  <div className='text-xs text-green-300 opacity-75'>
+                    Fan fiction, reviews, analysis, world-building notes, etc.
+                  </div>
+                </div>
               </div>
 
               <div className='mt-3 text-center text-xs opacity-75'>

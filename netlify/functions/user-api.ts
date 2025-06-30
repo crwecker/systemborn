@@ -168,6 +168,9 @@ export const handler: Handler = async (event) => {
       case 'writing':
         return await handleWritingEndpoint(event.httpMethod, user.id, body);
       
+      case 'reading':
+        return await handleReadingEndpoint(event.httpMethod, user.id, body);
+      
       case 'community-favorites':
         if (event.httpMethod === 'GET') {
           return await getCommunityFavorites();
@@ -720,45 +723,176 @@ async function handleWritingEndpoint(method: string, userId: string, body: any) 
   switch (method) {
     case 'POST':
       // Record writing minutes
-      const { bookId, minutes } = body;
+      const { realmName, minutes, description } = body;
       
-      if (!bookId || !minutes || typeof minutes !== 'number' || minutes <= 0) {
+      if (!realmName || !minutes || typeof minutes !== 'number' || minutes <= 0) {
         return {
           statusCode: 400,
           headers,
-          body: JSON.stringify({ error: 'bookId and positive minutes are required' })
+          body: JSON.stringify({ error: 'realmName and positive minutes are required' })
         };
       }
 
-      // Get book details for the activity description
-      const book = await prisma.book.findUnique({
-        where: { id: bookId },
-        select: { title: true }
+      // Validate realm name
+      const validRealms = ['XIANXIA', 'GAMELIT', 'APOCALYPSE', 'ISEKAI'];
+      const upperRealmName = realmName.toUpperCase();
+      if (!validRealms.includes(upperRealmName)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Invalid realm name' })
+        };
+      }
+
+      // Get or create the realm boss
+      const bossNames: Record<string, string> = {
+        XIANXIA: 'Longzu, The Heaven-Scourging Flame',
+        GAMELIT: 'Glitchlord Exeon',
+        APOCALYPSE: 'Zereth, Dungeon Architect of the End',
+        ISEKAI: 'Aurelion the Eternal Return'
+      };
+
+      let realmBoss = await prisma.realmBoss.findUnique({
+        where: { realm: upperRealmName as any }
+      });
+      
+      if (!realmBoss) {
+        realmBoss = await prisma.realmBoss.create({
+          data: {
+            realm: upperRealmName as any,
+            name: bossNames[upperRealmName] || 'Unknown Boss',
+            maxHitpoints: 10000,
+            currentHitpoints: 10000
+          }
+        });
+      }
+
+      // Create the writing battle activity for the selected realm only
+      await prisma.battleActivity.create({
+        data: {
+          userId,
+          realmBossId: realmBoss.id,
+          bookId: null, // No specific book for writing
+          minutesRead: minutes,
+          damage: minutes, // Writing deals damage to the boss
+          activityType: 'WRITING',
+          isBonus: false // Writing is now realm-specific, not universal bonus
+        }
       });
 
-      if (!book) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ error: 'Book not found' })
-        };
-      }
-
-      // Award writing experience to all realms (1 minute written = 1 minute experience)
-      await awardBonusExperience(
-        userId,
-        bookId,
-        'WRITING',
-        `Wrote ${minutes} minutes for "${book.title}"`
-      );
+      const realmDisplayNames = {
+        XIANXIA: 'Cultivation',
+        GAMELIT: 'GameLit', 
+        APOCALYPSE: 'Apocalypse',
+        ISEKAI: 'Portal'
+      };
 
       return {
         statusCode: 201,
         headers,
         body: JSON.stringify({ 
-          message: `${minutes} writing minutes added to all realms`,
-          bookTitle: book.title,
-          minutesAwarded: minutes
+          message: `${minutes} writing minutes added to ${realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames]} realm`,
+          realmName: realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames],
+          minutesAwarded: minutes,
+          description: description || `Wrote content for ${realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames]} realm`
+        })
+      };
+
+    default:
+      return {
+        statusCode: 405,
+        headers,
+        body: JSON.stringify({ error: 'Method not allowed' })
+      };
+  }
+}
+
+async function handleReadingEndpoint(method: string, userId: string, body: any) {
+  switch (method) {
+    case 'POST':
+      // Record reading minutes (optionally tied to a specific book)
+      const { realmName, minutes, bookId } = body;
+      
+      if (!realmName || !minutes || typeof minutes !== 'number' || minutes <= 0) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'realmName and positive minutes are required' })
+        };
+      }
+
+      // Validate realm name
+      const validRealms = ['CULTIVATION', 'GAMELIT', 'APOCALYPSE', 'PORTAL'];
+      const upperRealmName = realmName.toUpperCase();
+      if (!validRealms.includes(upperRealmName)) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'Invalid realm name' })
+        };
+      }
+
+      // Map frontend realm names to backend realm names
+      const realmMapping: Record<string, string> = {
+        CULTIVATION: 'XIANXIA',
+        GAMELIT: 'GAMELIT',
+        APOCALYPSE: 'APOCALYPSE',
+        PORTAL: 'ISEKAI'
+      };
+
+      const dbRealmName = realmMapping[upperRealmName];
+
+      // Get or create the realm boss
+      const bossNames: Record<string, string> = {
+        XIANXIA: 'Longzu, The Heaven-Scourging Flame',
+        GAMELIT: 'Glitchlord Exeon',
+        APOCALYPSE: 'Zereth, Dungeon Architect of the End',
+        ISEKAI: 'Aurelion the Eternal Return'
+      };
+
+      let realmBoss = await prisma.realmBoss.findUnique({
+        where: { realm: dbRealmName as any }
+      });
+      
+      if (!realmBoss) {
+        realmBoss = await prisma.realmBoss.create({
+          data: {
+            realm: dbRealmName as any,
+            name: bossNames[dbRealmName] || 'Unknown Boss',
+            maxHitpoints: 10000,
+            currentHitpoints: 10000
+          }
+        });
+      }
+
+      // Create the reading battle activity for the selected realm only
+      await prisma.battleActivity.create({
+        data: {
+          userId,
+          realmBossId: realmBoss.id,
+          bookId: bookId || null, // Include book if specified
+          minutesRead: minutes,
+          damage: minutes, // Reading deals damage to the boss
+          activityType: 'READING',
+          isBonus: false // Reading is realm-specific
+        }
+      });
+
+      const realmDisplayNames = {
+        CULTIVATION: 'Cultivation',
+        GAMELIT: 'GameLit', 
+        APOCALYPSE: 'Apocalypse',
+        PORTAL: 'Portal'
+      };
+
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify({ 
+          message: `${minutes} reading minutes added to ${realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames]} realm`,
+          realmName: realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames],
+          minutesAwarded: minutes,
+          description: `Read content for ${realmDisplayNames[upperRealmName as keyof typeof realmDisplayNames]} realm`
         })
       };
 

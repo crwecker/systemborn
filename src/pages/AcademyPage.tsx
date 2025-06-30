@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
-import { fetchUserRealmProgress, submitWritingMinutes } from '../services/api'
+import { fetchUserRealmProgress, searchBooks } from '../services/api'
+import type { Book } from '../types/book'
 
 // Define realm configurations
 
@@ -52,16 +53,299 @@ export function AcademyPage() {
   const [expandedRealms, setExpandedRealms] = useState<Record<string, boolean>>({})
   const [showBonusActivities, setShowBonusActivities] = useState(false)
   
-  // State for writing tracker
-  const [writingMinutes, setWritingMinutes] = useState('')
-  const [selectedBookId, setSelectedBookId] = useState('')
-  const [isSubmittingWriting, setIsSubmittingWriting] = useState(false)
+  // State for realm-specific inputs
+  type RealmKey = 'cultivation' | 'gamelit' | 'apocalypse' | 'portal'
+  
+  const [realmInputs, setRealmInputs] = useState({
+    cultivation: { writing: '', reading: '', selectedBook: null as Book | null, isBookSearchOpen: false, bookSearchQuery: '' },
+    gamelit: { writing: '', reading: '', selectedBook: null as Book | null, isBookSearchOpen: false, bookSearchQuery: '' },
+    apocalypse: { writing: '', reading: '', selectedBook: null as Book | null, isBookSearchOpen: false, bookSearchQuery: '' },
+    portal: { writing: '', reading: '', selectedBook: null as Book | null, isBookSearchOpen: false, bookSearchQuery: '' }
+  })
+  const [isSubmitting, setIsSubmitting] = useState({
+    cultivation: false,
+    gamelit: false,
+    apocalypse: false,
+    portal: false
+  })
+
+  // Debounced search queries for each realm
+  const [debouncedSearchQueries, setDebouncedSearchQueries] = useState({
+    cultivation: '',
+    gamelit: '',
+    apocalypse: '',
+    portal: ''
+  })
 
   const toggleRealmExpansion = (realmId: string) => {
     setExpandedRealms(prev => ({
       ...prev,
       [realmId]: !prev[realmId]
     }))
+  }
+
+  // Helper to update realm input values
+  const updateRealmInput = (realm: RealmKey, type: keyof typeof realmInputs[RealmKey], value: any) => {
+    setRealmInputs(prev => ({
+      ...prev,
+      [realm]: {
+        ...prev[realm],
+        [type]: value
+      }
+    }))
+  }
+
+  // Debouncing effect for search queries
+  useEffect(() => {
+    const timers: Record<RealmKey, NodeJS.Timeout> = {} as any
+
+    Object.keys(realmInputs).forEach(realm => {
+      const realmKey = realm as RealmKey
+      timers[realmKey] = setTimeout(() => {
+        setDebouncedSearchQueries(prev => ({
+          ...prev,
+          [realmKey]: realmInputs[realmKey].bookSearchQuery
+        }))
+      }, 300)
+    })
+
+    return () => {
+      Object.values(timers).forEach(timer => clearTimeout(timer))
+    }
+  }, [realmInputs])
+
+  // Book search handlers
+  const handleBookSelect = (realm: RealmKey, book: Book) => {
+    updateRealmInput(realm, 'selectedBook', book)
+    updateRealmInput(realm, 'isBookSearchOpen', false)
+    updateRealmInput(realm, 'bookSearchQuery', '')
+  }
+
+  const clearBookSelection = (realm: RealmKey) => {
+    updateRealmInput(realm, 'selectedBook', null)
+  }
+
+  // Search queries for each realm
+  const realmSearchQueries = useQuery({
+    queryKey: ['bookSearchRealm', debouncedSearchQueries],
+    queryFn: async () => {
+      const results: Record<RealmKey, Book[]> = {} as any
+      
+      await Promise.all(Object.entries(debouncedSearchQueries).map(async ([realm, query]) => {
+        if (query.length >= 3) {
+          try {
+            const books = await searchBooks({ query, limit: 20 })
+            results[realm as RealmKey] = books
+          } catch (error) {
+            results[realm as RealmKey] = []
+          }
+        } else {
+          results[realm as RealmKey] = []
+        }
+      }))
+      
+      return results
+    },
+    enabled: Object.values(debouncedSearchQueries).some(query => query.length >= 3),
+  })
+
+  // Submit writing minutes for a specific realm
+  const submitWritingMinutes = async (realm: RealmKey) => {
+    const minutes = parseInt(realmInputs[realm].writing)
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Please enter a valid number of minutes')
+      return
+    }
+
+    setIsSubmitting(prev => ({ ...prev, [realm]: true }))
+
+    try {
+      const response = await fetch('/.netlify/functions/user-api/writing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          realmName: realm.toUpperCase(),
+          minutes: minutes
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit writing time')
+      }
+
+      const result = await response.json()
+      
+      // Clear input
+      updateRealmInput(realm, 'writing', '')
+      
+      // Show success message
+      alert(`Success! Added ${result.minutesAwarded} writing minutes to ${result.realmName} realm!`)
+      
+      // Trigger a refetch
+      window.location.reload()
+      
+    } catch (error) {
+      console.error('Error submitting writing time:', error)
+      alert('Failed to submit writing time. Please try again.')
+    } finally {
+      setIsSubmitting(prev => ({ ...prev, [realm]: false }))
+    }
+  }
+
+  // Submit reading minutes for a specific realm
+  const submitReadingMinutes = async (realm: RealmKey) => {
+    const minutes = parseInt(realmInputs[realm].reading)
+    const selectedBook = realmInputs[realm].selectedBook
+    
+    if (isNaN(minutes) || minutes <= 0) {
+      alert('Please enter a valid number of minutes')
+      return
+    }
+
+    setIsSubmitting(prev => ({ ...prev, [realm]: true }))
+
+    try {
+      const response = await fetch('/.netlify/functions/user-api/reading', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          realmName: realm.toUpperCase(),
+          minutes: minutes,
+          bookId: selectedBook?.id || null
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to submit reading time')
+      }
+
+      const result = await response.json()
+      
+      // Clear inputs
+      updateRealmInput(realm, 'reading', '')
+      updateRealmInput(realm, 'selectedBook', null)
+      
+      // Show success message
+      const bookText = selectedBook ? ` for "${selectedBook.title}"` : ''
+      alert(`Success! Added ${result.minutesAwarded} reading minutes to ${result.realmName} realm${bookText}!`)
+      
+      // Trigger a refetch
+      window.location.reload()
+      
+    } catch (error) {
+      console.error('Error submitting reading time:', error)
+      alert('Failed to submit reading time. Please try again.')
+    } finally {
+      setIsSubmitting(prev => ({ ...prev, [realm]: false }))
+    }
+  }
+
+  // Render input fields for adding minutes to a realm
+  const renderRealmInputs = (realm: RealmKey) => {
+    return (
+      <div className="bg-black/30 rounded-lg p-4 mt-3 space-y-4">
+        <div className="text-sm font-medium text-white mb-3">
+          📈 Track Activity Minutes
+        </div>
+        
+        {/* Reading input with book search */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-400 text-lg">📖</span>
+            <span className="text-blue-300 text-sm font-medium">Reading/Listening</span>
+          </div>
+          
+          {/* Book selection */}
+          {realmInputs[realm].selectedBook ? (
+            <div className="flex items-center justify-between p-2 bg-gray-800 rounded-lg border border-gray-600">
+              <div className="flex-1 min-w-0">
+                <div className="text-white text-xs font-medium truncate">
+                  {realmInputs[realm].selectedBook!.title}
+                </div>
+                <div className="text-gray-400 text-xs truncate">
+                  {realmInputs[realm].selectedBook!.author?.name || 'Unknown Author'}
+                </div>
+              </div>
+              <button
+                onClick={() => clearBookSelection(realm)}
+                className="ml-2 text-gray-400 hover:text-white transition-colors"
+                title="Remove book">
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => updateRealmInput(realm, 'isBookSearchOpen', true)}
+              className="w-full p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white text-left transition-colors border border-gray-600 hover:border-gray-500 text-xs">
+              <div className="flex items-center justify-between">
+                <span>Select book (optional)</span>
+                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </button>
+          )}
+          
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={realmInputs[realm].reading}
+              onChange={(e) => updateRealmInput(realm, 'reading', e.target.value)}
+              placeholder="Minutes"
+              min="1"
+              max="240"
+              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            />
+            <button
+              onClick={() => submitReadingMinutes(realm)}
+              disabled={isSubmitting[realm] || !user || !realmInputs[realm].reading}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              {isSubmitting[realm] ? '...' : 'Add'}
+            </button>
+          </div>
+        </div>
+        
+        {/* Writing input */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="text-green-400 text-lg">✍️</span>
+            <span className="text-green-300 text-sm font-medium">Writing</span>
+          </div>
+          
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={realmInputs[realm].writing}
+              onChange={(e) => updateRealmInput(realm, 'writing', e.target.value)}
+              placeholder="Minutes"
+              min="1"
+              max="240"
+              className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 text-sm focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+            />
+            <button
+              onClick={() => submitWritingMinutes(realm)}
+              disabled={isSubmitting[realm] || !user || !realmInputs[realm].writing}
+              className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors"
+            >
+              {isSubmitting[realm] ? '...' : 'Add'}
+            </button>
+          </div>
+          
+          <div className="text-xs text-gray-300">
+            Fan fiction, reviews, analysis, world-building notes, etc.
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const renderBookDetails = (realmId: string, books: Array<{bookId: string, title: string, minutes: number}>) => {
@@ -254,8 +538,8 @@ export function AcademyPage() {
         icon: '✍️',
         color: 'text-green-400',
         minutes: '1:1',
-        description: 'Write for any book (1 min written = 1 min XP)',
-        action: 'Track your daily writing minutes below'
+        description: 'Write content for a specific realm (1 min written = 1 min XP)',
+        action: 'Use the writing tracker below to select a realm'
       }
     ]
 
@@ -329,107 +613,7 @@ export function AcademyPage() {
     )
   }
 
-  const renderWritingTracker = () => {
-    const handleWritingSubmit = async (e: React.FormEvent) => {
-      e.preventDefault()
-      
-      if (!user || !writingMinutes || !selectedBookId) {
-        return
-      }
-      
-      const minutes = parseInt(writingMinutes)
-      if (isNaN(minutes) || minutes <= 0) {
-        alert('Please enter a valid number of minutes')
-        return
-      }
-      
-      setIsSubmittingWriting(true)
-      
-      try {
-        const result = await submitWritingMinutes(selectedBookId, minutes)
-        
-        // Clear form and show success
-        setWritingMinutes('')
-        setSelectedBookId('')
-        
-        // Show success message
-        alert(`Success! Added ${result.minutesAwarded} writing minutes for "${result.bookTitle}" to all realms!`)
-        
-        // Trigger a refetch of the progress data
-        window.location.reload() // Simple approach - could be improved with proper query invalidation
-        
-      } catch (error) {
-        console.error('Error submitting writing time:', error)
-        alert('Failed to submit writing time. Please try again.')
-      } finally {
-        setIsSubmittingWriting(false)
-      }
-    }
 
-    // Get unique books from all realms for the dropdown
-    const allBooks = new Map<string, { id: string, title: string }>()
-    if (userRealmProgress?.realmBooks) {
-      Object.values(userRealmProgress.realmBooks).forEach(books => {
-        books.forEach(book => {
-          allBooks.set(book.bookId, { id: book.bookId, title: book.title })
-        })
-      })
-    }
-    
-    return (
-      <div className='bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/50 rounded-lg p-4 mb-6'>
-        <div className='flex items-center space-x-2 mb-4'>
-          <span className='text-green-400 text-xl'>✍️</span>
-          <h3 className='text-lg font-bold text-green-200'>
-            Daily Writing Tracker
-          </h3>
-        </div>
-        
-        <div className='text-sm text-green-300 mb-4'>
-          Track your writing minutes and earn 1:1 experience across all realms!
-        </div>
-
-        <form onSubmit={handleWritingSubmit} className='flex flex-col sm:flex-row gap-3'>
-          <select
-            value={selectedBookId}
-            onChange={(e) => setSelectedBookId(e.target.value)}
-            className='flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-green-500'
-            required
-          >
-            <option value="">Select a book you're writing about...</option>
-            {Array.from(allBooks.values()).map(book => (
-              <option key={book.id} value={book.id}>
-                {book.title}
-              </option>
-            ))}
-          </select>
-          
-          <input
-            type="number"
-            value={writingMinutes}
-            onChange={(e) => setWritingMinutes(e.target.value)}
-            placeholder="Minutes written"
-            min="1"
-            max="240"
-            className='w-32 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:border-green-500'
-            required
-          />
-          
-          <button
-            type="submit"
-            disabled={isSubmittingWriting || !user}
-            className='px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white rounded-lg font-medium text-sm transition-colors'
-          >
-            {isSubmittingWriting ? 'Adding...' : 'Add XP'}
-          </button>
-        </form>
-        
-        <div className='text-xs text-green-400 mt-2'>
-          💡 Writing includes: fan fiction, reviews, story analysis, world-building notes, character development, etc.
-        </div>
-      </div>
-    )
-  }
 
   const renderCultivationStats = () => {
     const stats = userRealmProgress?.progress.cultivation
@@ -440,8 +624,8 @@ export function AcademyPage() {
       <div className='bg-black/30 rounded-lg p-4 border border-emerald-500/30'>
         <div className='flex items-center space-x-3 mb-3'>
           <img
-            src='/assets/images/cultivation/cultivation_realm_icon.png'
-            alt='Cultivation'
+                    src='/assets/images/cultivation/cultivation_realm_icon.png'
+        alt='Cultivation'
             className='w-8 h-8'
           />
           <h3 className='text-lg font-bold text-yellow-400'>
@@ -518,8 +702,8 @@ export function AcademyPage() {
       <div className='bg-black/30 rounded-lg p-4 border border-purple-500/30'>
         <div className='flex items-center space-x-3 mb-3'>
           <img
-            src='/assets/images/portal/portal_realm_icon.png'
-            alt='Portal'
+                    src='/assets/images/portal/portal_realm_icon.png'
+        alt='Portal'
             className='w-8 h-8'
           />
           <h3 className='text-lg font-bold text-purple-400'>Portal Lives</h3>
@@ -600,7 +784,7 @@ export function AcademyPage() {
 
       <div className='container mx-auto px-4 py-8'>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-          {/* Left Column: All Realm Progress */}
+          {/* Left Column: Progress */}
           <div className='lg:col-span-2'>
             <div className='bg-slate-800/50 rounded-lg border border-slate-700 p-6'>
               <h2 className='text-2xl font-bold text-white mb-2'>
@@ -616,11 +800,11 @@ export function AcademyPage() {
                   <>
                     {/* Show progress first - the main experience display */}
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-8'>
-                      {renderCultivationStats()}
-                      {renderGamelitStats()}
-                      {renderPortalStats()}
-                      {renderApocalypseStats()}
-                    </div>
+                  {renderCultivationStats()}
+                  {renderGamelitStats()}
+                  {renderPortalStats()}
+                  {renderApocalypseStats()}
+                </div>
 
                     {/* Then show explanations and details */}
                     <div className='bg-green-900/30 border border-green-500/50 rounded-lg p-3 mb-6'>
@@ -630,20 +814,19 @@ export function AcademyPage() {
                           <strong>Real Progress:</strong> Your advancement is calculated from {userRealmProgress.totalMinutes} total minutes of reading, listening, and writing across all genres!
                           {userRealmProgress.totalBonusMinutes > 0 && (
                             <span className='block mt-1'>
-                              <strong>Bonus:</strong> +{userRealmProgress.totalBonusMinutes} minutes from achievements and writing applied to all realms!
+                              <strong>Bonus:</strong> +{userRealmProgress.totalBonusMinutes} minutes from achievements applied to all realms!
                             </span>
                           )}
                         </p>
                       </div>
                     </div>
                     {renderBonusExperienceGuide()}
-                    {renderWritingTracker()}
                     {renderBonusActivities()}
                   </>
                 ) : (
                   <div className='bg-gray-800/30 border border-gray-500/50 rounded-lg p-6 text-center'>
                     <p className='text-gray-400 mb-4'>
-                      No progress yet! Start battling in the realms or track your writing to begin your advancement.
+                      No progress yet! Start tracking your reading and writing to begin your advancement.
                     </p>
                     <div className='text-sm text-gray-500'>
                       Your progress will be calculated based on the minutes you spend reading, listening to, or writing about books from each genre.
@@ -665,64 +848,126 @@ export function AcademyPage() {
             </div>
           </div>
 
-          {/* Right Column: Realm Portals */}
+          {/* Right Column: Realm Portals with Tracking */}
           <div className='lg:col-span-1'>
             <div className='bg-slate-800/50 rounded-lg border border-slate-700 p-6'>
               <h2 className='text-2xl font-bold text-white mb-6'>
-                Realm Portals
+                🌀 Realm Portals
               </h2>
 
-              {/* Realm Icons Grid */}
-              <div className='grid grid-cols-2 gap-6 mb-6'>
+              {user ? (
+                <div className='space-y-6'>
                 {Object.entries(REALM_CONFIGS).map(([realmId, config]) => (
+                    <div key={realmId} className='bg-black/20 rounded-lg p-4 border border-gray-600/30'>
                   <Link
-                    key={realmId}
                     to='/realm/$realmId'
                     params={{ realmId }}
-                    className='group'>
-                    <div className='relative'>
+                        className='flex items-center space-x-3 mb-3 group'>
                       <img
                         src={config.icon}
                         alt={config.name}
-                        className='w-full aspect-square object-contain group-hover:scale-110 transition-all duration-300 group-hover:drop-shadow-2xl'
-                      />
-                      <div className='absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg' />
-                      <div className='absolute bottom-2 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity'>
-                        <div className='text-white text-sm font-semibold drop-shadow-lg'>
-                          Enter Realm
+                          className='w-8 h-8 group-hover:scale-110 transition-transform'
+                        />
+                        <div>
+                          <div className='text-white font-semibold group-hover:text-amber-300 transition-colors'>
+                            {config.name.replace(' Academy', '')}
+                          </div>
+                          <div className='text-gray-400 text-xs'>
+                            {config.description}
+                          </div>
                         </div>
-                      </div>
+                      </Link>
+                      {renderRealmInputs(realmId as RealmKey)}
                     </div>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Books Portal */}
-              <Link
-                to='/books'
-                className='block p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:border-slate-500 hover:bg-slate-700/50 transition-all duration-200 group'>
-                <div className='flex items-center space-x-3'>
-                  <div className='w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform'>
-                    <img
-                      src='/assets/images/library.png'
-                      alt='Library'
-                      className='w-10 h-10 object-contain'
-                    />
-                  </div>
-                  <div>
-                    <div className='text-white font-semibold'>Library</div>
-                    <div className='text-gray-400 text-sm'>
-                      Browse Library
-                    </div>
-                  </div>
-                  <div className='ml-auto text-gray-500 group-hover:text-white transition-colors'>
-                    →
-                  </div>
+                  ))}
                 </div>
-              </Link>
+              ) : (
+                <div className='text-center py-8'>
+                  <p className='text-gray-400 mb-4'>
+                    Sign in to track activity and battle in the realms!
+                  </p>
+                  <Link
+                    to='/signin'
+                    className='px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors text-sm'>
+                    Sign In
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Book Search Modals for each realm */}
+        {Object.entries(realmInputs).map(([realmKey, inputs]) => {
+          const realm = realmKey as RealmKey
+          const searchResults = realmSearchQueries.data?.[realm] || []
+          const isSearching = realmSearchQueries.isLoading && debouncedSearchQueries[realm].length >= 3
+          
+          return inputs.isBookSearchOpen ? (
+            <div key={realm} className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4'>
+              <div className='bg-white rounded-lg max-w-md w-full max-h-[60vh] overflow-hidden'>
+                <div className='p-4 border-b'>
+                  <div className='flex items-center justify-between mb-3'>
+                    <h3 className='text-lg font-semibold text-gray-900'>
+                      Select a Book for {REALM_CONFIGS[realm].name.replace(' Academy', '')}
+                    </h3>
+                    <button
+                      onClick={() => updateRealmInput(realm, 'isBookSearchOpen', false)}
+                      className='text-gray-400 hover:text-gray-600'>
+                      <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                      </svg>
+                    </button>
+                  </div>
+                  <input
+                    type='text'
+                    value={inputs.bookSearchQuery}
+                    onChange={e => updateRealmInput(realm, 'bookSearchQuery', e.target.value)}
+                    placeholder='Search books by title or author...'
+                    className='w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500'
+                    autoFocus
+                  />
+                </div>
+                <div className='max-h-80 overflow-y-auto p-4'>
+                  {debouncedSearchQueries[realm].length < 3 ? (
+                    <div className='text-center py-8 text-gray-500'>
+                      <svg className='w-12 h-12 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+                      </svg>
+                      <p>Type at least 3 characters to search</p>
+                    </div>
+                  ) : isSearching ? (
+                    <div className='text-center py-8 text-gray-500'>
+                      <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4'></div>
+                      <p>Searching all books...</p>
+                    </div>
+                  ) : searchResults.length === 0 ? (
+                    <div className='text-center py-8 text-gray-500'>
+                      <svg className='w-12 h-12 mx-auto mb-4 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' />
+                      </svg>
+                      <p>No books found matching "{debouncedSearchQueries[realm]}"</p>
+                    </div>
+                  ) : (
+                    searchResults.map((book: Book) => (
+                      <div
+                        key={book.id}
+                        onClick={() => handleBookSelect(realm, book)}
+                        className='p-3 hover:bg-gray-100 cursor-pointer rounded-lg border-b border-gray-100 last:border-b-0'>
+                        <div className='font-medium text-gray-900'>
+                          {book.title || 'Untitled'}
+                        </div>
+                        <div className='text-sm text-gray-600'>
+                          {book.author?.name || 'Unknown Author'}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null
+        })}
       </div>
     </div>
   )

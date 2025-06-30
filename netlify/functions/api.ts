@@ -771,39 +771,76 @@ export const handler: Handler = async (event) => {
           // Calculate total bonus minutes that apply to all realms
           const totalBonusMinutes = bonusActivities.reduce((sum, bonus) => sum + bonus.minutes, 0);
 
+          // Create a map of realm boss IDs to realm names for writing activities
+          const realmBosses = await prisma.realmBoss.findMany({
+            select: { id: true, realm: true }
+          });
+          const bossIdToRealm = new Map<string, string>();
+          realmBosses.forEach(boss => {
+            bossIdToRealm.set(boss.id, boss.realm.toLowerCase());
+          });
+
           for (const activity of battleActivities) {
-            if (!activity.book?.tags) continue;
-            
             // Skip bonus activities from realm-specific categorization since they apply to all realms
             if (activity.isBonus) continue;
 
-            const bookTags = activity.book.tags.map(tag => tag.toLowerCase());
-            
-            // Check which realm this book belongs to based on tags
-            for (const [realmId, searchTerms] of Object.entries(REALM_SEARCH_TERMS)) {
-              const hasMatchingTag = searchTerms.some(term => 
-                bookTags.some(tag => 
-                  tag.includes(term.toLowerCase()) || 
-                  term.toLowerCase().includes(tag)
-                )
-              );
-              
-              if (hasMatchingTag) {
-                const realm = realmId as keyof typeof realmProgress;
-                realmProgress[realm] += activity.minutesRead;
-                
-                // Add or update book in the realm's book list
-                const existingBook = realmBooks[realm].find(book => book.bookId === activity.book!.id);
-                if (existingBook) {
-                  existingBook.minutes += activity.minutesRead;
-                } else {
-                  realmBooks[realm].push({
-                    bookId: activity.book!.id,
-                    title: activity.book!.title,
+            let realmAssigned = false;
+
+            // Handle writing activities (no book, but tied to specific realm boss)
+            if (activity.activityType === 'WRITING' && !activity.book) {
+              const realmName = bossIdToRealm.get(activity.realmBossId);
+              if (realmName) {
+                // Map realm names to our realm progress keys
+                const realmMapping = {
+                  'xianxia': 'cultivation',
+                  'gamelit': 'gamelit', 
+                  'apocalypse': 'apocalypse',
+                  'isekai': 'portal'
+                };
+                const realmKey = realmMapping[realmName as keyof typeof realmMapping];
+                if (realmKey) {
+                  realmProgress[realmKey as keyof typeof realmProgress] += activity.minutesRead;
+                  
+                  // Add writing activity to the realm's book list with special designation
+                  realmBooks[realmKey as keyof typeof realmBooks].push({
+                    bookId: 'writing-' + activity.id, // Special ID for writing activities
+                    title: `Writing (${activity.minutesRead} min)`,
                     minutes: activity.minutesRead
                   });
+                  realmAssigned = true;
                 }
-                break; // Only count towards one realm to avoid double counting
+              }
+            }
+            // Handle regular reading activities with book tags
+            else if (activity.book?.tags && !realmAssigned) {
+              const bookTags = activity.book.tags.map(tag => tag.toLowerCase());
+              
+              // Check which realm this book belongs to based on tags
+              for (const [realmId, searchTerms] of Object.entries(REALM_SEARCH_TERMS)) {
+                const hasMatchingTag = searchTerms.some(term => 
+                  bookTags.some(tag => 
+                    tag.includes(term.toLowerCase()) || 
+                    term.toLowerCase().includes(tag)
+                  )
+                );
+                
+                if (hasMatchingTag) {
+                  const realm = realmId as keyof typeof realmProgress;
+                  realmProgress[realm] += activity.minutesRead;
+                  
+                  // Add or update book in the realm's book list
+                  const existingBook = realmBooks[realm].find(book => book.bookId === activity.book!.id);
+                  if (existingBook) {
+                    existingBook.minutes += activity.minutesRead;
+                  } else {
+                    realmBooks[realm].push({
+                      bookId: activity.book!.id,
+                      title: activity.book!.title,
+                      minutes: activity.minutesRead
+                    });
+                  }
+                  break; // Only count towards one realm to avoid double counting
+                }
               }
             }
           }
