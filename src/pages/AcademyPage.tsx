@@ -770,9 +770,6 @@ export function AcademyPage() {
             <h1 className='text-4xl font-bold text-amber-100 mb-2'>
               🏛️ LitRPG Academy Classroom
             </h1>
-            <p className='text-amber-200/80'>
-              Track your progress across all realms
-            </p>
             {user && (
               <p className='text-amber-300 mt-2'>
                 Welcome back, Student {user.firstName}!
