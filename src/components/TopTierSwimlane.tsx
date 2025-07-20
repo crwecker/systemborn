@@ -50,7 +50,7 @@ export function TopTierSwimlane({
         }}>
         <div className='flex items-center justify-between mb-4'>
           <h3 className='text-xl font-bold' style={{ color: realmAccent }}>
-            ⭐ Community Top Picks
+            Community Top Picks
           </h3>
           <div className='animate-pulse bg-gray-600 h-8 w-20 rounded'></div>
         </div>
@@ -76,7 +76,7 @@ export function TopTierSwimlane({
           borderColor: `${realmAccent}40`,
         }}>
         <h3 className='text-xl font-bold mb-4' style={{ color: realmAccent }}>
-          ⭐ Community Top Picks
+          Community Top Picks
         </h3>
         <div className='text-center py-8 text-gray-400'>
           <p>Error loading community picks.</p>
@@ -95,7 +95,7 @@ export function TopTierSwimlane({
           borderColor: `${realmAccent}40`,
         }}>
         <h3 className='text-xl font-bold mb-4' style={{ color: realmAccent }}>
-          ⭐ Community Top Picks
+          Community Top Picks
         </h3>
         <div className='text-center py-8 text-gray-400'>
           <p>No top-tier books found yet.</p>
@@ -117,7 +117,7 @@ export function TopTierSwimlane({
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h3 className='text-xl font-bold' style={{ color: realmAccent }}>
-            ⭐ Community Top Picks
+            Community Top Picks
           </h3>
           <p className='text-xs mt-1 opacity-75' style={{ color: realmAccent }}>
             Books rated SSS, SS, or S by LitRPG Academy students

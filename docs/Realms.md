@@ -76,7 +76,7 @@ A balance of dystopia and digital menace:
 - **Highlight**: Blood Red (#d72638) – boss attacks, failure flashes
 - **Glitch Overlay**: Pale Lime (#c5ff56) – systemic interference
 
-### ⚔️ **New Apocalypse Boss: "Zereth, Dungeon Architect of the End"**
+### **New Apocalypse Boss: "Zereth, Dungeon Architect of the End"**
 - **Name**: Zereth, Dungeon Architect of the End
 - **Backstory**: When the System descended, Zereth arrived as its first herald — not to destroy, but to *reshape*. He terraforms cities into labyrinths, populates them with evolving monsters, and broadcasts “World Events” to test humanity. His goal: forge the strongest survivor to serve as his eternal rival.
 - **Appearance**: A regal figure with obsidian armor engraved in shifting runes, hovering slightly above the ground. His face is a blank mirror, reflecting the viewer's fears. Floating hex tiles and dungeon map pieces orbit him like a GM's toolkit.

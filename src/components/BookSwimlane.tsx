@@ -105,7 +105,7 @@ export function BookSwimlane({
         style={{ backgroundColor: `${realmColor}20` }}>
         <div className='flex items-center justify-between mb-4'>
           <h3 className='text-xl font-bold' style={{ color: realmAccent }}>
-            📚 Top {realmName} Books
+            Top {realmName} Books
           </h3>
           <div className='animate-pulse bg-gray-600 h-8 w-20 rounded'></div>
         </div>
@@ -128,7 +128,7 @@ export function BookSwimlane({
         className='mt-8 p-6 rounded-lg'
         style={{ backgroundColor: `${realmColor}20` }}>
         <h3 className='text-xl font-bold mb-4' style={{ color: realmAccent }}>
-          📚 Top {realmName} Books
+          Top {realmName} Books
         </h3>
         <div className='text-center py-8 text-gray-400'>
           <p>No books found for this realm yet.</p>
@@ -153,7 +153,7 @@ export function BookSwimlane({
       <div className='flex items-center justify-between mb-4'>
         <div>
           <h3 className='text-xl font-bold' style={{ color: realmAccent }}>
-            📚 Top {realmName} Books
+            Top {realmName} Books
           </h3>
           {realmTags.length > 0 && (
             <p
@@ -202,7 +202,7 @@ export function BookSwimlane({
               {book.rating > 0 && (
                 <div className='absolute bottom-2 left-2'>
                   <div className='bg-black/70 text-white px-2 py-1 rounded text-xs font-bold'>
-                    ⭐ {book.rating.toFixed(1)}
+                    {book.rating.toFixed(1)}
                   </div>
                 </div>
               )}
@@ -238,10 +238,10 @@ export function BookSwimlane({
                 (book.stats.followers > 0 || book.stats.favorites > 0) && (
                   <div className='flex items-center gap-2 mt-1 text-xs text-gray-500'>
                     {book.stats.followers > 0 && (
-                      <span>👥 {book.stats.followers.toLocaleString()}</span>
+                      <span>{book.stats.followers.toLocaleString()}</span>
                     )}
                     {book.stats.favorites > 0 && (
-                      <span>❤️ {book.stats.favorites.toLocaleString()}</span>
+                      <span>{book.stats.favorites.toLocaleString()}</span>
                     )}
                   </div>
                 )}

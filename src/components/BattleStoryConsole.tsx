@@ -172,17 +172,17 @@ export function BattleStoryConsole({
   const getEntryIcon = (entryType: string) => {
     switch (entryType) {
       case 'BOSS_INTRODUCTION':
-        return '🎭'
+        return 'I'
       case 'BATTLE_ACTION':
-        return '⚔️'
+        return 'B'
       case 'BOSS_DEFEAT':
-        return '💀'
+        return 'D'
       case 'BOSS_RESPAWN':
-        return '🔄'
+        return 'R'
       case 'MILESTONE':
-        return '🏆'
+        return 'M'
       default:
-        return '📜'
+        return 'S'
     }
   }
 
@@ -266,8 +266,8 @@ export function BattleStoryConsole({
               {selectedEntryIndex !== null
                 ? `📍 Point ${selectedEntryIndex + 1}/${timelineEntries.length}`
                 : autoScroll
-                  ? '🔄 Live'
-                  : '⏸️ Paused'}
+                  ? 'Live'
+                  : 'Paused'}
             </div>
           </div>
         </div>
@@ -279,7 +279,7 @@ export function BattleStoryConsole({
             style={{ borderColor: `${realmConfig.accent}40` }}>
             <div className='flex items-center justify-center space-x-6 text-xs'>
               <div className='flex items-center space-x-1'>
-                <span className='opacity-60'>📊 TODAY:</span>
+                <span className='opacity-60'>TODAY:</span>
                 <span
                   style={{ color: realmConfig.accent }}
                   className='font-bold'>
@@ -287,7 +287,7 @@ export function BattleStoryConsole({
                 </span>
               </div>
               <div className='flex items-center space-x-1'>
-                <span className='opacity-60'>👥</span>
+                <span className='opacity-60'>H</span>
                 <span
                   style={{ color: realmConfig.accent }}
                   className='font-bold'>
@@ -295,7 +295,7 @@ export function BattleStoryConsole({
                 </span>
               </div>
               <div className='flex items-center space-x-1'>
-                <span className='opacity-60'>📚</span>
+                <span className='opacity-60'>R</span>
                 <span
                   style={{ color: realmConfig.accent }}
                   className='font-bold'>
@@ -366,7 +366,7 @@ export function BattleStoryConsole({
 
         {(!storyData?.story || storyData.story.length === 0) && (
           <div className='text-center text-gray-400 py-8'>
-            <div className='text-2xl mb-2'>📜</div>
+            <div className='text-2xl mb-2'>S</div>
             <div>The battle chronicle awaits the first hero...</div>
           </div>
         )}

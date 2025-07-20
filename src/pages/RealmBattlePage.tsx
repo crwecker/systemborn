@@ -431,7 +431,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                   <div className='absolute inset-0 bg-black/80 flex items-center justify-center'>
                     <div className='text-center'>
                       <p className='text-yellow-400 text-2xl font-bold mb-2'>
-                        🎉 DEFEATED! 🎉
+                        DEFEATED!
                       </p>
                       <p className='text-white text-sm opacity-75'>
                         The boss will respawn soon...
@@ -452,14 +452,14 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
               <h3
                 className='text-lg font-bold mb-3 text-center'
                 style={{ color: realmConfig.accent }}>
-                ⚔️ Battle Interface
+                Battle Interface
               </h3>
 
               <div className='space-y-4'>
                 {/* Reading Section */}
                 <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
                   <div className='flex items-center gap-2 mb-2'>
-                    <span className='text-blue-400 text-lg'>📖</span>
+                    <span className='text-blue-400 text-lg'>R</span>
                     <span className='text-sm font-medium text-blue-300'>Reading/Listening</span>
                   </div>
                   
@@ -565,7 +565,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                 {/* Writing Section */}
                 <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
                   <div className='flex items-center gap-2 mb-2'>
-                    <span className='text-green-400 text-lg'>✍️</span>
+                    <span className='text-green-400 text-lg'>W</span>
                     <span className='text-sm font-medium text-green-300'>Writing</span>
                   </div>
                   

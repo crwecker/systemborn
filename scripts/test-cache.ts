@@ -2,7 +2,7 @@ import { prisma } from '../lib/prisma'
 import { getCachedBooksWithFallback, getCachedTagsWithFallback } from '../lib/cache-manager'
 
 async function testCache() {
-  console.log('🧪 Testing cache system...\n')
+  console.log('Testing cache system...\n')
 
   try {
     // Test 1: Get books with fallback
@@ -22,7 +22,7 @@ async function testCache() {
     console.log(`✅ Retrieved ${popularTags.length} popular tags and ${allTags.length} total tags`)
     console.log(`   Popular tags: ${popularTags.slice(0, 5).join(', ')}...`)
 
-    console.log('\n🎉 Cache system test completed successfully!')
+    console.log('\nCache system test completed successfully!')
     console.log('\nNote: If Redis is not configured, the system gracefully falls back to database queries.')
 
   } catch (error) {

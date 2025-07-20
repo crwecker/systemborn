@@ -626,7 +626,7 @@ export function BookDetailPage() {
                       : 'bg-blue-600 hover:bg-blue-700'
                   }`}>
                   {isAmazonBook ? (
-                    <>📚 View on Amazon</>
+                    <>View on Amazon</>
                   ) : (
                     <>
                       <svg
@@ -641,7 +641,7 @@ export function BookDetailPage() {
                           d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
                         />
                       </svg>
-                      📖 Read on Royal Road
+                      Read on Royal Road
                     </>
                   )}
                 </a>
@@ -660,7 +660,7 @@ export function BookDetailPage() {
                   {/* Draggable Book Poster */}
                   <div className='bg-slate/50 rounded-lg p-4 border border-copper/20'>
                     <div className='text-sm font-medium text-light-gray mb-3 text-center'>
-                      📖 Drag to Assign
+                      Drag to Assign
                     </div>
                     <div className='flex justify-center'>
                       <DraggableBookPoster book={book} bookId={bookId} />
@@ -671,7 +671,7 @@ export function BookDetailPage() {
                   <div className='bg-slate/50 rounded-lg p-4 border border-copper/20'>
                     <div>
                       <div className='text-sm font-medium text-light-gray mb-3'>
-                        ⭐ Assign to Tier
+                        Assign to Tier
                       </div>
 
                       {/* Tier List Display */}
@@ -710,7 +710,7 @@ export function BookDetailPage() {
                       </div>
 
                       <div className='text-xs text-medium-gray mt-3 text-center'>
-                        💡 Higher tiers (SSS, SS, S) are more exclusive with
+                        Higher tiers (SSS, SS, S) are more exclusive with
                         limited slots
                       </div>
 
@@ -871,7 +871,7 @@ export function BookDetailPage() {
               {user && (
                 <div className='mt-6 pt-6 border-t border-medium-gray'>
                   <h3 className='text-light-gray font-medium mb-3'>
-                    📚 Reading Status
+                    Reading Status
                   </h3>
                   <div className='grid grid-cols-3 gap-2'>
                     {Object.entries(READING_STATUS_CONFIG).map(

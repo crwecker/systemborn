@@ -162,7 +162,7 @@ async function handleMagicLink(event: any) {
                           border-radius: 8px; 
                           font-weight: bold;
                           font-size: 16px;">
-                  🔮 ${isNewUser ? 'Join' : 'Enter'} the Academy
+                  ${isNewUser ? 'Join' : 'Enter'} the Academy
                 </a>
               </div>
               
@@ -175,7 +175,7 @@ async function handleMagicLink(event: any) {
               </div>
               
               <div style="text-align: center; margin-top: 30px; color: #999; font-size: 14px;">
-                <p>Happy reading! 📚⚔️</p>
+                <p>Happy reading!</p>
                 <p>The LitRPG Academy Team</p>
               </div>
             </div>

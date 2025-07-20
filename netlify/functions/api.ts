@@ -142,13 +142,13 @@ function calculatePortalProgress(totalMinutes: number) {
 // Story generation system
 function generateBossIntroduction(realm: string, bossName: string): string {
   const introductions = {
-    XIANXIA: `🐲 The ancient temple trembles as ${bossName} awakens from his thousand-year slumber. His jade scales shimmer with celestial fire, and his golden eyes burn with the wisdom of eons. The Ancestor Dragon speaks: "Mortals dare to approach my domain? Your cultivation is insufficient... but perhaps your determination might prove interesting." The air crackles with tribulation lightning as the battle begins.`,
+    XIANXIA: `The ancient temple trembles as ${bossName} awakens from his thousand-year slumber. His jade scales shimmer with celestial fire, and his golden eyes burn with the wisdom of eons. The Ancestor Dragon speaks: "Mortals dare to approach my domain? Your cultivation is insufficient... but perhaps your determination might prove interesting." The air crackles with tribulation lightning as the battle begins.`,
     
-    GAMELIT: `💻 Reality glitches as ${bossName} materializes from corrupted code fragments. His form flickers between pixelated sprites and hyper-realistic renders. "INITIATING FINAL BOSS PROTOCOL..." his voice echoes with digital distortion. "ERROR: PLAYERS DETECTED. DEPLOYING COUNTERMEASURES. PREPARE FOR SYSTEM OVERRIDE." The arena transforms into a digital battleground where books become weapons of code.`,
+    GAMELIT: `Reality glitches as ${bossName} materializes from corrupted code fragments. His form flickers between pixelated sprites and hyper-realistic renders. "INITIATING FINAL BOSS PROTOCOL..." his voice echoes with digital distortion. "ERROR: PLAYERS DETECTED. DEPLOYING COUNTERMEASURES. PREPARE FOR SYSTEM OVERRIDE." The arena transforms into a digital battleground where books become weapons of code.`,
     
-    APOCALYPSE: `⚔️ The wasteland shudders as ${bossName} emerges from his reality-dungeon. Obsidian armor gleams with shifting runes, and floating hex tiles orbit around his imposing figure. "Welcome to my final test, survivors," his voice resonates like grinding stone. "You have read to strengthen yourselves. Now prove your worth in the crucible I have prepared. Only the strongest deserve to see the world's end."`,
+    APOCALYPSE: `The wasteland shudders as ${bossName} emerges from his reality-dungeon. Obsidian armor gleams with shifting runes, and floating hex tiles orbit around his imposing figure. "Welcome to my final test, survivors," his voice resonates like grinding stone. "You have read to strengthen yourselves. Now prove your worth in the crucible I have prepared. Only the strongest deserve to see the world's end."`,
     
-    ISEKAI: `✨ Dimensional rifts tear open as ${bossName} manifests across multiple planes simultaneously. Golden-white robes flutter with memories of ten thousand lives. "Another cycle begins," he intones, weapons from countless worlds materializing around him. "I have died and been reborn more times than stars in the sky. Your reading strengthens your souls... but will it be enough to face one who has mastered death itself?"`
+    ISEKAI: `Dimensional rifts tear open as ${bossName} manifests across multiple planes simultaneously. Golden-white robes flutter with memories of ten thousand lives. "Another cycle begins," he intones, weapons from countless worlds materializing around him. "I have died and been reborn more times than stars in the sky. Your reading strengthens your souls... but will it be enough to face one who has mastered death itself?"`
   };
   return introductions[realm as keyof typeof introductions] || `${bossName} appears, ready for battle!`;
 }
@@ -156,27 +156,27 @@ function generateBossIntroduction(realm: string, bossName: string): string {
 function generateBattleAction(realm: string, userName: string, damage: number, bookTitle?: string): string {
   const actionTemplates = {
     XIANXIA: [
-      `🔥 ${userName} channels their reading qi, dealing ${damage} spiritual damage! ${bookTitle ? `The wisdom from "${bookTitle}" enhances their cultivation!` : 'Their literary foundation grows stronger!'}`,
-      `⚡ Lightning tribulation strikes as ${userName} advances their reading realm by ${damage} points! ${bookTitle ? `"${bookTitle}" becomes their sacred text!` : 'The heavens acknowledge their dedication!'}`,
-      `🌟 ${userName} achieves breakthrough enlightenment, inflicting ${damage} dao damage! ${bookTitle ? `The insights from "${bookTitle}" pierce through illusion!` : 'Their comprehension deepens!'}`
+      `${userName} channels their reading qi, dealing ${damage} spiritual damage! ${bookTitle ? `The wisdom from "${bookTitle}" enhances their cultivation!` : 'Their literary foundation grows stronger!'}`,
+      `Lightning tribulation strikes as ${userName} advances their reading realm by ${damage} points! ${bookTitle ? `"${bookTitle}" becomes their sacred text!` : 'The heavens acknowledge their dedication!'}`,
+      `${userName} achieves breakthrough enlightenment, inflicting ${damage} dao damage! ${bookTitle ? `The insights from "${bookTitle}" pierce through illusion!` : 'Their comprehension deepens!'}`
     ],
     
     GAMELIT: [
-      `💾 ${userName} executes a critical read() function, dealing ${damage} data damage! ${bookTitle ? `Buffer overflow from "${bookTitle}" crashes enemy defenses!` : 'Memory allocation optimized!'}`,
-      `🎮 ${userName} exploits a narrative bug for ${damage} damage! ${bookTitle ? `"${bookTitle}" provides unlimited ammo cheat!` : 'System resources reallocated!'}`,
-      `⚡ ${userName} compiles ${damage} lines of story code! ${bookTitle ? `"${bookTitle}" library imported successfully!` : 'Debug mode activated!'}`
+      `${userName} executes a critical read() function, dealing ${damage} data damage! ${bookTitle ? `Buffer overflow from "${bookTitle}" crashes enemy defenses!` : 'Memory allocation optimized!'}`,
+      `${userName} exploits a narrative bug for ${damage} damage! ${bookTitle ? `"${bookTitle}" provides unlimited ammo cheat!` : 'System resources reallocated!'}`,
+      `${userName} compiles ${damage} lines of story code! ${bookTitle ? `"${bookTitle}" library imported successfully!` : 'Debug mode activated!'}`
     ],
     
     APOCALYPSE: [
-      `💀 ${userName} survives another chapter, gaining ${damage} experience points! ${bookTitle ? `"${bookTitle}" serves as their survival guide!` : 'Wasteland wisdom acquired!'}`,
-      `🔥 ${userName} scavenges ${damage} knowledge fragments from the literary wasteland! ${bookTitle ? `"${bookTitle}" reveals hidden cache locations!` : 'Resources secured!'}`,
-      `⚔️ ${userName} adapts and overcomes, dealing ${damage} survivor damage! ${bookTitle ? `Tactics from "${bookTitle}" prove effective!` : 'Evolution through adversity!'}`
+      `${userName} survives another chapter, gaining ${damage} experience points! ${bookTitle ? `"${bookTitle}" serves as their survival guide!` : 'Wasteland wisdom acquired!'}`,
+      `${userName} scavenges ${damage} knowledge fragments from the literary wasteland! ${bookTitle ? `"${bookTitle}" reveals hidden cache locations!` : 'Resources secured!'}`,
+      `${userName} adapts and overcomes, dealing ${damage} survivor damage! ${bookTitle ? `Tactics from "${bookTitle}" prove effective!` : 'Evolution through adversity!'}`
     ],
     
     ISEKAI: [
-      `✨ ${userName} draws power from their past life memories, dealing ${damage} reincarnation damage! ${bookTitle ? `"${bookTitle}" unlocks hidden abilities!` : 'Soul strength increases!'}`,
-      `🌀 ${userName} channels otherworldly knowledge for ${damage} isekai damage! ${bookTitle ? `"${bookTitle}" bridges dimensional wisdom!` : 'Reality bends to their will!'}`,
-      `👑 ${userName} levels up their protagonist powers, inflicting ${damage} main character damage! ${bookTitle ? `"${bookTitle}" becomes their legendary artifact!` : 'Destiny alignment achieved!'}`
+      `${userName} draws power from their past life memories, dealing ${damage} reincarnation damage! ${bookTitle ? `"${bookTitle}" unlocks hidden abilities!` : 'Soul strength increases!'}`,
+      `${userName} channels otherworldly knowledge for ${damage} isekai damage! ${bookTitle ? `"${bookTitle}" bridges dimensional wisdom!` : 'Reality bends to their will!'}`,
+      `${userName} levels up their protagonist powers, inflicting ${damage} main character damage! ${bookTitle ? `"${bookTitle}" becomes their legendary artifact!` : 'Destiny alignment achieved!'}`
     ]
   };
   
@@ -189,12 +189,12 @@ function generateBattleAction(realm: string, userName: string, damage: number, b
 
 function generateMilestone(realm: string, milestone: string): string {
   const milestoneTemplates = {
-    XIANXIA: `🏆 The heavens tremble! ${milestone} A celestial tribulation acknowledges this achievement!`,
-    GAMELIT: `🎯 ACHIEVEMENT UNLOCKED: ${milestone} +1000 XP to all participants!`,
-    APOCALYPSE: `📡 BROADCAST: ${milestone} All survivors gain morale boost!`,
-    ISEKAI: `🌟 DIVINE BLESSING: ${milestone} The gods smile upon your efforts!`
+    XIANXIA: `The heavens tremble! ${milestone} A celestial tribulation acknowledges this achievement!`,
+    GAMELIT: `ACHIEVEMENT UNLOCKED: ${milestone} +1000 XP to all participants!`,
+    APOCALYPSE: `BROADCAST: ${milestone} All survivors gain morale boost!`,
+    ISEKAI: `DIVINE BLESSING: ${milestone} The gods smile upon your efforts!`
   };
-  return milestoneTemplates[realm as keyof typeof milestoneTemplates] || `🎉 ${milestone}`;
+  return milestoneTemplates[realm as keyof typeof milestoneTemplates] || `${milestone}`;
 }
 
 async function addStoryEntry(realmBossId: string, entryType: string, content: string, metadata: any = {}) {
@@ -1183,12 +1183,12 @@ export const handler: Handler = async (event) => {
             if (shouldRespawn) {
               // Add defeat story entry
               const defeatContent = realmName.toUpperCase() === 'XIANXIA' ? 
-                `🏆 ${boss.name} roars in acknowledgment! "Impressive, mortals! Your combined reading cultivation has earned my respect. But do not grow complacent... I shall return stronger!" The dragon's form dissolves into golden light, only to reform moments later with renewed power.` :
+                `${boss.name} roars in acknowledgment! "Impressive, mortals! Your combined reading cultivation has earned my respect. But do not grow complacent... I shall return stronger!" The dragon's form dissolves into golden light, only to reform moments later with renewed power.` :
                 realmName.toUpperCase() === 'GAMELIT' ?
-                `💀 SYSTEM MESSAGE: BOSS DEFEATED! ${boss.name} fragmentes into data particles. "RESPAWN PROTOCOL INITIATED... DIFFICULTY INCREASED... PATCH NOTES: Players too strong, buffing boss AI..." Reality reconstructs as the boss returns with updated parameters.` :
+                `SYSTEM MESSAGE: BOSS DEFEATED! ${boss.name} fragmentes into data particles. "RESPAWN PROTOCOL INITIATED... DIFFICULTY INCREASED... PATCH NOTES: Players too strong, buffing boss AI..." Reality reconstructs as the boss returns with updated parameters.` :
                 realmName.toUpperCase() === 'APOCALYPSE' ?
-                `☠️ ${boss.name} falls to one knee, his reality-dungeon crumbling! "Well fought, survivors. You have passed this trial. But the wasteland is eternal, and so am I..." His form disperses into shadows before reforming with renewed determination.` :
-                `⚡ ${boss.name} smiles as his forms across dimensions fade! "Death is but another doorway for one such as I. Your reading has strengthened your souls admirably..." Space-time ripples as he reincarnates instantly, ready for the next cycle.`;
+                `${boss.name} falls to one knee, his reality-dungeon crumbling! "Well fought, survivors. You have passed this trial. But the wasteland is eternal, and so am I..." His form disperses into shadows before reforming with renewed determination.` :
+                `${boss.name} smiles as his forms across dimensions fade! "Death is but another doorway for one such as I. Your reading has strengthened your souls admirably..." Space-time ripples as he reincarnates instantly, ready for the next cycle.`;
               
               await addStoryEntry(boss.id, 'BOSS_DEFEAT', defeatContent, {
                 defeatedAt: new Date(),

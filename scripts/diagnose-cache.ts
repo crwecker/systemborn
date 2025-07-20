@@ -2,7 +2,7 @@ import { redis, CACHE_KEYS, shouldRefreshCache, getCachedBooks, getCachedAmazonB
 import { refreshCache } from '../lib/cache-manager'
 
 async function diagnoseCache() {
-  console.log('🔍 Redis Cache Diagnostics\n')
+  console.log('Redis Cache Diagnostics\n')
 
   // Test 1: Check Redis connection
   console.log('1. Testing Redis Connection...')
@@ -67,17 +67,17 @@ async function diagnoseCache() {
       getCachedAllTags()
     ])
 
-    console.log(`   📚 Royal Road Books: ${books?.length || 0} books`)
-    console.log(`   🛒 Amazon Books: ${amazonBooks?.length || 0} books`)
-    console.log(`   🏷️  Popular Tags: ${popularTags?.length || 0} tags`)
-    console.log(`   📋 All Tags: ${allTags?.length || 0} tags`)
+    console.log(`   Royal Road Books: ${books?.length || 0} books`)
+    console.log(`   Amazon Books: ${amazonBooks?.length || 0} books`)
+    console.log(`   Popular Tags: ${popularTags?.length || 0} tags`)
+    console.log(`   All Tags: ${allTags?.length || 0} tags`)
 
     if (books && books.length > 0) {
       const topBooks = books
         .sort((a, b) => (b.stats?.followers || 0) - (a.stats?.followers || 0))
         .slice(0, 3)
       
-      console.log('\n   📊 Top books by followers:')
+      console.log('\n   Top books by followers:')
       topBooks.forEach((book, i) => {
         console.log(`      ${i + 1}. "${book.title}" - ${book.stats?.followers || 0} followers`)
       })
@@ -95,7 +95,7 @@ async function diagnoseCache() {
     if (lastUpdate) {
       const lastUpdateTime = new Date(parseInt(lastUpdate as string))
       const age = (Date.now() - lastUpdateTime.getTime()) / 1000 / 60 // minutes
-      console.log(`   🕐 Cache age: ${age.toFixed(1)} minutes`)
+      console.log(`   Cache age: ${age.toFixed(1)} minutes`)
       console.log(`   ${needsRefresh ? '🔄' : '✅'} Needs refresh: ${needsRefresh}`)
     } else {
       console.log('   ❌ No cache timestamp found')
@@ -113,12 +113,12 @@ async function diagnoseCache() {
     const books = await getCachedBooks()
     const duration = Date.now() - start
     
-    console.log(`   ⚡ Retrieved ${books?.length || 0} books in ${duration}ms`)
+    console.log(`   Retrieved ${books?.length || 0} books in ${duration}ms`)
     
     if (duration < 100) {
       console.log('   ✅ Cache performance: EXCELLENT (< 100ms)')
     } else if (duration < 500) {
-      console.log('   ⚠️  Cache performance: GOOD (< 500ms)')
+      console.log('   Cache performance: GOOD (< 500ms)')
     } else {
       console.log('   ❌ Cache performance: SLOW (> 500ms) - May indicate cache miss')
     }
@@ -140,7 +140,7 @@ async function diagnoseCache() {
     keyNames.forEach((name, index) => {
       const ttl = ttls[index]
       if (ttl === -1) {
-        console.log(`   ⚠️  ${name}: No expiration set`)
+        console.log(`   ${name}: No expiration set`)
       } else if (ttl === -2) {
         console.log(`   ❌ ${name}: Key doesn't exist`)
       } else {
@@ -152,7 +152,7 @@ async function diagnoseCache() {
     console.log('❌ Error checking TTL:', error)
   }
 
-  console.log('\n🎉 Cache diagnostics completed!')
+  console.log('\nCache diagnostics completed!')
 }
 
 diagnoseCache().catch(console.error) 

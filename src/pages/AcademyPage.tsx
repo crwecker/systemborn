@@ -251,13 +251,13 @@ export function AcademyPage() {
     return (
       <div className="bg-black/30 rounded-lg p-4 mt-3 space-y-4">
         <div className="text-sm font-medium text-white mb-3">
-          📈 Track Activity Minutes
+          Track Activity Minutes
         </div>
         
         {/* Reading input with book search */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-blue-400 text-lg">📖</span>
+            <span className="text-blue-400 text-lg">R</span>
             <span className="text-blue-300 text-sm font-medium">Reading/Listening</span>
           </div>
           
@@ -317,7 +317,7 @@ export function AcademyPage() {
         {/* Writing input */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-green-400 text-lg">✍️</span>
+            <span className="text-green-400 text-lg">W</span>
             <span className="text-green-300 text-sm font-medium">Writing</span>
           </div>
           
@@ -361,7 +361,7 @@ export function AcademyPage() {
           onClick={() => toggleRealmExpansion(realmId)}
           className='flex items-center justify-between w-full text-xs text-gray-400 hover:text-gray-300 transition-colors'
         >
-          <span>📚 {totalBooks} book{totalBooks === 1 ? '' : 's'} read ({totalMinutes} min)</span>
+          <span>{totalBooks} book{totalBooks === 1 ? '' : 's'} read ({totalMinutes} min)</span>
           <span className={`transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
             ▼
           </span>
@@ -399,14 +399,14 @@ export function AcademyPage() {
     }
 
     const activityTypeIcons = {
-      'Marked Book as Read or Reading': '📖',
-      'Review': '⭐',
-      'First S Tier': '🥉',
-      'Boss Victory': '⚔️',
-      'First SS Tier': '🥈', 
-      'First SSS Tier': '🥇',
-      'Writing': '✍️',
-      'Bonus': '✨'
+      'Marked Book as Read or Reading': 'R',
+      'Review': 'S',
+      'First S Tier': '3',
+      'Boss Victory': 'B',
+      'First SS Tier': '2', 
+      'First SSS Tier': '1',
+      'Writing': 'W',
+      'Bonus': '*'
     }
 
     const activityTypeColors = {
@@ -424,7 +424,7 @@ export function AcademyPage() {
       <div className='bg-purple-900/30 border border-purple-500/50 rounded-lg p-4 mb-6'>
         <div className='flex items-center justify-between mb-3'>
           <div className='flex items-center space-x-2'>
-            <span className='text-purple-400'>🏆</span>
+            <span className='text-purple-400'>A</span>
             <h3 className='text-lg font-bold text-purple-200'>
               Bonus Achievements
             </h3>
@@ -457,7 +457,7 @@ export function AcademyPage() {
               >
                 <div className='flex items-center space-x-3'>
                   <span className='text-lg'>
-                    {activityTypeIcons[activity.activityType as keyof typeof activityTypeIcons] || '✨'}
+                    {activityTypeIcons[activity.activityType as keyof typeof activityTypeIcons] || '*'}
                   </span>
                   <div>
                     <div className={`text-sm font-medium ${activityTypeColors[activity.activityType as keyof typeof activityTypeColors] || 'text-purple-400'}`}>
@@ -487,7 +487,7 @@ export function AcademyPage() {
     const allBonusActivities = [
       {
         type: 'Marked Book as Read or Reading',
-        icon: '📖',
+        icon: 'R',
         color: 'text-blue-400',
         minutes: 15,
         description: 'Mark any book as "Read" or "Reading"',
@@ -495,7 +495,7 @@ export function AcademyPage() {
       },
       {
         type: 'Review',
-        icon: '⭐',
+        icon: 'S',
         color: 'text-yellow-400', 
         minutes: 30,
         description: 'Write a review for any book',
@@ -503,7 +503,7 @@ export function AcademyPage() {
       },
       {
         type: 'First S Tier',
-        icon: '🥉',
+        icon: '3',
         color: 'text-amber-400',
         minutes: 45,
         description: 'Assign your first S tier rating',
@@ -511,7 +511,7 @@ export function AcademyPage() {
       },
       {
         type: 'Boss Victory',
-        icon: '⚔️',
+        icon: 'B',
         color: 'text-red-400',
         minutes: 60,
         description: 'Participate in defeating a realm boss',
@@ -519,7 +519,7 @@ export function AcademyPage() {
       },
       {
         type: 'First SS Tier',
-        icon: '🥈',
+        icon: '2',
         color: 'text-gray-300',
         minutes: 75,
         description: 'Assign your first SS tier rating',
@@ -527,7 +527,7 @@ export function AcademyPage() {
       },
       {
         type: 'First SSS Tier',
-        icon: '🥇',
+        icon: '1',
         color: 'text-yellow-500',
         minutes: 120,
         description: 'Assign your first SSS tier rating',
@@ -535,7 +535,7 @@ export function AcademyPage() {
       },
       {
         type: 'Writing',
-        icon: '✍️',
+        icon: 'W',
         color: 'text-green-400',
         minutes: '1:1',
         description: 'Write content for a specific realm (1 min written = 1 min XP)',
@@ -551,7 +551,7 @@ export function AcademyPage() {
     return (
       <div className='bg-slate-800/50 rounded-lg border border-slate-700 p-6 mb-6'>
         <div className='flex items-center space-x-2 mb-4'>
-          <span className='text-2xl'>🎯</span>
+          <span className='text-2xl'>G</span>
           <h3 className='text-xl font-bold text-white'>
             Bonus Experience Guide
           </h3>
@@ -602,7 +602,7 @@ export function AcademyPage() {
 
         <div className='mt-4 p-3 bg-amber-900/30 border border-amber-500/50 rounded-lg'>
           <div className='flex items-center space-x-2 mb-1'>
-            <span className='text-amber-400'>💡</span>
+            <span className='text-amber-400'>T</span>
             <span className='text-amber-200 text-sm font-medium'>Pro Tip:</span>
           </div>
           <div className='text-amber-200 text-xs'>
@@ -768,7 +768,7 @@ export function AcademyPage() {
         <div className='container mx-auto px-4 py-6'>
           <div className='text-center'>
             <h1 className='text-4xl font-bold text-amber-100 mb-2'>
-              🏛️ LitRPG Academy Classroom
+              LitRPG Academy Classroom
             </h1>
             {user && (
               <p className='text-amber-300 mt-2'>
@@ -806,7 +806,7 @@ export function AcademyPage() {
                     {/* Then show explanations and details */}
                     <div className='bg-green-900/30 border border-green-500/50 rounded-lg p-3 mb-6'>
                       <div className='flex items-center space-x-2'>
-                        <span className='text-green-400'>✨</span>
+                        <span className='text-green-400'>*</span>
                         <p className='text-green-200 text-sm'>
                           <strong>Real Progress:</strong> Your advancement is calculated from {userRealmProgress.totalMinutes} total minutes of reading, listening, and writing across all genres!
                           {userRealmProgress.totalBonusMinutes > 0 && (
@@ -849,7 +849,7 @@ export function AcademyPage() {
           <div className='lg:col-span-1'>
             <div className='bg-slate-800/50 rounded-lg border border-slate-700 p-6'>
               <h2 className='text-2xl font-bold text-white mb-6'>
-                🌀 Realm Portals
+                Realm Portals
               </h2>
 
               {user ? (
