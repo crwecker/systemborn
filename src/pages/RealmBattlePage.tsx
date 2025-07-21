@@ -120,10 +120,10 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
   // Map new realm IDs to legacy database realm IDs for API compatibility
   const getApiRealmId = (frontendRealmId: string): string => {
     const realmMapping: Record<string, string> = {
-      'cultivation': 'xianxia',
-      'portal': 'isekai',
-      'gamelit': 'gamelit',
-      'apocalypse': 'apocalypse'
+      cultivation: 'xianxia',
+      portal: 'isekai',
+      gamelit: 'gamelit',
+      apocalypse: 'apocalypse',
     }
     return realmMapping[frontendRealmId] || frontendRealmId
   }
@@ -309,11 +309,14 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
     mutationFn: async ({ minutes }: { minutes: number }) => {
       const response = await fetch('/.netlify/functions/user-api/writing', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('authToken')}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+        },
         body: JSON.stringify({
           realmName: apiRealmId.toUpperCase(),
-          minutes: minutes
-        })
+          minutes: minutes,
+        }),
       })
       if (!response.ok) throw new Error('Writing submission failed')
       return response.json()
@@ -393,7 +396,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                     </h2>
                     {isViewingTimeline && (
                       <p className='text-blue-300 text-sm drop-shadow-lg'>
-                        📍 Historical view
+                        Historical view
                       </p>
                     )}
                   </div>
@@ -459,10 +462,11 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                 {/* Reading Section */}
                 <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
                   <div className='flex items-center gap-2 mb-2'>
-                    <span className='text-blue-400 text-lg'>R</span>
-                    <span className='text-sm font-medium text-blue-300'>Reading/Listening</span>
+                    <span className='text-sm font-medium text-blue-300'>
+                      Reading/Listening
+                    </span>
                   </div>
-                  
+
                   <div>
                     <label className='block text-xs font-medium mb-1'>
                       Minutes Read
@@ -565,10 +569,11 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                 {/* Writing Section */}
                 <div className='space-y-3 p-3 bg-black/20 rounded-lg'>
                   <div className='flex items-center gap-2 mb-2'>
-                    <span className='text-green-400 text-lg'>W</span>
-                    <span className='text-sm font-medium text-green-300'>Writing</span>
+                    <span className='text-sm font-medium text-green-300'>
+                      Writing
+                    </span>
                   </div>
-                  
+
                   <div>
                     <label className='block text-xs font-medium mb-1'>
                       Minutes Written
@@ -611,7 +616,7 @@ export function RealmBattlePage({ realmId }: RealmBattlePageProps) {
                       ? 'Writing...'
                       : `Deal ${minutesWritten || 0} Writing Damage!`}
                   </button>
-                  
+
                   <div className='text-xs text-green-300 opacity-75'>
                     Fan fiction, reviews, analysis, world-building notes, etc.
                   </div>

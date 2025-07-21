@@ -172,9 +172,9 @@ export function BattleStoryConsole({
   const getEntryIcon = (entryType: string) => {
     switch (entryType) {
       case 'BOSS_INTRODUCTION':
-        return 'I'
+        return 'Intro'
       case 'BATTLE_ACTION':
-        return 'B'
+        return 'Battle'
       case 'BOSS_DEFEAT':
         return 'D'
       case 'BOSS_RESPAWN':
@@ -287,7 +287,6 @@ export function BattleStoryConsole({
                 </span>
               </div>
               <div className='flex items-center space-x-1'>
-                <span className='opacity-60'>H</span>
                 <span
                   style={{ color: realmConfig.accent }}
                   className='font-bold'>
@@ -295,7 +294,6 @@ export function BattleStoryConsole({
                 </span>
               </div>
               <div className='flex items-center space-x-1'>
-                <span className='opacity-60'>R</span>
                 <span
                   style={{ color: realmConfig.accent }}
                   className='font-bold'>
@@ -338,7 +336,6 @@ export function BattleStoryConsole({
               <span className='text-gray-400 text-xs min-w-[50px]'>
                 {formatTimestamp(entry.createdAt)}
               </span>
-              <span className='text-lg'>{getEntryIcon(entry.entryType)}</span>
               <div className='flex-1'>
                 <div
                   className={`${
@@ -366,7 +363,6 @@ export function BattleStoryConsole({
 
         {(!storyData?.story || storyData.story.length === 0) && (
           <div className='text-center text-gray-400 py-8'>
-            <div className='text-2xl mb-2'>S</div>
             <div>The battle chronicle awaits the first hero...</div>
           </div>
         )}
